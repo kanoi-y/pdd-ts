@@ -1,5 +1,5 @@
 id: HONO-AUTH-001
-revision: 1
+revision: 2
 title: Decide administrator eligibility from trusted identity
 intent: The pure decision returns true if and only if the validated server-side
   identity is an administrator with successful authentication. The HTTP route

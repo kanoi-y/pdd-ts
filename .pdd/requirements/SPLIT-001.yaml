@@ -1,5 +1,5 @@
 id: SPLIT-001
-revision: 1
+revision: 2
 title: Split nonnegative units without loss
 intent: Clamp the first share to the available total and preserve every unit.
   The public facade accepts only nonnegative decimal strings of at most 256

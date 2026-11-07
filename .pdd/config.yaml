@@ -40,6 +40,7 @@ testTargets:
       - tests/integration/contracts.test.ts
       - tests/integration/doctor.test.ts
       - tests/integration/provenance.test.ts
+      - tests/integration/publisher.test.ts
       - tests/integration/review-card.test.ts
       - tests/integration/spec.test.ts
       - tests/unit/dafny-log.test.ts
@@ -152,6 +153,7 @@ testTargets:
       - tests/integration/contracts.test.ts
       - tests/integration/doctor.test.ts
       - tests/integration/provenance.test.ts
+      - tests/integration/publisher.test.ts
       - tests/integration/review-card.test.ts
       - tests/integration/spec.test.ts
       - tests/unit/dafny-log.test.ts
@@ -536,6 +538,8 @@ testTargets:
         snapshots and decreasing revisions even with unchanged human text
       - DEMO-001 binds both sample contracts, premises and runtime boundaries
         into the protected specification
+      - CI-007 restores verification artifacts exclusively without precreating
+        or overwriting evidence
 boundaries:
   - id: dafny-z3-verification
     callerFiles:

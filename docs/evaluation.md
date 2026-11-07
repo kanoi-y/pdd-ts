@@ -35,3 +35,14 @@ There is one observation per fixture, with order counterbalanced across fixtures
 this is not a statistical speed comparison or a measurement of human setup effort.
 Direct command count describes this scripted workflow, not universal user effort.
 Human understanding, review quality and maintenance-effort comparisons remain pending.
+
+## Actual maintainer feedback
+
+The maintainer personally approved the initial specification but reported that the
+Japanese PR body was too difficult to understand and needed improvement. This is
+negative qualitative feedback about readability, not a successful understanding
+or cognitive-load evaluation. Reading time, comprehension answers and matched
+setup/update/maintenance comparisons were not supplied. Preserve the distinction
+between code/specification approval and evidence that the review presentation is
+useful. A concise statement of the current change and required decisions should
+precede complete drill-down data in the next iteration.
