@@ -16,8 +16,27 @@
     - CORE-003
     - CORE-004
     - DEMO-001
+    - HONO-AUTH-001
     - SPEC-001
     - SPEC-002
+    - SPLIT-001
   kind: test
   scope: pdd-ts runtime and CLI
   contractIds: []
+- id: HONO-AUTH-001-PROOF
+  requirementIds:
+    - HONO-AUTH-001
+  kind: source-proof
+  scope: examples/existing-hono/src/domain/auth.ts#canIssueAdminToken
+  contractIds:
+    - HONO-AUTH-001-C1
+- id: SPLIT-001-PROOF
+  requirementIds:
+    - SPLIT-001
+  kind: source-proof
+  scope: examples/greenfield-domain/src/domain/split.ts#split
+  contractIds:
+    - SPLIT-001-C1
+    - SPLIT-001-C2
+    - SPLIT-001-C3
+    - SPLIT-001-C4

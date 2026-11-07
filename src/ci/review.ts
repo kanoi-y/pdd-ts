@@ -35,38 +35,38 @@ export function renderHumanReviewCard(input:ReviewCardInput):string {
   const diff=compareSpecs(baseline,head);
   if(!diff.valid) throw new Error(diff.errors.join('; '));
   const lines=[
-    '# Review the complete PDD specification',
+    '# PDDの全仕様のレビュー',
     '',
-    '**Human approval: pending.** This Bot-authored PR requests a personal GitHub review; no review has been submitted by this workflow.',
+    '**人間の承認：未完了。** このBot作成PRでは、ご本人によるGitHubレビューを依頼しています。このワークフローは承認を投稿していません。',
     '',
-    'Confirm the current PR head equals the full head below before reviewing. A changed head requires a newly prepared card and an exact-head review.',
+    'レビュー前に、現在のPR先頭コミットが下記の対象コミットと一致することを確認してください。コミットが変わった場合はカードを再生成し、そのコミットに対して再レビューします。',
     '',
-    `Base commit: ${baseSha}`,
-    `Head commit: ${headSha}`,
-    `Base specDigest: ${baseline.digest}`,
-    `Head specDigest: ${head.digest}`,
+    `基準コミット： ${baseSha}`,
+    `対象コミット： ${headSha}`,
+    `基準の仕様ダイジェスト： ${baseline.digest}`,
+    `対象の仕様ダイジェスト： ${head.digest}`,
     '',
-    `[Pinned configuration](${sourceUrl(repository,headSha,'.pdd/config.yaml')}) · [Pinned obligations](${sourceUrl(repository,headSha,'.pdd/obligations.yaml')}) · [Pinned model profile](${sourceUrl(repository,headSha,'lemmascript.json')})`,
+    `[対象コミットの設定](${sourceUrl(repository,headSha,'.pdd/config.yaml')}) · [対象コミットの必須検証一覧](${sourceUrl(repository,headSha,'.pdd/obligations.yaml')}) · [対象コミットの意味論プロファイル](${sourceUrl(repository,headSha,'lemmascript.json')})`,
     '',
-    'A source proof is conditional on the extracted premises, declared profile and trusted toolchain. Tests are empirical evidence for executed cases. This card executes neither candidate code nor candidate tests and supplies no proof, CI attestation or external human approval.',
+    'ソース証明は、抽出した前提・宣言した意味論プロファイル・信頼するツールチェーンという前提の下で成立します。テストは、実行したケースについての経験的な証拠です。このカード自体は候補コードやテストを実行せず、証明・CI署名・人間承認の証拠にはなりません。',
     '',
-    `## Requirements (${head.metadata.requirements.length})`,
+    `## 要件（${head.metadata.requirements.length}件）`,
   ];
   for(const requirement of [...head.metadata.requirements].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0)) {
-    lines.push('',`<h3>${text(requirement.id)} — revision ${requirement.revision}</h3>`,block(requirement.title),block(requirement.intent),
-      `[Pinned target](${sourceUrl(repository,headSha,requirement.target.file)})`,
+    lines.push('',`<h3>${text(requirement.id)} — 改訂 ${requirement.revision}</h3>`,block(requirement.title),block(requirement.intent),
+      `[対象コミットの実装](${sourceUrl(repository,headSha,requirement.target.file)})`,
       block({risk:requirement.risk,target:requirement.target,contracts:requirement.contracts,acceptance:requirement.acceptance,trustedBoundaries:requirement.trustedBoundaries}));
   }
-  lines.push('','## All extracted source contracts');
+  lines.push('','## 抽出したすべてのソース契約');
   for(const entry of [...head.contracts].sort((a,b)=>a.scope<b.scope?-1:a.scope>b.scope?1:0)) {
     const file=entry.scope.slice(0,entry.scope.lastIndexOf('#'));
-    lines.push('',block(entry.scope),`[Pinned source](${sourceUrl(repository,headSha,file)})`,block(entry.declaration));
+    lines.push('',block(entry.scope),`[対象コミットのソース](${sourceUrl(repository,headSha,file)})`,block(entry.declaration));
   }
-  lines.push('','## Assumptions and runtime boundaries',block(head.metadata.config.approvedAssumptions),block(head.metadata.config.boundaries),
-    '', '## Model configuration and proof targets',block(head.metadata.modelConfig),block(head.metadata.config.targets),
-    '', '## Required evidence and empirical scope',block(head.metadata.obligations),block(head.metadata.config.testTargets.map(target=>({obligationId:target.obligationId,files:target.files,inputs:target.inputs,requiredCaseCount:target.requiredTests.length}))),
-    '', '## Specification transition',block(diff),'',
-    'Use GitHub’s review interface personally. Approval is checked later against the immutable head, allowlisted human identity and independently recomputed specification digest. This PR body is a review aid, never an approval record.','');
+  lines.push('','## 前提・仮定と実行時の信頼境界',block(head.metadata.config.approvedAssumptions),block(head.metadata.config.boundaries),
+    '', '## モデル設定と証明対象',block(head.metadata.modelConfig),block(head.metadata.config.targets),
+    '', '## 必須の証拠とテスト範囲',block(head.metadata.obligations),block(head.metadata.config.testTargets.map(target=>({obligationId:target.obligationId,files:target.files,inputs:target.inputs,requiredCaseCount:target.requiredTests.length}))),
+    '', '## 基準からの仕様変更',block(diff),'',
+    'GitHubのレビュー画面から、ご本人としてレビューしてください。承認は後続処理で、対象コミット・許可された本人のID・独立に再計算した仕様ダイジェストに照合されます。このPR本文はレビューの補助資料であり、承認記録ではありません。','');
   const card=lines.join('\n');
   if(Buffer.byteLength(card,'utf8')>60000) throw new Error('Complete review card exceeds the bounded PR body size; do not truncate the specification');
   return card;
@@ -121,7 +121,7 @@ export async function prepareHumanReview(root:string,dependencies:ReviewDependen
     const bodyFile=path.join(temporary,'review.md');
     await writeFile(bodyFile,body,{flag:'wx',mode:0o600});
     const config=path.join(temporary,'gh'); await mkdir(config);
-    const publication=await run('gh',['pr','create','--repo',repository,'--base','main','--head',headBranch,'--title','Review the complete PDD specification','--body-file',bodyFile],{
+    const publication=await run('gh',['pr','create','--repo',repository,'--base','main','--head',headBranch,'--title','PDDの全仕様をレビューする','--body-file',bodyFile],{
       cwd:root,timeoutMs:30000,maxOutputBytes:16384,
       env:{GH_TOKEN:environment.GH_TOKEN,GH_HOST:'github.com',GH_PROMPT_DISABLED:'1',GH_CONFIG_DIR:config},redact:[environment.GH_TOKEN],
     });

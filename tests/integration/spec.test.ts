@@ -67,3 +67,25 @@ it('SPEC-002 rejects oversized source before launching contract extraction',asyn
  const {root}=await fixture(); await writeFile(path.join(root,'src/auth.ts'),' '.repeat(1_048_577));
  await expect(extractDeclaredContracts(root,{file:'src/auth.ts',symbol:'canIssueAdminToken'})).rejects.toThrow(/oversized/);
 });
+
+it('DEMO-001 binds both sample contracts, premises and runtime boundaries into the protected specification',async()=>{
+ const {fileURLToPath}=await import('node:url');
+ const project=await loadProject(fileURLToPath(new URL('../..',import.meta.url)));
+ const snapshot=await createSpecSnapshot(project);
+ expect(snapshot.complete).toBe(true);
+ for(const [requirementId,scope] of [['HONO-AUTH-001','examples/existing-hono/src/domain/auth.ts#canIssueAdminToken'],['SPLIT-001','examples/greenfield-domain/src/domain/split.ts#split']]) {
+  const requirement=project.requirements.find(item=>item.id===requirementId);
+  expect(requirement,`${requirementId} must be reviewed as part of the protected specification`).toBeDefined();
+  const proof=project.obligations.find(item=>item.kind==='source-proof' && item.scope===scope);
+  expect(proof?.requirementIds).toContain(requirementId);
+  expect(proof?.contractIds).toEqual(requirement!.contracts.map(item=>item.id));
+  expect(snapshot.contracts.some(item=>item.scope===scope)).toBe(true);
+  for(const boundaryId of requirement!.trustedBoundaries) {
+   const boundary=project.config.boundaries.find(item=>item.id===boundaryId);
+   expect(boundary).toBeDefined();
+   for(const id of boundary!.testObligationIds)expect(project.config.testTargets.some(target=>target.obligationId===id)).toBe(true);
+  }
+ }
+ expect(project.config.approvedAssumptions).toContain('identity-provider:authentic-server-session');
+ expect(snapshot.contracts.find(item=>item.scope.endsWith('/split.ts#split'))?.declaration.requires).toHaveLength(2);
+});

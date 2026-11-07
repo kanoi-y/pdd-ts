@@ -1,5 +1,5 @@
 id: CLI-001
-revision: 5
+revision: 6
 title: Bounded external process execution
 intent: External tools run without a shell, without inherited credentials, with
   bounded combined output and a deadline that retained pipes cannot extend.
