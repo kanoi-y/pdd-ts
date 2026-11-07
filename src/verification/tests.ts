@@ -16,12 +16,17 @@ import type { VerificationRun,VerificationOutcome } from './lemmascript.js';
 const assertion=z.object({fullName:z.string().min(1),status:z.enum(['passed','failed','pending','todo','skipped'])});
 const reportSchema=z.object({success:z.boolean(),numTotalTests:z.number().int().nonnegative(),numPassedTests:z.number().int().nonnegative(),numFailedTests:z.number().int().nonnegative(),numPendingTests:z.number().int().nonnegative(),testResults:z.array(z.object({assertionResults:z.array(assertion)}))});
 export function inspectTestReport(raw:unknown,required:string[]) {
- const invalid={status:'unknown' as const,counts:{total:0,passed:0,failed:0,skipped:0}};
- const parsed=reportSchema.safeParse(raw); if(!parsed.success || !required.length) return invalid;
+ const invalid=(message:string)=>({status:'unknown' as const,counts:{total:0,passed:0,failed:0,skipped:0},diagnostics:[message]});
+ const parsed=reportSchema.safeParse(raw); if(!parsed.success) return invalid('テスト結果の形式を確認できません。');
+ if(!required.length) return invalid('必須テストが登録されていません。');
  const data=parsed.data, cases=data.testResults.flatMap(item=>item.assertionResults),names=cases.map(item=>item.fullName);
  const counts={total:cases.length,passed:cases.filter(item=>item.status==='passed').length,failed:cases.filter(item=>item.status==='failed').length,skipped:cases.filter(item=>!['passed','failed'].includes(item.status)).length};
- if(new Set(names).size!==names.length || required.some(name=>!names.includes(name)) || counts.total===0 || counts.total!==data.numTotalTests || counts.passed!==data.numPassedTests || counts.failed!==data.numFailedTests || counts.skipped!==data.numPendingTests) return invalid;
- return {status:data.success && counts.passed===counts.total && counts.failed===0 && counts.skipped===0?'passed' as const:'failed' as const,counts};
+ if(new Set(names).size!==names.length) return invalid('結果のテスト名が重複しています。');
+ if(counts.total===0) return invalid('結果のテストケース数が0件です。');
+ if(counts.total!==data.numTotalTests || counts.passed!==data.numPassedTests || counts.failed!==data.numFailedTests || counts.skipped!==data.numPendingTests) return invalid('結果のケース一覧と集計件数が一致しません。');
+ const missing=required.filter(name=>!names.includes(name));
+ if(missing.length) return invalid(`結果に含まれない必須テスト：${missing.join(' / ')}`);
+ return {status:data.success && counts.passed===counts.total && counts.failed===0 && counts.skipped===0?'passed' as const:'failed' as const,counts,diagnostics:[]};
 }
 export const vitestCli=path.join(path.dirname(createRequire(import.meta.url).resolve('vitest/package.json')),'vitest.mjs');
 export async function empiricalToolDigest():Promise<string> {
@@ -57,6 +62,7 @@ export async function verifyTests(project:Project,obligationId:string,identity:V
   await writeProjectFile(project.root,`${directory}/process.json`,JSON.stringify(outcome,null,2)+'\n'); artifacts.push(`${directory}/process.json`);
   if(outcome.status==='completed') {
    const results=inspectTestReport(JSON.parse(await readProjectText(project.root,output,8_388_608)),target.requiredTests); artifacts.push(output);
+   diagnostics.push(...results.diagnostics);
    record.counts=results.counts; record.status=outcome.exitCode===0?results.status:'failed';
   } else record.status=outcome.status==='error'?'error':'unknown';
   if((await digestFiles(project.root,inputPaths)).digest!==inputs.digest) record.status='stale';

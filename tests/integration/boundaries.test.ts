@@ -27,6 +27,12 @@ it('CORE-004 runs actual test cases and invalidates changed validator inputs',as
   const project:Project={root,config:{schemaVersion:1,tools:{},targets:[],approvedAssumptions:[],testTargets:[{obligationId:'input-test',files:['input.test.ts'],inputs:['input.ts'],requiredTests:['INPUT-001 rejects malformed input']}],boundaries:[]},requirements:[],obligations:[{id:'input-test',kind:'test',scope:'input',requirementIds:['CORE-004'],contractIds:[]}]};
   const result=await verifyTests(project,'input-test',{id:'actual-run',commit:'a'.repeat(40),specDigest:'b'.repeat(64)},await empiricalToolDigest());
   expect(result.diagnostics).toEqual([]); expect(result.record.status).toBe('passed'); expect(result.record.counts).toEqual({total:1,passed:1,failed:0,skipped:0});
+  const absent='INPUT-001 requires a registered expiry check';
+  project.config.testTargets[0]!.requiredTests.push(absent);
+  const missing=await verifyTests(project,'input-test',{id:'missing-required-run',commit:'a'.repeat(40),specDigest:'b'.repeat(64)},await empiricalToolDigest());
+  expect(missing.record.status).not.toBe('passed');
+  expect(missing.diagnostics.join(' ')).toContain(absent);
+  project.config.testTargets[0]!.requiredTests.pop();
   await writeFile(path.join(root,'input.ts'),'export const parse=()=>true;');
   expect(await checkEvidenceFreshness(root,result.record,result.inputPaths)).toBe('stale');
   const mutant=await verifyTests(project,'input-test',{id:'mutant-run',commit:'a'.repeat(40),specDigest:'b'.repeat(64)},await empiricalToolDigest());

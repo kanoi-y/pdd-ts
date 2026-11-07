@@ -7,6 +7,8 @@ import type { ProcessOptions, ProcessResult } from '../verification/process.js';
 import { runProcess } from '../verification/process.js';
 import { snapshotAtCommit } from './baseline.js';
 import { compareSpecs } from '../requirements/diff.js';
+import { canonicalJson } from '../requirements/io.js';
+import { validateBoundaries } from '../verification/boundaries.js';
 
 export interface ReviewCardInput { repository:string; baseSha:string; headSha:string; baseline:SpecSnapshot; head:SpecSnapshot }
 export interface ReviewDependencies {
@@ -34,12 +36,59 @@ export function renderHumanReviewCard(input:ReviewCardInput):string {
   if(!baseline.complete || !head.complete) throw new Error('Both specification snapshots must be complete');
   const diff=compareSpecs(baseline,head);
   if(!diff.valid) throw new Error(diff.errors.join('; '));
+  const assumptions=(snapshot:SpecSnapshot):Set<string>=>new Set([
+    ...snapshot.metadata.config.approvedAssumptions,
+    ...snapshot.metadata.config.boundaries.flatMap(boundary=>boundary.assumption?[boundary.assumption]:[]),
+  ]);
+  const previousAssumptions=assumptions(baseline);
+  const addedAssumptions=[...assumptions(head)].filter(value=>!previousAssumptions.has(value));
+  const unapprovedAssumptions=[...new Set(head.metadata.config.boundaries.flatMap(boundary=>
+    boundary.assumption&&!head.metadata.config.approvedAssumptions.includes(boundary.assumption)?[boundary.assumption]:[]))];
+  const beforeContracts=new Map(baseline.contracts.map(entry=>[entry.scope,entry.declaration]));
+  const afterContracts=new Map(head.contracts.map(entry=>[entry.scope,entry.declaration]));
+  const changedScopes=[...new Set([...beforeContracts.keys(),...afterContracts.keys()])]
+    .filter(scope=>canonicalJson(beforeContracts.get(scope)??null)!==canonicalJson(afterContracts.get(scope)??null));
+  const registrationProblems=validateBoundaries({root:'',...head.metadata});
   const lines=[
-    '# PDDの全仕様のレビュー',
+    '# PDDレビュー',
     '',
-    '**人間の承認：未完了。** このBot作成PRでは、ご本人によるGitHubレビューを依頼しています。このワークフローは承認を投稿していません。',
+    '**人間の承認：未完了。検証結果：未取得。**',
     '',
-    'レビュー前に、現在のPR先頭コミットが下記の対象コミットと一致することを確認してください。コミットが変わった場合はカードを再生成し、そのコミットに対して再レビューします。',
+    '## 今回確認すること',
+    '',
+    `- 仕様差分：${diff.changed?'あり':'なし'}`,
+    `- 要件の影響範囲：既存 ${diff.affectedRequirements.length}件、追加 ${diff.addedRequirements.length}件、削除 ${diff.deletedRequirements.length}件`,
+    `- 検証条件・モデル設定の変更：${diff.policyChanged?'あり':'なし'}`,
+    `- 登録：要件 ${head.metadata.requirements.length}件、ソース証明 ${head.metadata.obligations.filter(item=>item.kind==='source-proof').length}件、テスト義務 ${head.metadata.obligations.filter(item=>item.kind==='test').length}件`,
+    '',
+    `対象コミット： ${headSha}`,
+    `[コード差分](https://github.com/${repository}/compare/${baseSha}...${headSha})`,
+    '',
+    diff.changed?'変更された意図・契約・入力前提・信頼前提・必須検証を確認してください。':'定義した仕様は同一です。今回のコード差分とCI結果を確認してください。',
+  ];
+  if(addedAssumptions.length) lines.push('','**追加された信頼前提（要確認）**',block(addedAssumptions));
+  if(unapprovedAssumptions.length) lines.push('','**未許可の信頼前提**',block(unapprovedAssumptions));
+  if(diff.deletedRequirements.length) lines.push('','**削除される要件**',block(diff.deletedRequirements));
+  if(diff.deletedObligations.length) lines.push('','**削除される必須検証**',block(diff.deletedObligations));
+  for(const scope of changedScopes) {
+    const before=beforeContracts.get(scope),after=afterContracts.get(scope),file=scope.slice(0,scope.lastIndexOf('#'));
+    lines.push('',`契約変更：[${text(scope)}](${sourceUrl(repository,after?headSha:baseSha,file)})`);
+    if(!after) lines.push('**契約対象から削除されます。**');
+    for(const [key,label] of [['requires','入力前提'],['ensures','事後条件']] as const) {
+      const added=(after?.[key]??[]).filter(value=>!before?.[key].includes(value));
+      const removed=(before?.[key]??[]).filter(value=>!after?.[key].includes(value));
+      if(added.length) lines.push(`${label}を追加：`,block(added));
+      if(removed.length) lines.push(`${label}を削除：`,block(removed));
+    }
+  }
+  if(registrationProblems.length) lines.push('','**登録上の確認事項（ゲートで別途検査）**',block(registrationProblems));
+  lines.push('',
+    'ソース証明は宣言した前提の下で成立し、テストは実行したケースの経験的な証拠です。このカードはコードやテストを実行しません。本人承認とCI結果は別途確認します。',
+    '',
+    '<details>',
+    '<summary>完全な仕様・契約・検証登録を表示</summary>',
+    '',
+    '全要件・抽出契約と固定した設定へのリンクを収録しています。必須テストの個別名は設定リンクから確認できます。対象コミットが変わった場合は再生成し、そのheadに対してレビューしてください。',
     '',
     `基準コミット： ${baseSha}`,
     `対象コミット： ${headSha}`,
@@ -51,7 +100,7 @@ export function renderHumanReviewCard(input:ReviewCardInput):string {
     'ソース証明は、抽出した前提・宣言した意味論プロファイル・信頼するツールチェーンという前提の下で成立します。テストは、実行したケースについての経験的な証拠です。このカード自体は候補コードやテストを実行せず、証明・CI署名・人間承認の証拠にはなりません。',
     '',
     `## 要件（${head.metadata.requirements.length}件）`,
-  ];
+  );
   for(const requirement of [...head.metadata.requirements].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0)) {
     lines.push('',`<h3>${text(requirement.id)} — 改訂 ${requirement.revision}</h3>`,block(requirement.title),block(requirement.intent),
       `[対象コミットの実装](${sourceUrl(repository,headSha,requirement.target.file)})`,
@@ -66,7 +115,7 @@ export function renderHumanReviewCard(input:ReviewCardInput):string {
     '', '## モデル設定と証明対象',block(head.metadata.modelConfig),block(head.metadata.config.targets),
     '', '## 必須の証拠とテスト範囲',block(head.metadata.obligations),block(head.metadata.config.testTargets.map(target=>({obligationId:target.obligationId,files:target.files,inputs:target.inputs,requiredCaseCount:target.requiredTests.length}))),
     '', '## 基準からの仕様変更',block(diff),'',
-    'GitHubのレビュー画面から、ご本人としてレビューしてください。承認は後続処理で、対象コミット・許可された本人のID・独立に再計算した仕様ダイジェストに照合されます。このPR本文はレビューの補助資料であり、承認記録ではありません。','');
+    'GitHubのレビュー画面から、ご本人としてレビューしてください。承認は後続処理で、対象コミット・許可された本人のID・独立に再計算した仕様ダイジェストに照合されます。このPR本文はレビューの補助資料であり、承認記録ではありません。','','</details>','');
   const card=lines.join('\n');
   if(Buffer.byteLength(card,'utf8')>60000) throw new Error('Complete review card exceeds the bounded PR body size; do not truncate the specification');
   return card;
@@ -121,7 +170,7 @@ export async function prepareHumanReview(root:string,dependencies:ReviewDependen
     const bodyFile=path.join(temporary,'review.md');
     await writeFile(bodyFile,body,{flag:'wx',mode:0o600});
     const config=path.join(temporary,'gh'); await mkdir(config);
-    const publication=await run('gh',['pr','create','--repo',repository,'--base','main','--head',headBranch,'--title','PDDの全仕様をレビューする','--body-file',bodyFile],{
+    const publication=await run('gh',['pr','create','--repo',repository,'--base','main','--head',headBranch,'--title','変更内容をレビューする（PDD）','--body-file',bodyFile],{
       cwd:root,timeoutMs:30000,maxOutputBytes:16384,
       env:{GH_TOKEN:environment.GH_TOKEN,GH_HOST:'github.com',GH_PROMPT_DISABLED:'1',GH_CONFIG_DIR:config},redact:[environment.GH_TOKEN],
     });
