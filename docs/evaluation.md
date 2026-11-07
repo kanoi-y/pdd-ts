@@ -46,3 +46,14 @@ setup/update/maintenance comparisons were not supplied. Preserve the distinction
 between code/specification approval and evidence that the review presentation is
 useful. A concise statement of the current change and required decisions should
 precede complete drill-down data in the next iteration.
+
+## Presentation QA before a second human trial
+
+On the same frozen13-requirement snapshot from main4469836, the updated renderer
+retained all52 original preformatted specification blocks byte for byte inside
+the details section. The initial Markdown source is440characters instead of the
+previous35,818characters; the complete payload remains present. These are source
+layout measurements, not rendered reading time or participant answers. Added or
+unapproved boundary premises and changed source premises remain visible before
+the fold. The next human trial must still identify proof scope, trust boundaries,
+missing evidence and pending approval and compare actual effort against direct tools.

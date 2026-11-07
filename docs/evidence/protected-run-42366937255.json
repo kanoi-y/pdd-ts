@@ -1,0 +1,81 @@
+{
+  "repository": "kanoi-y/pdd-ts",
+  "mergedMain": "4469836b95409603cd28a313f817c6ddbbdeee42",
+  "reviewedCandidate": "6416b2b16c3b19630ce7b7f86a3e0420d5326b35",
+  "baseline": "1b162d48664622483742281b879dfed75b9aead4",
+  "runId": "42366937255",
+  "runAttempt": 1,
+  "specDigest": "358bc73441a48b8162f75d7112f8d5166a66bbd393d797f545a6de67a3233860",
+  "nativeVerified": true,
+  "fileDigest": "9b622e329ba8d0643c0c87225f1ea5a07e72f75db325e43a3fae0fe163fbb183",
+  "reviewIds": [
+    5811827457
+  ],
+  "check": {
+    "id": 128387691700,
+    "name": "PDD protected gate",
+    "appId": 5653976,
+    "conclusion": "success"
+  },
+  "evidence": [
+    {
+      "obligationId": "HONO-AUTH-001-PROOF",
+      "kind": "source-proof",
+      "status": "passed",
+      "scope": "examples/existing-hono/src/domain/auth.ts#canIssueAdminToken"
+    },
+    {
+      "obligationId": "SPLIT-001-PROOF",
+      "kind": "source-proof",
+      "status": "passed",
+      "scope": "examples/greenfield-domain/src/domain/split.ts#split"
+    },
+    {
+      "obligationId": "gate-proof",
+      "kind": "source-proof",
+      "status": "passed",
+      "scope": "src/verification/acceptance.ts#canAcceptEvidence"
+    },
+    {
+      "obligationId": "self-tests",
+      "kind": "test",
+      "status": "passed",
+      "scope": "pdd-ts runtime and CLI",
+      "counts": {
+        "total": 202,
+        "passed": 202,
+        "failed": 0,
+        "skipped": 0
+      }
+    }
+  ],
+  "recoveryReceipt": {
+    "repository": "kanoi-y/pdd-ts",
+    "beforeSha": "dabbdbe0c36c29b553d3dd0db93780b5af2509f9",
+    "bootstrapSha": "1b162d48664622483742281b879dfed75b9aead4",
+    "headSha": "6416b2b16c3b19630ce7b7f86a3e0420d5326b35",
+    "reviewIds": [
+      5811786553
+    ],
+    "normalCI": [
+      {
+        "id": "42365680773",
+        "head": "1b162d48664622483742281b879dfed75b9aead4",
+        "conclusion": "success"
+      },
+      {
+        "id": "42365816338",
+        "head": "6416b2b16c3b19630ce7b7f86a3e0420d5326b35",
+        "conclusion": "success"
+      }
+    ],
+    "force": false,
+    "enforceAdminsRestored": true,
+    "otherProtectionUnchanged": true
+  },
+  "scope": "Historical protected validation of exact candidate before merge; not an invented current CLI approval for the squash commit",
+  "humanEvaluation": {
+    "readability": "negative qualitative feedback; future improvement requested",
+    "comparison": "unmeasured; GateP3 value not established"
+  }
+}
