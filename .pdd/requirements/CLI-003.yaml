@@ -1,5 +1,5 @@
 id: CLI-003
-revision: 4
+revision: 5
 title: Safe AI-free commands and review packets
 intent: Initialize without clobbering, validate bounded project data, run
   required evidence, refresh freshness and render escaped explicit-scope review

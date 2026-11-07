@@ -1,5 +1,5 @@
 id: CLI-002
-revision: 4
+revision: 5
 title: Project-contained verification paths
 intent: Verification inputs and artifacts must use canonical relative paths
   contained within the selected project; symlink and traversal escapes are

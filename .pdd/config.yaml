@@ -28,6 +28,7 @@ testTargets:
       - tests/integration/contracts.test.ts
       - tests/integration/doctor.test.ts
       - tests/integration/provenance.test.ts
+      - tests/integration/publisher.test.ts
       - tests/integration/review-card.test.ts
       - tests/integration/spec.test.ts
       - tests/unit/dafny-log.test.ts
@@ -138,6 +139,7 @@ testTargets:
       - tests/integration/contracts.test.ts
       - tests/integration/doctor.test.ts
       - tests/integration/provenance.test.ts
+      - tests/integration/publisher.test.ts
       - tests/integration/review-card.test.ts
       - tests/integration/spec.test.ts
       - tests/unit/dafny-log.test.ts
@@ -151,7 +153,8 @@ testTargets:
       - vitest.config.ts
     requiredTests:
       - CLI-003 doctor identifies an empty required registry as insufficient
-      - CI-003 parses actual native verification timestamps with UTC offsets without relaxing identity
+      - CI-003 parses actual native verification timestamps with UTC offsets
+        without relaxing identity
       - "SPLIT-001: greenfield allocation T1: zero total and request"
       - "SPLIT-001: greenfield allocation T1: empty request"
       - "SPLIT-001: greenfield allocation T1: partial request"
@@ -519,6 +522,8 @@ testTargets:
         policy changes instead of silently losing obligations
       - SPEC-003 protected specification transitions rejects incomplete
         snapshots and decreasing revisions even with unchanged human text
+      - CI-007 restores verification artifacts exclusively without precreating
+        or overwriting evidence
 boundaries:
   - id: dafny-z3-verification
     callerFiles:

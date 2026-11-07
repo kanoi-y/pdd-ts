@@ -1,5 +1,5 @@
 id: DEMO-001
-revision: 4
+revision: 5
 title: Reproducible staged and new-project workflows
 intent: The same packed CLI verifies a clearly labeled staged-adoption Hono
   sample and a new bigint domain sample, preserving real proof versus empirical

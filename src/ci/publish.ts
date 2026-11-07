@@ -33,8 +33,7 @@ export async function publishTrustedCheck(trustedRoot:string,pullNumber:number):
   if(Object.keys(project.config.tools).length) throw new Error('Untrusted executable configuration rejected');
   await mkdir(path.join(candidate,'.tools'),{recursive:true});
   await symlink(path.join(trustedRoot,'.tools/dafny-4.11.0'),path.join(candidate,'.tools/dafny-4.11.0'));
-  await mkdir(path.join(candidate,'.pdd/evidence'),{recursive:true});
-  await cp(path.join(trustedRoot,'.tools/candidate-artifacts'),path.join(candidate,'.pdd/evidence'),{recursive:true,errorOnExist:true,force:false});
+  await restoreCandidateEvidence(trustedRoot,candidate);
   await cp(path.join(trustedRoot,'.tools/signed/evidence.json'),path.join(candidate,'.pdd/evidence/attested-evidence.json'));
   const packet=await auditCI(candidate,baselineSha,pullNumber,'.pdd/evidence/attested-evidence.json');
   if(packet.gate.status!=='passed') throw new Error('Protected gate unsatisfied');
@@ -48,4 +47,9 @@ export async function publishTrustedCheck(trustedRoot:string,pullNumber:number):
  const published=z.object({app:z.object({id:z.number()})}).parse(JSON.parse(result.stdout));
  if(published.app.id!==policy.checkAppId) throw new Error('Published check has the wrong App issuer; it cannot satisfy the protected policy');
  if(conclusion!=='success') throw new Error('Protected PDD gate blocked');
+}
+
+/** Restore verified-job bytes exclusively; candidate files must never be overwritten. */
+export async function restoreCandidateEvidence(trustedRoot:string,candidate:string):Promise<void> {
+ await cp(path.join(trustedRoot,'.tools/candidate-artifacts'),path.join(candidate,'.pdd/evidence'),{recursive:true,errorOnExist:true,force:false});
 }
