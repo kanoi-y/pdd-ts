@@ -1,5 +1,5 @@
 id: CORE-001
-revision: 3
+revision: 4
 title: Complete required evidence before a passing gate
 intent: A required evidence item is acceptable only when it exists uniquely,
   matches its scope and evidence kind, passed, is fresh, has valid provenance

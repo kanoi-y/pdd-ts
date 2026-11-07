@@ -131,3 +131,10 @@ describe('CLI-003: CLI review workflow', () => {
     expect(JSON.parse(proof.stdout).evidence.every((item: { status: string }) => item.status !== 'passed')).toBe(true);
   });
 });
+
+it('CLI-003 doctor identifies an empty required registry as insufficient',async()=>{
+ const root=await project();expect(command(root,'init').status).toBe(0);commit(root);
+ const result=command(root,'doctor');const data=JSON.parse(result.stdout);
+ expect(data.protectedReady).toBe(false);
+ expect(data.checks).toContainEqual(expect.objectContaining({name:'required-registry',status:'insufficient'}));
+});

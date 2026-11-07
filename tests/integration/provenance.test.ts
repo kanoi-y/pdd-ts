@@ -26,3 +26,13 @@ it('CI-003 requires one complete native verification entry, never cross-entry fi
  expect(validateNativeVerification([entry],expected)).toBe(true);
  for(const raw of [[],[{}],[{...entry,verificationResult:{...entry.verificationResult,verifiedTimestamps:[]}}],[{...entry,verificationResult:{...entry.verificationResult,signature:{certificate:{...entry.verificationResult.signature.certificate,sourceRepositoryIdentifier:'999'}}}}]]) expect(validateNativeVerification(raw,expected)).toBe(false);
 });
+
+it('CI-003 parses actual native verification timestamps with UTC offsets without relaxing identity',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const raw=JSON.parse(await readFile(new URL('../fixtures/attestation/native-gh-verification.json',import.meta.url),'utf8'));
+ const expected={repository:'kanoi-y/pdd-ts',repositoryId:1449042266,workflow:'.github/workflows/pdd.yml',baselineSha:'1f476c47738612c3b2dbf3d192b7280fdd4f5de2',branch:'main',fileDigest:'b228d836effc6c5837462313b835db07ca83eb361d3156f3d2fa5364ef9d084c',runId:'42359881713',runAttempt:1};
+ expect(validateNativeVerification(raw,expected)).toBe(true);
+ expect(validateNativeVerification(raw,{...expected,repositoryId:999})).toBe(false);
+ const malformed=structuredClone(raw);malformed[0].verificationResult.verifiedTimestamps[0].timestamp='invalid';
+ expect(validateNativeVerification(malformed,expected)).toBe(false);
+});

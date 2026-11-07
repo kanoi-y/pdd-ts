@@ -11,12 +11,18 @@ export function inspectProtection(raw:unknown,policy:{context:string;appId:numbe
  if(!p.required_pull_request_reviews.dismiss_stale_reviews || p.required_pull_request_reviews.required_approving_review_count<policy.minApprovals || !p.required_pull_request_reviews.require_code_owner_reviews) errors.push('Exact-head stale review and code-owner policy is insufficient');
  return errors;
 }
-export async function doctorGitHub(client:GitHubClient,repository:string,policy:{context:string;appId:number;minApprovals:number}) {
+export async function doctorGitHub(client:GitHubClient,repository:string,policy:{context:string;appId:number;minApprovals:number;repositoryId?:number;workflow?:string}) {
  try {
   const info=z.object({id:z.number().int().positive(),default_branch:z.string()}).parse(await client.get(`repos/${repository}`));
   // Use the repository's actual default branch; percent-encoding prevents route injection.
   const protection=await client.get(`repos/${repository}/branches/${encodeURIComponent(info.default_branch)}/protection`);
   const findings=inspectProtection(protection,policy);
+  if(!policy.repositoryId || info.id!==policy.repositoryId) findings.push('Immutable repository identity does not match protected policy');
+  if(!policy.workflow || !/^\.github\/workflows\/[A-Za-z0-9_-]+\.ya?ml$/.test(policy.workflow)) findings.push('Trusted workflow path is missing or invalid');
+  else {
+    const workflow=z.object({path:z.string(),state:z.string()}).parse(await client.get(`repos/${repository}/actions/workflows/${policy.workflow.slice('.github/workflows/'.length)}`));
+    if(workflow.path!==policy.workflow || workflow.state!=='active') findings.push('Trusted workflow is missing or inactive');
+  }
   if(policy.appId!==15368) {
     const environment=await client.get(`repos/${repository}/environments/pdd-publisher`);
     const branches=await client.get(`repos/${repository}/environments/pdd-publisher/deployment-branch-policies`);

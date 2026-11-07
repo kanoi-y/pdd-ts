@@ -7,6 +7,7 @@ import { verifyProject, reportProject, gitIdentity, NoRunError } from './runs.js
 import { renderMarkdown } from '../reporter/markdown.js';
 import { describeToolchain } from '../verification/toolchain.js';
 
+import {validateBoundaries} from '../verification/boundaries.js';
 import {doctorGitHub} from '../ci/doctor.js';
 import {GhClient} from '../ci/github.js';
 import {auditCI} from '../ci/audit.js';
@@ -40,19 +41,22 @@ try {
     try {
       const project = await loadProject(root);
       checks.push({ name: 'configuration', status: 'ready', message: 'Project configuration and registry are valid' });
+      const covered=new Set(project.obligations.flatMap(item=>item.requirementIds));
+      const registered=project.requirements.length>0 && project.obligations.length>0 && project.requirements.every(item=>covered.has(item.id)) && project.obligations.every(item=>item.kind==='source-proof' || item.kind==='test' && project.config.testTargets.some(target=>target.obligationId===item.id)) && validateBoundaries(project).length===0;
+      checks.push({name:'required-registry',status:registered?'ready':'insufficient',message:registered?'Nonempty required evidence and runtime boundaries registered':'Register a complete nonempty supported requirement/obligation set and its boundaries'});
       try {
         const tools = await describeToolchain(root, project.config.tools);
         checks.push({ name: 'toolchain', status: 'ready', message: `Pinned toolchain: ${tools.digest}` });
       } catch (error) { checks.push({ name: 'toolchain', status: 'error', message: clean(error instanceof Error ? error.message : 'Unavailable') }); }
-      try { await gitIdentity(root); checks.push({ name: 'source', status: 'ready', message: 'Git source identity available' }); }
+      try { const identity=await gitIdentity(root); checks.push({ name: 'source', status: identity.dirty?'dirty':'ready', message: identity.dirty?'Commit current inputs for protected verification':'Clean Git source identity available' }); }
       catch (error) { checks.push({ name: 'source', status: 'error', message: clean(error instanceof Error ? error.message : 'Unavailable') }); }
       const github=project.config.github;
       if(github?.checkAppId) {
-        const online=await doctorGitHub(new GhClient(root),github.repository,{context:github.checkContext,appId:github.checkAppId,minApprovals:github.minApprovals});
+        const online=await doctorGitHub(new GhClient(root),github.repository,{context:github.checkContext,appId:github.checkAppId,minApprovals:github.minApprovals,...(github.repositoryId?{repositoryId:github.repositoryId}:{}),workflow:github.workflow});
         checks.push({name:'ci-protection',status:online.status,message:online.findings.join('; ') || 'Check issuer and review protection verified online; signer identity must still be verified per run'});
       } else checks.push({name:'ci-protection',status:github?'insufficient':'unconfigured',message:'External repository protection and required check issuer are not configured'});
     } catch (error) { checks.push({ name: 'configuration', status: 'error', message: clean(error instanceof Error ? error.message : 'Invalid') }); }
-    process.stdout.write(json ? JSON.stringify({ schemaVersion: 1, protectedReady: false, checks }, null, 2) + '\n' : checks.map(check => `${check.name}: ${check.status} — ${check.message}`).join('\n') + '\n');
+    process.stdout.write(json ? JSON.stringify({ schemaVersion: 1, protectedReady: checks.length>0 && checks.every(check=>check.status==='ready'), readinessScope:'configuration-only; current evidence and human approval are checked separately', checks }, null, 2) + '\n' : checks.map(check => `${check.name}: ${check.status} — ${check.message}`).join('\n') + '\n');
     if (checks.some(check => check.status === 'error')) process.exitCode = 2;
   } else if (command === 'approve') {
     if (!parsed.values.pr || !parsed.values.baseline) throw new Error('approve requires --pr NUMBER --baseline IMMUTABLE_SHA');

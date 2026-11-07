@@ -1,0 +1,14 @@
+{
+  "verification": "native gh attestation verify with exact signer/source policy; parsed by validateNativeVerification",
+  "accepted": true,
+  "repository": "kanoi-y/pdd-ts",
+  "repositoryId": 1449042266,
+  "workflow": ".github/workflows/pdd.yml",
+  "baselineSha": "1f476c47738612c3b2dbf3d192b7280fdd4f5de2",
+  "branch": "main",
+  "fileDigest": "b228d836effc6c5837462313b835db07ca83eb361d3156f3d2fa5364ef9d084c",
+  "runId": "42359881713",
+  "runAttempt": 1,
+  "candidateSha": "1f476c47738612c3b2dbf3d192b7280fdd4f5de2",
+  "scope": "main-branch trial; no human approval or protected PR check claimed"
+}

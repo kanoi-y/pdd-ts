@@ -123,6 +123,7 @@ testTargets:
       - templates/github-app-manifest.json
       - tests/examples/greenfield.test.ts
       - tests/examples/hono.test.ts
+      - tests/fixtures/attestation/native-gh-verification.json
       - tests/fixtures/poc/allocate.ts
       - tests/fixtures/poc/auth.ts
       - tests/fixtures/poc/lemmascript.json
@@ -149,6 +150,8 @@ testTargets:
       - tsconfig.json
       - vitest.config.ts
     requiredTests:
+      - CLI-003 doctor identifies an empty required registry as insufficient
+      - CI-003 parses actual native verification timestamps with UTC offsets without relaxing identity
       - "SPLIT-001: greenfield allocation T1: zero total and request"
       - "SPLIT-001: greenfield allocation T1: empty request"
       - "SPLIT-001: greenfield allocation T1: partial request"

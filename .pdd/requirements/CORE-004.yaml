@@ -1,5 +1,5 @@
 id: CORE-004
-revision: 3
+revision: 4
 title: Structured empirical evidence and explicit boundaries
 intent: Require positive executed named cases, reject missing skipped or
   inconsistent results, and bind registered caller and validator inputs to

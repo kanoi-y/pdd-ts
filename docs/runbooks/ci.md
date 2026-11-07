@@ -85,8 +85,10 @@ never give its write/signing credentials to a candidate execution job. This MVP 
 not auto-post PR comments or automatically merge a PR.
 
 `doctor --json` distinguishes unconfigured/insufficient protection from unavailable
-API checks. `protectedReady` remains false unless the full independent signer/check
-publication boundary has been established; a configured check name does not prove it.
+API checks. `protectedReady` describes configuration only: the registry, clean source, toolchain,
+immutable repository, active trusted workflow, dedicated issuer, review rules and
+protected environment must be confirmed. Fresh evidence, native signatures and
+actual human approval are checked separately for each protected gate.
 The initial single-maintainer repository cannot claim independent review readiness.
 
 Native verification currently targets GitHub CLI 2.97.0's JSON shape; incompatible

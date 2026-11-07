@@ -1,0 +1,98 @@
+[
+  {
+    "verificationResult": {
+      "mediaType": "application/vnd.dev.sigstore.verificationresult+json;version=0.1",
+      "signature": {
+        "certificate": {
+          "certificateIssuer": "CN=sigstore-intermediate,O=sigstore.dev",
+          "subjectAlternativeName": "https://github.com/kanoi-y/pdd-ts/.github/workflows/pdd.yml@refs/heads/main",
+          "issuer": "https://token.actions.githubusercontent.com",
+          "githubWorkflowTrigger": "workflow_dispatch",
+          "githubWorkflowSHA": "1f476c47738612c3b2dbf3d192b7280fdd4f5de2",
+          "githubWorkflowName": "Trusted PDD evidence",
+          "githubWorkflowRepository": "kanoi-y/pdd-ts",
+          "githubWorkflowRef": "refs/heads/main",
+          "buildSignerURI": "https://github.com/kanoi-y/pdd-ts/.github/workflows/pdd.yml@refs/heads/main",
+          "buildSignerDigest": "1f476c47738612c3b2dbf3d192b7280fdd4f5de2",
+          "runnerEnvironment": "github-hosted",
+          "sourceRepositoryURI": "https://github.com/kanoi-y/pdd-ts",
+          "sourceRepositoryDigest": "1f476c47738612c3b2dbf3d192b7280fdd4f5de2",
+          "sourceRepositoryRef": "refs/heads/main",
+          "sourceRepositoryIdentifier": "1449042266",
+          "sourceRepositoryOwnerURI": "https://github.com/kanoi-y",
+          "sourceRepositoryOwnerIdentifier": "67132908",
+          "buildConfigURI": "https://github.com/kanoi-y/pdd-ts/.github/workflows/pdd.yml@refs/heads/main",
+          "buildConfigDigest": "1f476c47738612c3b2dbf3d192b7280fdd4f5de2",
+          "buildTrigger": "workflow_dispatch",
+          "runInvocationURI": "https://github.com/kanoi-y/pdd-ts/actions/runs/42359881713/attempts/1",
+          "sourceRepositoryVisibilityAtSigning": "public"
+        }
+      },
+      "verifiedTimestamps": [
+        {
+          "type": "Tlog",
+          "uri": "https://rekor.sigstore.dev",
+          "timestamp": "2026-11-07T18:30:48+09:00"
+        }
+      ],
+      "verifiedIdentity": {
+        "subjectAlternativeName": {
+          "subjectAlternativeName": "https://github.com/kanoi-y/pdd-ts/.github/workflows/pdd.yml@refs/heads/main"
+        },
+        "issuer": {
+          "issuer": "",
+          "regexp": ".*"
+        },
+        "runnerEnvironment": "github-hosted"
+      },
+      "statement": {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [
+          {
+            "name": "evidence.json",
+            "digest": {
+              "sha256": "b228d836effc6c5837462313b835db07ca83eb361d3156f3d2fa5364ef9d084c"
+            }
+          }
+        ],
+        "predicateType": "https://slsa.dev/provenance/v1",
+        "predicate": {
+          "buildDefinition": {
+            "buildType": "https://actions.github.io/buildtypes/workflow/v1",
+            "externalParameters": {
+              "workflow": {
+                "path": ".github/workflows/pdd.yml",
+                "ref": "refs/heads/main",
+                "repository": "https://github.com/kanoi-y/pdd-ts"
+              }
+            },
+            "internalParameters": {
+              "github": {
+                "event_name": "workflow_dispatch",
+                "repository_id": "1449042266",
+                "repository_owner_id": "67132908",
+                "runner_environment": "github-hosted"
+              }
+            },
+            "resolvedDependencies": [
+              {
+                "digest": {
+                  "gitCommit": "1f476c47738612c3b2dbf3d192b7280fdd4f5de2"
+                },
+                "uri": "git+https://github.com/kanoi-y/pdd-ts@refs/heads/main"
+              }
+            ]
+          },
+          "runDetails": {
+            "builder": {
+              "id": "https://github.com/kanoi-y/pdd-ts/.github/workflows/pdd.yml@refs/heads/main"
+            },
+            "metadata": {
+              "invocationId": "https://github.com/kanoi-y/pdd-ts/actions/runs/42359881713/attempts/1"
+            }
+          }
+        }
+      }
+    }
+  }
+]
