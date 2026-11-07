@@ -1,7 +1,10 @@
 id: CORE-003
-revision: 1
+revision: 2
 title: Source-linked evidence from an actual verifier invocation
-intent: Bind each source proof to the actual named function, all source contracts, a valid premise witness, the complete declared source and proof inputs, pinned toolchain, assumption audit and current verification member results. Never accept an old log or overwrite a prior run.
+intent: Bind each source proof to the actual named function, all source
+  contracts, a valid premise witness, the complete declared source and proof
+  inputs, pinned toolchain, assumption audit and current verification member
+  results. Never accept an old log or overwrite a prior run.
 risk: high
 target:
   file: src/verification/lemmascript.ts
@@ -10,7 +13,9 @@ contracts: []
 acceptance:
   - id: CORE-003-T1
     kind: test
-    scenario: Real positive and negative source proofs, inserted axioms, skipped or missing members, malformed audit output, missing tools, timeout, source and proof edits, and replay are handled without false proof success.
+    scenario: Real positive and negative source proofs, inserted axioms, skipped or
+      missing members, malformed audit output, missing tools, timeout, source
+      and proof edits, and replay are handled without false proof success.
 trustedBoundaries:
   - lemmascript-frontend
   - dafny-z3-verification

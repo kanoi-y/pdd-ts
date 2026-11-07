@@ -49,7 +49,10 @@ export async function runTrustedCandidate(trustedRoot:string,pullNumber:number):
  const previousPath=process.env.PATH;process.env.PATH=tools+path.delimiter+previousPath;
  let packet;try {packet=await verifyProject(candidate);}finally {if(previousPath===undefined)delete process.env.PATH;else process.env.PATH=previousPath;}
  const manifest=JSON.parse(await readFile(path.join(candidate,`.pdd/evidence/${packet.runId}/manifest.json`),'utf8'));
- if(packet.gate.status!=='trial' || !snapshot.complete) throw new Error('Candidate evidence incomplete');
+ if(packet.gate.status!=='trial' || !snapshot.complete) {
+  console.error(JSON.stringify({gate:packet.gate,evidence:packet.evidence.map(item=>({obligationId:item.obligationId,status:item.status,counts:item.counts})),diagnostics:packet.diagnostics}));
+  throw new Error('Candidate evidence incomplete');
+ }
  const claim={schemaVersion:1,repositoryId:policy.repositoryId,candidateSha,baselineSha,runId:process.env.GITHUB_RUN_ID,runAttempt:Number(process.env.GITHUB_RUN_ATTEMPT),specDigest:snapshot.digest,manifest};
  await mkdir(path.join(trustedRoot,'.tools/attestation'),{recursive:true});
  await writeFile(path.join(trustedRoot,'.tools/attestation/evidence.json'),JSON.stringify(claim,null,2)+'\n',{flag:'wx'});

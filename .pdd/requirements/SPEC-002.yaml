@@ -1,12 +1,19 @@
 id: SPEC-002
-revision: 1
+revision: 2
 title: Complete source specification and protected revisions
-intent: Hash all source clauses and protected metadata; reject unresolved contract references and require higher affected revisions rather than infer semantic strengthening from text.
+intent: Hash all source clauses and protected metadata; reject unresolved
+  contract references and require higher affected revisions rather than infer
+  semantic strengthening from text.
 risk: high
-target: {file: src/requirements/snapshot.ts, symbol: createSpecSnapshot}
+target:
+  file: src/requirements/snapshot.ts
+  symbol: createSpecSnapshot
 contracts: []
 acceptance:
   - id: SPEC-002-T1
     kind: test
-    scenario: Body-only edits preserve spec digest, unreferenced premises alter it, oversized or missing clauses fail, and protected changes need revision and external approval.
-trustedBoundaries: [lemmascript-frontend]
+    scenario: Body-only edits preserve spec digest, unreferenced premises alter it,
+      oversized or missing clauses fail, and protected changes need revision and
+      external approval.
+trustedBoundaries:
+  - lemmascript-frontend

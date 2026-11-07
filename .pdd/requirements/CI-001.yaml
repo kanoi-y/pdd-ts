@@ -1,7 +1,9 @@
 id: CI-001
-revision: 2
+revision: 3
 title: External approval and CI authority
-intent: An approval or CI receipt may not authenticate itself; validate source identity, complete specification digest, external reviewer authority and the protected policy baseline.
+intent: An approval or CI receipt may not authenticate itself; validate source
+  identity, complete specification digest, external reviewer authority and the
+  protected policy baseline.
 risk: high
 target:
   file: src/ci/approval.ts
@@ -10,6 +12,7 @@ contracts: []
 acceptance:
   - id: CI-001-T1
     kind: test
-    scenario: Fabricated, stale, wrong-source, wrong-issuer and dismissed approvals or checks fail.
+    scenario: Fabricated, stale, wrong-source, wrong-issuer and dismissed approvals
+      or checks fail.
 trustedBoundaries:
   - github-api

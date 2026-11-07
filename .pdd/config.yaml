@@ -572,3 +572,4 @@ github:
   minApprovals: 1
   workflow: .github/workflows/pdd.yml
   checkContext: PDD protected gate
+  checkAppId: 5653976

@@ -1,6 +1,6 @@
 // Install the actual packed CLI offline from the populated dependency store, then invoke its bin.
 import { spawnSync } from 'node:child_process';
-import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -15,7 +15,11 @@ function run(command, args, cwd = repo) {
 const policy = JSON.parse(await readFile(path.join(repo, 'package.json'), 'utf8')).pnpm;
 run('pnpm', ['pack', '--pack-destination', work]);
 await writeFile(path.join(work, 'package.json'), JSON.stringify({ name: 'pdd-packed-smoke', private: true, packageManager: 'pnpm@10.32.1', pnpm: policy }) + '\n');
-run('pnpm', ['add', path.join(work, 'pdd-ts-0.1.0.tgz'), '--offline', '--ignore-scripts', '--store-dir', path.join(repo, '.tools/pnpm-store')], work);
+run('pnpm', ['add', path.join(work, 'pdd-ts-0.1.0.tgz'), '--prefer-offline', '--ignore-scripts', '--store-dir', path.join(repo, '.tools/pnpm-store')], work);
+// A frozen project install need not warm registry metadata. Prime this consumer's exact lock,
+// then remove its links and prove a fresh offline installation from that lock/store.
+await rm(path.join(work, 'node_modules'), { recursive: true, force: true });
+run('pnpm', ['install', '--offline', '--frozen-lockfile', '--ignore-scripts', '--store-dir', path.join(repo, '.tools/pnpm-store')], work);
 const cli = path.join(work, 'node_modules/.bin/pdd-ts');
 const help = run(cli, ['--help'], work);
 if (!help.includes('verify') || !help.includes('report')) throw new Error('Packed executable does not expose the expected CLI');

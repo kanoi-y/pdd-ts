@@ -106,3 +106,12 @@ registration/installation is not invented.
 
 The implementation remains a release candidate until required external evidence
 is observed. Keep the goal active; do not substitute local tests for these items.
+
+## Hosted continuation checkpoint
+
+- Published sanitized root `6247968` to public main; private development branch is preserved locally. Active branch is now `codex/oss-snapshot`, sharing only public ancestry.
+- Ordinary hosted CI run 42354825702 passed typecheck/build, all 188 tests, PoC, three demo/self trials and four whole-flow negatives. Its final packed-install step exposed missing registry metadata in a fresh frozen-install cache. The smoke runner now primes an exact consumer lock, removes its links, then proves a fresh offline frozen install; local actual rerun passed. This does not weaken a required proof or test.
+- Trusted Docker run 42355283549 failed closed with candidate evidence incomplete; no signature/passing check was produced. Add safe failure artifacts and structured status diagnostics before rerunning to obtain the actual container error.
+- With explicit user permission and user-performed GitHub sudo reauthentication, created private App 5653976 and installation 179512413. UI and scoped API verified selected installation on only repository1449042266, checks-write, contents/PR/mandatory-metadata read. A temporary validation token was revoked after use; no credential contents were printed.
+- App private key stored encrypted in environment `pdd-publisher`, with exactly one branch policy (main, branch type), and public variable PDD_APP_ID matches5653976. Root protected policy updated to the dedicated ID; all affected requirement revisions incremented. Actual final protected PR/human approval is still pending.
+- Fresh whole suite after these changes: 188/188 plus typecheck/build. Do not infer Docker/attestation success from this local result. Finish hosted diagnostics and genuine external approval/evaluation before completing the full goal.

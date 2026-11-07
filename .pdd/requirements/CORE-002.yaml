@@ -1,7 +1,9 @@
 id: CORE-002
-revision: 1
+revision: 2
 title: Content-based source and proof freshness
-intent: A change to any declared source, dependency, specification, proof addition or tool input invalidates previous evidence; missing inputs cannot be silently omitted.
+intent: A change to any declared source, dependency, specification, proof
+  addition or tool input invalidates previous evidence; missing inputs cannot be
+  silently omitted.
 risk: high
 target:
   file: src/verification/digest.ts
@@ -10,6 +12,7 @@ contracts: []
 acceptance:
   - id: CORE-002-T1
     kind: test
-    scenario: File ordering does not change the digest; dependency-only changes do, and missing/duplicate/escaped files fail.
+    scenario: File ordering does not change the digest; dependency-only changes do,
+      and missing/duplicate/escaped files fail.
 trustedBoundaries:
   - node-crypto-runtime
