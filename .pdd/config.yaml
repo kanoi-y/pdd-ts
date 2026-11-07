@@ -11,9 +11,21 @@ approvedAssumptions:
   - tcb:node-process-runtime
   - tcb:node-runtime
   - tcb:typescript-frontend
+  - identity-provider:authentic-server-session
 targets:
   - file: src/verification/acceptance.ts
     symbol: canAcceptEvidence
+  - file: examples/existing-hono/src/domain/auth.ts
+    symbol: canIssueAdminToken
+  - file: examples/greenfield-domain/src/domain/split.ts
+    symbol: split
+    witnesses:
+      - total: "0"
+        requested: "0"
+      - total: "10"
+        requested: "3"
+      - total: "10"
+        requested: "11"
 testTargets:
   - obligationId: self-tests
     files:
@@ -52,8 +64,10 @@ testTargets:
       - .pdd/requirements/CORE-003.yaml
       - .pdd/requirements/CORE-004.yaml
       - .pdd/requirements/DEMO-001.yaml
+      - .pdd/requirements/HONO-AUTH-001.yaml
       - .pdd/requirements/SPEC-001.yaml
       - .pdd/requirements/SPEC-002.yaml
+      - .pdd/requirements/SPLIT-001.yaml
       - examples/existing-hono/.pdd/.gitignore
       - examples/existing-hono/.pdd/config.yaml
       - examples/existing-hono/.pdd/obligations.yaml
@@ -151,7 +165,8 @@ testTargets:
       - vitest.config.ts
     requiredTests:
       - CLI-003 doctor identifies an empty required registry as insufficient
-      - CI-003 parses actual native verification timestamps with UTC offsets without relaxing identity
+      - CI-003 parses actual native verification timestamps with UTC offsets
+        without relaxing identity
       - "SPLIT-001: greenfield allocation T1: zero total and request"
       - "SPLIT-001: greenfield allocation T1: empty request"
       - "SPLIT-001: greenfield allocation T1: partial request"
@@ -519,6 +534,8 @@ testTargets:
         policy changes instead of silently losing obligations
       - SPEC-003 protected specification transitions rejects incomplete
         snapshots and decreasing revisions even with unchanged human text
+      - DEMO-001 binds both sample contracts, premises and runtime boundaries
+        into the protected specification
 boundaries:
   - id: dafny-z3-verification
     callerFiles:
@@ -615,6 +632,23 @@ boundaries:
     testObligationIds:
       - self-tests
     assumption: tcb:typescript-frontend
+  - id: HONO-AUTH-IDENTITY-PROVIDER
+    callerFiles:
+      - examples/existing-hono/src/app.ts
+    validatorFiles:
+      - examples/existing-hono/src/app.ts
+    calleeScope: examples/existing-hono/src/domain/auth.ts#canIssueAdminToken
+    testObligationIds:
+      - self-tests
+    assumption: identity-provider:authentic-server-session
+  - id: SPLIT-DECIMAL-INPUT
+    callerFiles:
+      - examples/greenfield-domain/src/app.ts
+    validatorFiles:
+      - examples/greenfield-domain/src/app.ts
+    calleeScope: examples/greenfield-domain/src/domain/split.ts#split
+    testObligationIds:
+      - self-tests
 github:
   repository: kanoi-y/pdd-ts
   repositoryId: 1449042266

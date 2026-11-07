@@ -1,0 +1,62 @@
+id: SPLIT-001
+revision: 1
+title: Split nonnegative units without loss
+intent: Clamp the first share to the available total and preserve every unit.
+  The public facade accepts only nonnegative decimal strings of at most 256
+  digits for both total and requested and returns decimal-string shares.
+risk: high
+target:
+  file: examples/greenfield-domain/src/domain/split.ts
+  symbol: split
+contracts:
+  - id: SPLIT-001-C1
+    kind: precondition
+    human: Total is nonnegative.
+    sourceRef:
+      file: examples/greenfield-domain/src/domain/split.ts
+      symbol: split
+      clause: requires
+      index: 0
+    semantics: bigint-nonnegative-v1
+  - id: SPLIT-001-C2
+    kind: precondition
+    human: Requested amount is nonnegative.
+    sourceRef:
+      file: examples/greenfield-domain/src/domain/split.ts
+      symbol: split
+      clause: requires
+      index: 1
+    semantics: bigint-nonnegative-v1
+  - id: SPLIT-001-C3
+    kind: postcondition
+    human: Both shares are nonnegative.
+    sourceRef:
+      file: examples/greenfield-domain/src/domain/split.ts
+      symbol: split
+      clause: ensures
+      index: 0
+    semantics: bigint-nonnegative-v1
+  - id: SPLIT-001-C4
+    kind: postcondition
+    human: The sum of both shares equals the original total.
+    sourceRef:
+      file: examples/greenfield-domain/src/domain/split.ts
+      symbol: split
+      clause: ensures
+      index: 1
+    semantics: bigint-conservation-v1
+acceptance:
+  - id: SPLIT-001-T1
+    kind: test
+    scenario: The actual pure function clamps an overlarge request, handles zero and
+      exact boundaries, and preserves values beyond JavaScript number precision.
+  - id: SPLIT-001-T2
+    kind: test
+    scenario: The public facade validates, converts and serializes decimal strings
+      without losing units, including the 256-digit limit.
+  - id: SPLIT-001-T3
+    kind: test
+    scenario: Negative, malformed, coercible, absent and oversized values are
+      rejected before reaching the pure function.
+trustedBoundaries:
+  - SPLIT-DECIMAL-INPUT

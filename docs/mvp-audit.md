@@ -12,11 +12,11 @@ No approval by an external human is invented from that authorization.
 | Source specification | All clauses, source refs, metadata/policy digest, body-only stability, affected revision bumps | Real extraction plus fixture transition tests |
 | External approval | Numeric allowlist, exact head and digest, latest opinionated review, no bot/self/dismissed review | API fixtures passed; real independent human approval pending |
 | Empirical boundary | Actual Vitest named cases, positive counts/no skip, registered caller+validator digests | Actual execution, mutant failure and stale tests |
-| CI authenticity | Fixed native gh verification, exact signer/source SAN/SHA/ref/repo ID, candidate/run/attempt/subject binding | Native JSON fixtures passed; hosted execution pending |
-| Execution authority | Read-only ordinary CI, credential-free Docker worker, separate native signer | Configuration/local argument checks; hosted container pending |
+| CI authenticity | Fixed native gh verification, exact signer/source SAN/SHA/ref/repo ID, candidate/run/attempt/subject binding | Native exact-policy verification passed for main trial42359881713; protected PR success pending |
+| Execution authority | Read-only ordinary CI, credential-free Docker worker, separate native signer | Actual hosted Docker worker and separate signer succeeded at42359881713 |
 | Hono | Source proof and 24 actual HTTP route cases, server identity validation and spoofing negatives | Actual CLI local trial passed; no external pilot claimed |
 | Bigint | Nonnegative/conservation proof, three premise witnesses, 34 actual facade cases | Actual CLI local trial passed |
-| Self application | 11 requirements, source gate proof and named empirical obligations, nine explicit runtime/frontend boundaries | Registered; clean committed self run pending |
+| Self application | 13 requirements, three required source proofs and named empirical obligations, eleven explicit runtime/frontend boundaries | Clean200-case committed run passed before the new aggregate registration;201-case aggregate check passed; final committed aggregate run pending |
 | Direct comparison | Same sources, contracts and tools; local PoC records commands/results/timing | Machine comparison; human effort/review study pending |
 
 ## Independent security review
@@ -38,8 +38,7 @@ CI scope; they do not establish adversarial soundness of arbitrary JavaScript te
 
 - Public metadata scans found no credential/private-key patterns, personal absolute
   machine paths or prohibited unused-tool descriptions in candidate files. Generated
-  local receipts/logs/tool caches are ignored, and private development ancestry will
-  not be pushed.
+  local receipts/logs/tool caches are ignored, and only a sanitized root plus public commits were pushed.
 - Production dependency audit originally found a moderate minimatch amplification
   advisory in two transitive frontend versions. Root pnpm overrides pin 11.0.1;
   repeat audit found zero known advisories. The override is a repository installation
@@ -48,8 +47,7 @@ CI scope; they do not establish adversarial soundness of arbitrary JavaScript te
 - Actions and the official Node container are commit/digest pinned. Dafny downloads
   use official checksums. Install hooks are disabled. MIT project license; dependency
   licenses/TCB are recorded in compatibility documentation.
-- An empty public `kanoi-y/pdd-ts` repository exists (immutable ID 1449042266).
-  Source push, branch-protection inspection and hosted CI remain pending at this point.
+- Public `kanoi-y/pdd-ts` (immutable ID1449042266) contains a sanitized root and public fixes. Ordinary mainCI42360913756 and review-headCI42360988736 passed. Actual protection enforces strict checks from ordinary Actions15368 and dedicated App5653976, stale-review dismissal, code-owner review and administrators, with force pushes/deletion disabled. Configuration-only doctor reports ready.
 
 ## External release conditions
 
@@ -60,4 +58,19 @@ credential is used to manufacture a review. Human cognitive-load/understanding
 measurements require actual participants and follow the predefined evaluation
 protocol. These conditions must remain visible as pending until observed.
 
-A second independent finding showed that the shared Actions App could substitute a same-named protected check. Publisher/doctor now reject App15368 and require a dedicated App with its credential held in a default-branch-only environment; no fallback token is used. Dedicated App owner registration/installation and real protected-check execution remain external pending.
+A second independent finding showed that the shared Actions App could substitute a same-named protected check. Publisher/doctor now reject App15368 and require a dedicated App with its credential held in a default-branch-only environment; no fallback token is used. Private App5653976 is installed only on pdd-ts, with checks-write and contents/PR/mandatory-metadata read. Its credential is encrypted in a main-only environment. Real protected-check success still requires personal exact-head approval. Unapproved PR run42361441485 stopped before executing candidate tests with the explicit human-approval error; signing/publication were skipped.
+
+## Aggregate example evidence
+
+A completion audit found separate ordinary-CI example trials were insufficient to
+claim both samples shared the protected approval-to-CI path. The root registry now
+explicitly includes HONO-AUTH-001 and SPLIT-001, every original source clause, the
+three bigint premise witnesses, both required source proofs and both actual runtime
+boundaries. Their24/34 existing cases remain required in the empirical suite.
+The authentic identity-provider premise is visible in the protected snapshot.
+An actual-root regression reproduced missing HONO-AUTH-001 before registration;
+the fresh whole suite passed201/201 with typecheck/build. Independent review
+confirmed the binding; generated root proof models must accompany the commit so
+the publisher can recompute freshness without generating candidate files.
+Human approval, final aggregate protected execution and human comparison remain
+pending; this audit does not assert GateP3 release completion.

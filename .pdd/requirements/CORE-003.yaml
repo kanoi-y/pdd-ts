@@ -1,5 +1,5 @@
 id: CORE-003
-revision: 4
+revision: 5
 title: Source-linked evidence from an actual verifier invocation
 intent: Bind each source proof to the actual named function, all source
   contracts, a valid premise witness, the complete declared source and proof

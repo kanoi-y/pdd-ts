@@ -1,5 +1,5 @@
 id: CORE-002
-revision: 4
+revision: 5
 title: Content-based source and proof freshness
 intent: A change to any declared source, dependency, specification, proof
   addition or tool input invalidates previous evidence; missing inputs cannot be
