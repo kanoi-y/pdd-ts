@@ -1,0 +1,42 @@
+import {z} from 'zod';
+import os from 'node:os';
+import {loadProject} from '../requirements/project.js';
+import {readProjectText,canonicalJson,writeProjectFile} from '../requirements/io.js';
+import {createSpecSnapshot} from '../requirements/snapshot.js';
+import {compareSpecs} from '../requirements/diff.js';
+import {snapshotAtCommit} from './baseline.js';
+import {GhClient} from './github.js';
+import {checkApproval} from './approval.js';
+import {attestedIdentitySchema,attestationArguments,validateAttestedRun,validateNativeVerification} from './provenance.js';
+import {savedRunSchema,gitIdentity,reportProject} from '../cli/runs.js';
+import {runProcess} from '../verification/process.js';
+import {resolveProjectPath} from '../verification/paths.js';
+import {sha256} from '../verification/digest.js';
+
+export async function auditCI(root:string,baselineSha:string,pullNumber:number,attestedFile:string) {
+ const baseline=await snapshotAtCommit(root,baselineSha),project=await loadProject(root),snapshot=await createSpecSnapshot(project);
+ const policy=baseline.metadata.config.github;
+ if(!policy?.repositoryId) throw new Error('Protected baseline requires an immutable repository ID and reviewer policy');
+ const identity=await gitIdentity(root);
+ if(identity.dirty) throw new Error('CI audit requires a clean exact-head checkout');
+ const diff=compareSpecs(baseline,snapshot); if(!diff.valid) throw new Error(diff.errors.join('; '));
+ const text=await readProjectText(root,attestedFile,8_388_608);
+ const claim=attestedIdentitySchema.extend({manifest:savedRunSchema}).strict().parse(JSON.parse(text));
+ if(!validateAttestedRun(claim,{repositoryId:policy.repositoryId,candidateSha:identity.commit,baselineSha,specDigest:snapshot.digest}) || claim.manifest.commit!==identity.commit || claim.manifest.specDigest!==snapshot.digest || claim.manifest.dirty) throw new Error('Attested candidate/run identity mismatch');
+ const client=new GhClient(root);
+ const info=z.object({id:z.number(),default_branch:z.string()}).parse(await client.get(`repos/${policy.repository}`));
+ if(info.id!==policy.repositoryId) throw new Error('Repository identity changed');
+ const env:Record<string,string>={HOME:os.homedir(),GH_PROMPT_DISABLED:'1'};
+ for(const key of ['GH_TOKEN','GITHUB_TOKEN','GH_CONFIG_DIR']) if(process.env[key]) env[key]=process.env[key]!;
+ if(process.env.PDD_ATTESTATION_TOKEN) env.GH_TOKEN=process.env.PDD_ATTESTATION_TOKEN;
+ const native=await runProcess('gh',attestationArguments(await resolveProjectPath(root,attestedFile),{repository:policy.repository,repositoryId:policy.repositoryId,workflow:policy.workflow},baselineSha,info.default_branch),{cwd:root,env,timeoutMs:60000,maxOutputBytes:16_777_216});
+ if(native.status!=='completed' || native.exitCode!==0 || !validateNativeVerification(JSON.parse(native.stdout),{repository:policy.repository,repositoryId:policy.repositoryId,workflow:policy.workflow,baselineSha,branch:info.default_branch,fileDigest:sha256(text),runId:claim.runId,runAttempt:claim.runAttempt})) throw new Error('Native GitHub attestation did not authenticate this report');
+ const approval=await checkApproval(client,policy,{repository:policy.repository,pullNumber,headSha:identity.commit,specDigest:snapshot.digest},snapshot.digest);
+ if(approval.status!=='approved' || approval.baseSha!==baselineSha) throw new Error('Current external exact-head approval or protected baseline is missing');
+ const saved=savedRunSchema.parse(JSON.parse(await readProjectText(root,`.pdd/evidence/${claim.manifest.id}/manifest.json`,8_388_608)));
+ if(canonicalJson(saved)!==canonicalJson(claim.manifest)) throw new Error('Local evidence differs from the authenticated manifest');
+ const packet=await reportProject(root,saved.id);
+ if(packet.gate.status!=='trial' || !packet.snapshotComplete || packet.unverifiedRequirements.length) throw new Error('Current evidence is stale or incomplete');
+ await writeProjectFile(root,`.pdd/evidence/${saved.id}/native-verification.json`,native.stdout,true);
+ return {...packet,origin:'ci' as const,approval:'approved' as const,authenticatedRunId:claim.runId,reviewIds:approval.reviewIds,gate:{...packet.gate,status:'passed' as const}};
+}

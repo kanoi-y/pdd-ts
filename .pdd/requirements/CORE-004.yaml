@@ -1,0 +1,12 @@
+id: CORE-004
+revision: 1
+title: Structured empirical evidence and explicit boundaries
+intent: Require positive executed named cases, reject missing skipped or inconsistent results, and bind registered caller and validator inputs to empirical evidence without claiming whole-program proof.
+risk: high
+target: {file: src/verification/tests.ts, symbol: verifyTests}
+contracts: []
+acceptance:
+  - id: CORE-004-T1
+    kind: test
+    scenario: Actual test run passes, validator mutant fails, validator edits become stale, and malformed count or missing boundary cases block.
+trustedBoundaries: [node-process-runtime]

@@ -1,0 +1,49 @@
+{
+  "name": "pdd-ts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Proof-driven TypeScript development with explicit obligations, approvals and evidence",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "packageManager": "pnpm@10.32.1",
+  "bin": {
+    "pdd-ts": "dist/cli/main.js"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "docs/compatibility.md",
+    "README.md",
+    "LICENSE",
+    "scripts/ci-test-worker.mjs"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm build && vitest run",
+    "test:poc": "node scripts/poc.mjs",
+    "test:integration": "vitest run tests/integration",
+    "check": "pnpm typecheck && pnpm test"
+  },
+  "dependencies": {
+    "lemmascript": "0.6.6",
+    "ts-morph": "28.0.0",
+    "yaml": "2.9.1",
+    "zod": "4.6.7",
+    "vitest": "5.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.6",
+    "fast-check": "4.10.2",
+    "hono": "4.13.16",
+    "typescript": "7.0.2"
+  },
+  "license": "MIT",
+  "pnpm": {
+    "overrides": {
+      "minimatch@>=7.0.0 <11.0.1": "11.0.1"
+    }
+  }
+}

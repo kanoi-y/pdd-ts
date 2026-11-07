@@ -1,0 +1,33 @@
+id: HONO-AUTH-001
+revision: 1
+title: Decide administrator eligibility from trusted identity
+intent: The pure decision returns true if and only if the validated server-side identity is an administrator with successful authentication. The HTTP route cannot obtain either authorization input from client JSON or unverified headers.
+risk: high
+target:
+  file: src/domain/auth.ts
+  symbol: canIssueAdminToken
+contracts:
+  - id: HONO-AUTH-001-C1
+    kind: postcondition
+    human: Eligibility is equivalent to administrator role and successful authentication.
+    sourceRef:
+      file: src/domain/auth.ts
+      symbol: canIssueAdminToken
+      clause: ensures
+      index: 0
+    semantics: boolean-string-equality-v1
+acceptance:
+  - id: HONO-AUTH-001-T1
+    kind: test
+    scenario: All four role and authentication combinations produce their literal expected decisions through the actual Hono route.
+  - id: HONO-AUTH-001-T2
+    kind: test
+    scenario: Missing identity returns 401 and malformed provider output fails closed.
+  - id: HONO-AUTH-001-T3
+    kind: test
+    scenario: A thrown or rejected identity lookup fails closed without exposing the provider error.
+  - id: HONO-AUTH-001-T4
+    kind: test
+    scenario: Client JSON, headers and query parameters cannot override the trusted server-side identity or create a missing identity.
+trustedBoundaries:
+  - HONO-AUTH-IDENTITY-PROVIDER

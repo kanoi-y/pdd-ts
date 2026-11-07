@@ -1,0 +1,72 @@
+schemaVersion: 1
+tools: {}
+approvedAssumptions:
+  - profile:pdd-pure-v1
+  - identity-provider:authentic-server-session
+targets:
+  - file: src/domain/auth.ts
+    symbol: canIssueAdminToken
+testTargets:
+  - obligationId: HONO-AUTH-001-ROUTE
+    files:
+      - tests/route.test.ts
+    inputs:
+      - src/app.ts
+      - src/domain/auth.ts
+    requiredTests:
+      - "HONO-AUTH-001: staged-adoption Hono route T1: admin / true returns true"
+      - "HONO-AUTH-001: staged-adoption Hono route T1: admin / false returns
+        false"
+      - "HONO-AUTH-001: staged-adoption Hono route T1: user / true returns false"
+      - "HONO-AUTH-001: staged-adoption Hono route T1: user / false returns
+        false"
+      - "HONO-AUTH-001: staged-adoption Hono route T1: awaits the server-side
+        identity and passes its request to the provider"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: absent identity undefined
+        returns 401"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: absent identity null
+        returns 401"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        0 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        1 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        2 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        3 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        4 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        5 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        6 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        7 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        8 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        9 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        10 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T3: provider throw fails
+        closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T3: provider reject fails
+        closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T4: client fields cannot
+        override trusted identity 0"
+      - "HONO-AUTH-001: staged-adoption Hono route T4: client fields cannot
+        override trusted identity 1"
+      - "HONO-AUTH-001: staged-adoption Hono route T4: client fields cannot
+        override trusted identity 2"
+      - "HONO-AUTH-001: staged-adoption Hono route T4: malformed client JSON
+        cannot replace a valid trusted decision"
+boundaries:
+  - id: HONO-AUTH-IDENTITY-PROVIDER
+    callerFiles:
+      - src/app.ts
+    validatorFiles:
+      - src/app.ts
+    calleeScope: src/domain/auth.ts#canIssueAdminToken
+    testObligationIds:
+      - HONO-AUTH-001-ROUTE
+    assumption: identity-provider:authentic-server-session

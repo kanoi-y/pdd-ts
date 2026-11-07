@@ -1,0 +1,576 @@
+{
+  "experiment": "P0: observed tool behavior, not translation-soundness proof",
+  "date": "2026-11-07T05:06:20.971Z",
+  "versions": [
+    {
+      "label": "node",
+      "exit": 0,
+      "signal": null,
+      "ms": 21,
+      "stdout": "v24.14.1\n",
+      "stderr": ""
+    },
+    {
+      "label": "dafny",
+      "exit": 0,
+      "signal": null,
+      "ms": 290,
+      "stdout": "4.11.0+fcb2042d6d043a2634f0854338c08feeaaaf4ae2\n",
+      "stderr": ""
+    }
+  ],
+  "lemmascript": "0.6.6",
+  "runtimeCounterexamples": {
+    "numberAddition": {
+      "a": "9007199254740992",
+      "b": "1",
+      "result": "9007199254740992",
+      "strictlyIncreased": false
+    },
+    "nullAndUndefinedAreDistinct": true
+  },
+  "conformance": [
+    {
+      "name": "auth",
+      "seed": 20261107,
+      "samples": 500,
+      "validInputs": 500,
+      "passed": true,
+      "scope": "Runtime outputs vs upstream typed contract; not general model equivalence"
+    },
+    {
+      "name": "allocation",
+      "seed": 20261107,
+      "samples": 500,
+      "validInputs": 230,
+      "passed": true,
+      "scope": "Runtime outputs vs upstream typed contract; not general model equivalence"
+    },
+    {
+      "name": "split",
+      "seed": 20261107,
+      "samples": 500,
+      "validInputs": 500,
+      "passed": true,
+      "scope": "Runtime outputs vs upstream typed contract; not general model equivalence"
+    }
+  ],
+  "results": [
+    {
+      "name": "auth",
+      "sourceDigest": "01e954a77dae0d4b2bdf9c6de38b9680b5352ecfe6b545113a0273b319804cde",
+      "solverSucceeded": true,
+      "complete": true,
+      "witnessed": true,
+      "explicitlyExcluded": false,
+      "accepted": true,
+      "expectedAccepted": true,
+      "ok": true,
+      "info": {
+        "label": "auth:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 1177,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/auth.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"canIssueAdminToken\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"role\",\n          \"ty\": {\n            \"kind\": \"string\",\n            \"values\": [\n              \"admin\",\n              \"user\"\n            ]\n          },\n          \"tsType\": \"\\\"admin\\\" | \\\"user\\\"\"\n        },\n        {\n          \"name\": \"passwordOk\",\n          \"ty\": {\n            \"kind\": \"bool\"\n          },\n          \"tsType\": \"boolean\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"bool\"\n      },\n      \"requires\": [],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \"===\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"right\": {\n            \"kind\": \"binop\",\n            \"op\": \"&&\",\n            \"left\": {\n              \"kind\": \"binop\",\n              \"op\": \"===\",\n              \"left\": {\n                \"kind\": \"var\",\n                \"name\": \"role\",\n                \"ty\": {\n                  \"kind\": \"string\",\n                  \"values\": [\n                    \"admin\",\n                    \"user\"\n                  ]\n                }\n              },\n              \"right\": {\n                \"kind\": \"str\",\n                \"value\": \"admin\",\n                \"ty\": {\n                  \"kind\": \"string\"\n                }\n              },\n              \"ty\": {\n                \"kind\": \"bool\"\n              }\n            },\n            \"right\": {\n              \"kind\": \"var\",\n              \"name\": \"passwordOk\",\n              \"ty\": {\n                \"kind\": \"bool\"\n              }\n            },\n            \"ty\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [\n        \"Issue only when the caller is an administrator and authenticated.\"\n      ],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"binop\",\n        \"return\",\n        \"str\",\n        \"var\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"canIssueAdminToken_ensures\": \"canIssueAdminToken_ensures\",\n      \"canIssueAdminToken\": \"canIssueAdminToken\",\n      \"passwordOk\": \"passwordOk\",\n      \"role\": \"role\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "auth:proof",
+        "exit": 0,
+        "signal": null,
+        "ms": 2888,
+        "stdout": "Generated: <repo>/.tools/poc/auth.dfy.gen\nCreated: <repo>/.tools/poc/auth.dfy\nRunning dafny verify...\n\nDafny program verifier finished with 1 verified, 0 errors\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "allocation",
+      "sourceDigest": "ae0ef6c04132c684ea3441e6af495208a5e7d98d5039366c10f989aab312390e",
+      "solverSucceeded": true,
+      "complete": true,
+      "witnessed": true,
+      "explicitlyExcluded": false,
+      "accepted": true,
+      "expectedAccepted": true,
+      "ok": true,
+      "info": {
+        "label": "allocation:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 965,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/allocation.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"remainder\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"total\",\n          \"ty\": {\n            \"kind\": \"int\",\n            \"big\": true\n          },\n          \"tsType\": \"bigint\"\n        },\n        {\n          \"name\": \"first\",\n          \"ty\": {\n            \"kind\": \"int\",\n            \"big\": true\n          },\n          \"tsType\": \"bigint\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"int\",\n        \"big\": true\n      },\n      \"requires\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \">=\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"total\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"0\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        },\n        {\n          \"kind\": \"binop\",\n          \"op\": \">=\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"first\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"0\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        },\n        {\n          \"kind\": \"binop\",\n          \"op\": \"<=\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"first\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"var\",\n            \"name\": \"total\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \">=\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"0\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        },\n        {\n          \"kind\": \"binop\",\n          \"op\": \"===\",\n          \"left\": {\n            \"kind\": \"binop\",\n            \"op\": \"+\",\n            \"left\": {\n              \"kind\": \"var\",\n              \"name\": \"first\",\n              \"ty\": {\n                \"kind\": \"int\",\n                \"big\": true\n              }\n            },\n            \"right\": {\n              \"kind\": \"var\",\n              \"name\": \"\\\\result\",\n              \"ty\": {\n                \"kind\": \"int\",\n                \"big\": true\n              }\n            },\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"var\",\n            \"name\": \"total\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [\n        \"Allocate a nonnegative total between two accounts without losing units.\"\n      ],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"binop\",\n        \"return\",\n        \"var\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"remainder_ensures\": \"remainder_ensures\",\n      \"first\": \"first\",\n      \"remainder\": \"remainder\",\n      \"total\": \"total\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "allocation:proof",
+        "exit": 0,
+        "signal": null,
+        "ms": 2076,
+        "stdout": "Generated: <repo>/.tools/poc/allocation.dfy.gen\nCreated: <repo>/.tools/poc/allocation.dfy\nRunning dafny verify...\n\nDafny program verifier finished with 2 verified, 0 errors\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "split",
+      "sourceDigest": "942b487392e5990885426cb30e833364d53cd71be8e9f80e43c4cdd298602702",
+      "solverSucceeded": true,
+      "complete": true,
+      "witnessed": true,
+      "explicitlyExcluded": false,
+      "accepted": true,
+      "expectedAccepted": true,
+      "ok": true,
+      "info": {
+        "label": "split:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 958,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/split.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [\n    {\n      \"name\": \"Shares\",\n      \"kind\": \"record\",\n      \"fields\": [\n        {\n          \"name\": \"first\",\n          \"tsType\": \"bigint\",\n          \"type\": {\n            \"kind\": \"int\",\n            \"big\": true\n          }\n        },\n        {\n          \"name\": \"second\",\n          \"tsType\": \"bigint\",\n          \"type\": {\n            \"kind\": \"int\",\n            \"big\": true\n          }\n        }\n      ]\n    }\n  ],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"split\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"total\",\n          \"ty\": {\n            \"kind\": \"int\",\n            \"big\": true\n          },\n          \"tsType\": \"bigint\"\n        },\n        {\n          \"name\": \"requested\",\n          \"ty\": {\n            \"kind\": \"int\",\n            \"big\": true\n          },\n          \"tsType\": \"bigint\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"user\",\n        \"name\": \"Shares\"\n      },\n      \"requires\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \">=\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"total\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"0\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        },\n        {\n          \"kind\": \"binop\",\n          \"op\": \">=\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"requested\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"0\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \">=\",\n          \"left\": {\n            \"kind\": \"field\",\n            \"obj\": {\n              \"kind\": \"var\",\n              \"name\": \"\\\\result\",\n              \"ty\": {\n                \"kind\": \"user\",\n                \"name\": \"Shares\"\n              }\n            },\n            \"field\": \"first\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            },\n            \"isDiscriminant\": false\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"0\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        },\n        {\n          \"kind\": \"binop\",\n          \"op\": \">=\",\n          \"left\": {\n            \"kind\": \"field\",\n            \"obj\": {\n              \"kind\": \"var\",\n              \"name\": \"\\\\result\",\n              \"ty\": {\n                \"kind\": \"user\",\n                \"name\": \"Shares\"\n              }\n            },\n            \"field\": \"second\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            },\n            \"isDiscriminant\": false\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"0\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        },\n        {\n          \"kind\": \"binop\",\n          \"op\": \"===\",\n          \"left\": {\n            \"kind\": \"binop\",\n            \"op\": \"+\",\n            \"left\": {\n              \"kind\": \"field\",\n              \"obj\": {\n                \"kind\": \"var\",\n                \"name\": \"\\\\result\",\n                \"ty\": {\n                  \"kind\": \"user\",\n                  \"name\": \"Shares\"\n                }\n              },\n              \"field\": \"first\",\n              \"ty\": {\n                \"kind\": \"int\",\n                \"big\": true\n              },\n              \"isDiscriminant\": false\n            },\n            \"right\": {\n              \"kind\": \"field\",\n              \"obj\": {\n                \"kind\": \"var\",\n                \"name\": \"\\\\result\",\n                \"ty\": {\n                  \"kind\": \"user\",\n                  \"name\": \"Shares\"\n                }\n              },\n              \"field\": \"second\",\n              \"ty\": {\n                \"kind\": \"int\",\n                \"big\": true\n              },\n              \"isDiscriminant\": false\n            },\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"var\",\n            \"name\": \"total\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [\n        \"Clamp the first share to the available total and preserve every unit.\"\n      ],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"bigint\",\n        \"binop\",\n        \"if\",\n        \"record\",\n        \"return\",\n        \"var\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"split_ensures\": \"split_ensures\",\n      \"Shares\": \"Shares\",\n      \"first\": \"first\",\n      \"requested\": \"requested\",\n      \"second\": \"second\",\n      \"split\": \"split\",\n      \"total\": \"total\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "split:proof",
+        "exit": 0,
+        "signal": null,
+        "ms": 2012,
+        "stdout": "Generated: <repo>/.tools/poc/split.dfy.gen\nCreated: <repo>/.tools/poc/split.dfy\nRunning dafny verify...\n\nDafny program verifier finished with 2 verified, 0 errors\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "always-true",
+      "sourceDigest": "22a1d67625cf90f145384a0b5510fb5897e09c1b2a0e6a95facb250949339879",
+      "solverSucceeded": false,
+      "complete": true,
+      "witnessed": true,
+      "explicitlyExcluded": false,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "always-true:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 945,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/always-true.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"canIssueAdminToken\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"role\",\n          \"ty\": {\n            \"kind\": \"string\",\n            \"values\": [\n              \"admin\",\n              \"user\"\n            ]\n          },\n          \"tsType\": \"\\\"admin\\\" | \\\"user\\\"\"\n        },\n        {\n          \"name\": \"passwordOk\",\n          \"ty\": {\n            \"kind\": \"bool\"\n          },\n          \"tsType\": \"boolean\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"bool\"\n      },\n      \"requires\": [],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \"===\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"right\": {\n            \"kind\": \"binop\",\n            \"op\": \"&&\",\n            \"left\": {\n              \"kind\": \"binop\",\n              \"op\": \"===\",\n              \"left\": {\n                \"kind\": \"var\",\n                \"name\": \"role\",\n                \"ty\": {\n                  \"kind\": \"string\",\n                  \"values\": [\n                    \"admin\",\n                    \"user\"\n                  ]\n                }\n              },\n              \"right\": {\n                \"kind\": \"str\",\n                \"value\": \"admin\",\n                \"ty\": {\n                  \"kind\": \"string\"\n                }\n              },\n              \"ty\": {\n                \"kind\": \"bool\"\n              }\n            },\n            \"right\": {\n              \"kind\": \"var\",\n              \"name\": \"passwordOk\",\n              \"ty\": {\n                \"kind\": \"bool\"\n              }\n            },\n            \"ty\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [\n        \"Issue only when the caller is an administrator and authenticated.\"\n      ],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"bool\",\n        \"return\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"canIssueAdminToken_ensures\": \"canIssueAdminToken_ensures\",\n      \"canIssueAdminToken\": \"canIssueAdminToken\",\n      \"passwordOk\": \"passwordOk\",\n      \"role\": \"role\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "always-true:proof",
+        "exit": 1,
+        "signal": null,
+        "ms": 2217,
+        "stdout": "Generated: <repo>/.tools/poc/always-true.dfy.gen\nCreated: <repo>/.tools/poc/always-true.dfy\nRunning dafny verify...\nalways-true.dfy(11,0): Error: a postcondition could not be proved on this return path\n   |\n11 | {\n   | ^\n\nalways-true.dfy(10,48): Related location: this is the postcondition that could not be proved\n   |\n10 |   ensures (canIssueAdminToken(role, passwordOk) == ((role == \"admin\") && passwordOk))\n   |                                                 ^^\n\n\nDafny program verifier finished with 0 verified, 1 error\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "missing-admin",
+      "sourceDigest": "08e9869650670a9978f51f84c103a250a2199bdb5968a0090b1756a1f712a1ab",
+      "solverSucceeded": false,
+      "complete": true,
+      "witnessed": true,
+      "explicitlyExcluded": false,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "missing-admin:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 967,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/missing-admin.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"canIssueAdminToken\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"role\",\n          \"ty\": {\n            \"kind\": \"string\",\n            \"values\": [\n              \"admin\",\n              \"user\"\n            ]\n          },\n          \"tsType\": \"\\\"admin\\\" | \\\"user\\\"\"\n        },\n        {\n          \"name\": \"passwordOk\",\n          \"ty\": {\n            \"kind\": \"bool\"\n          },\n          \"tsType\": \"boolean\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"bool\"\n      },\n      \"requires\": [],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \"===\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"right\": {\n            \"kind\": \"binop\",\n            \"op\": \"&&\",\n            \"left\": {\n              \"kind\": \"binop\",\n              \"op\": \"===\",\n              \"left\": {\n                \"kind\": \"var\",\n                \"name\": \"role\",\n                \"ty\": {\n                  \"kind\": \"string\",\n                  \"values\": [\n                    \"admin\",\n                    \"user\"\n                  ]\n                }\n              },\n              \"right\": {\n                \"kind\": \"str\",\n                \"value\": \"admin\",\n                \"ty\": {\n                  \"kind\": \"string\"\n                }\n              },\n              \"ty\": {\n                \"kind\": \"bool\"\n              }\n            },\n            \"right\": {\n              \"kind\": \"var\",\n              \"name\": \"passwordOk\",\n              \"ty\": {\n                \"kind\": \"bool\"\n              }\n            },\n            \"ty\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [\n        \"Issue only when the caller is an administrator and authenticated.\"\n      ],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"return\",\n        \"var\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"canIssueAdminToken_ensures\": \"canIssueAdminToken_ensures\",\n      \"canIssueAdminToken\": \"canIssueAdminToken\",\n      \"passwordOk\": \"passwordOk\",\n      \"role\": \"role\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "missing-admin:proof",
+        "exit": 1,
+        "signal": null,
+        "ms": 2001,
+        "stdout": "Generated: <repo>/.tools/poc/missing-admin.dfy.gen\nCreated: <repo>/.tools/poc/missing-admin.dfy\nRunning dafny verify...\nmissing-admin.dfy(11,0): Error: a postcondition could not be proved on this return path\n   |\n11 | {\n   | ^\n\nmissing-admin.dfy(10,48): Related location: this is the postcondition that could not be proved\n   |\n10 |   ensures (canIssueAdminToken(role, passwordOk) == ((role == \"admin\") && passwordOk))\n   |                                                 ^^\n\n\nDafny program verifier finished with 0 verified, 1 error\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "inverted-password",
+      "sourceDigest": "9027b0c9f1bdfc616b55c737c5202f80cc814704f1ee559750df133fe3d614c8",
+      "solverSucceeded": false,
+      "complete": true,
+      "witnessed": true,
+      "explicitlyExcluded": false,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "inverted-password:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 968,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/inverted-password.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"canIssueAdminToken\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"role\",\n          \"ty\": {\n            \"kind\": \"string\",\n            \"values\": [\n              \"admin\",\n              \"user\"\n            ]\n          },\n          \"tsType\": \"\\\"admin\\\" | \\\"user\\\"\"\n        },\n        {\n          \"name\": \"passwordOk\",\n          \"ty\": {\n            \"kind\": \"bool\"\n          },\n          \"tsType\": \"boolean\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"bool\"\n      },\n      \"requires\": [],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \"===\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"right\": {\n            \"kind\": \"binop\",\n            \"op\": \"&&\",\n            \"left\": {\n              \"kind\": \"binop\",\n              \"op\": \"===\",\n              \"left\": {\n                \"kind\": \"var\",\n                \"name\": \"role\",\n                \"ty\": {\n                  \"kind\": \"string\",\n                  \"values\": [\n                    \"admin\",\n                    \"user\"\n                  ]\n                }\n              },\n              \"right\": {\n                \"kind\": \"str\",\n                \"value\": \"admin\",\n                \"ty\": {\n                  \"kind\": \"string\"\n                }\n              },\n              \"ty\": {\n                \"kind\": \"bool\"\n              }\n            },\n            \"right\": {\n              \"kind\": \"var\",\n              \"name\": \"passwordOk\",\n              \"ty\": {\n                \"kind\": \"bool\"\n              }\n            },\n            \"ty\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [\n        \"Issue only when the caller is an administrator and authenticated.\"\n      ],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"binop\",\n        \"return\",\n        \"str\",\n        \"unop\",\n        \"var\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"canIssueAdminToken_ensures\": \"canIssueAdminToken_ensures\",\n      \"canIssueAdminToken\": \"canIssueAdminToken\",\n      \"passwordOk\": \"passwordOk\",\n      \"role\": \"role\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "inverted-password:proof",
+        "exit": 1,
+        "signal": null,
+        "ms": 2023,
+        "stdout": "Generated: <repo>/.tools/poc/inverted-password.dfy.gen\nCreated: <repo>/.tools/poc/inverted-password.dfy\nRunning dafny verify...\ninverted-password.dfy(11,0): Error: a postcondition could not be proved on this return path\n   |\n11 | {\n   | ^\n\ninverted-password.dfy(10,48): Related location: this is the postcondition that could not be proved\n   |\n10 |   ensures (canIssueAdminToken(role, passwordOk) == ((role == \"admin\") && passwordOk))\n   |                                                 ^^\n\n\nDafny program verifier finished with 0 verified, 1 error\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "lost-unit",
+      "sourceDigest": "a16bf04da19a952b985ac980121e24aaba413e95a85f7bf489ab0d460c3ab0cb",
+      "solverSucceeded": false,
+      "complete": true,
+      "witnessed": false,
+      "explicitlyExcluded": false,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "lost-unit:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 959,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/lost-unit.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"remainder\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"total\",\n          \"ty\": {\n            \"kind\": \"int\",\n            \"big\": true\n          },\n          \"tsType\": \"bigint\"\n        },\n        {\n          \"name\": \"first\",\n          \"ty\": {\n            \"kind\": \"int\",\n            \"big\": true\n          },\n          \"tsType\": \"bigint\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"int\",\n        \"big\": true\n      },\n      \"requires\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \">=\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"total\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"0\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        },\n        {\n          \"kind\": \"binop\",\n          \"op\": \">=\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"first\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"0\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        },\n        {\n          \"kind\": \"binop\",\n          \"op\": \"<=\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"first\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"var\",\n            \"name\": \"total\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \">=\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"0\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        },\n        {\n          \"kind\": \"binop\",\n          \"op\": \"===\",\n          \"left\": {\n            \"kind\": \"binop\",\n            \"op\": \"+\",\n            \"left\": {\n              \"kind\": \"var\",\n              \"name\": \"first\",\n              \"ty\": {\n                \"kind\": \"int\",\n                \"big\": true\n              }\n            },\n            \"right\": {\n              \"kind\": \"var\",\n              \"name\": \"\\\\result\",\n              \"ty\": {\n                \"kind\": \"int\",\n                \"big\": true\n              }\n            },\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"var\",\n            \"name\": \"total\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [\n        \"Allocate a nonnegative total between two accounts without losing units.\"\n      ],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"bigint\",\n        \"binop\",\n        \"return\",\n        \"var\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"remainder_ensures\": \"remainder_ensures\",\n      \"first\": \"first\",\n      \"remainder\": \"remainder\",\n      \"total\": \"total\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "lost-unit:proof",
+        "exit": 1,
+        "signal": null,
+        "ms": 2013,
+        "stdout": "Generated: <repo>/.tools/poc/lost-unit.dfy.gen\nCreated: <repo>/.tools/poc/lost-unit.dfy\nRunning dafny verify...\nlost-unit.dfy(18,0): Error: a postcondition could not be proved on this return path\n   |\n18 | {\n   | ^\n\nlost-unit.dfy(16,35): Related location: this is the postcondition that could not be proved\n   |\n16 |   ensures (remainder(total, first) >= 0)\n   |                                    ^^\n\nlost-unit.dfy(18,0): Error: a postcondition could not be proved on this return path\n   |\n18 | {\n   | ^\n\nlost-unit.dfy(17,45): Related location: this is the postcondition that could not be proved\n   |\n17 |   ensures ((first + remainder(total, first)) == total)\n   |                                              ^^\n\n\nDafny program verifier finished with 1 verified, 2 errors\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "vacuous",
+      "sourceDigest": "8b5c9d79fdbbbe390d6734df6eebed08f744eec891cf334cf539b4bd720c81d3",
+      "solverSucceeded": true,
+      "complete": true,
+      "witnessed": false,
+      "explicitlyExcluded": false,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "vacuous:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 954,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/vacuous.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"vacuous\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"x\",\n          \"ty\": {\n            \"kind\": \"int\",\n            \"big\": true\n          },\n          \"tsType\": \"bigint\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"int\",\n        \"big\": true\n      },\n      \"requires\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \">\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"x\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"0\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        },\n        {\n          \"kind\": \"binop\",\n          \"op\": \"<\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"x\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"0\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \"===\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"42\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"bigint\",\n        \"return\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"vacuous_ensures\": \"vacuous_ensures\",\n      \"vacuous\": \"vacuous\",\n      \"x\": \"x\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "vacuous:proof",
+        "exit": 0,
+        "signal": null,
+        "ms": 2147,
+        "stdout": "Generated: <repo>/.tools/poc/vacuous.dfy.gen\nCreated: <repo>/.tools/poc/vacuous.dfy\nRunning dafny verify...\n\nDafny program verifier finished with 2 verified, 0 errors\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "no-postcondition",
+      "sourceDigest": "5da3f4ad47d2c86a518b15b8c4bf14b46a0f275d8e255c97c9cf1cfb1d0fcc8b",
+      "solverSucceeded": true,
+      "complete": false,
+      "witnessed": true,
+      "explicitlyExcluded": false,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "no-postcondition:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 949,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/no-postcondition.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"empty\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"x\",\n          \"ty\": {\n            \"kind\": \"bool\"\n          },\n          \"tsType\": \"boolean\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"bool\"\n      },\n      \"requires\": [],\n      \"ensures\": [],\n      \"decreases\": null,\n      \"contract\": [],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"return\",\n        \"var\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"empty\": \"empty\",\n      \"x\": \"x\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "no-postcondition:proof",
+        "exit": 0,
+        "signal": null,
+        "ms": 1947,
+        "stdout": "Generated: <repo>/.tools/poc/no-postcondition.dfy.gen\nCreated: <repo>/.tools/poc/no-postcondition.dfy\nRunning dafny verify...\n\nDafny program verifier finished with 0 verified, 0 errors\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "async",
+      "sourceDigest": "719284a356db7ab39304ad88fc55adef60b07a9752d6f8a741eeccc807ba928b",
+      "solverSucceeded": false,
+      "complete": true,
+      "witnessed": true,
+      "explicitlyExcluded": true,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "async:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 1134,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/async.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"later\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"x\",\n          \"ty\": {\n            \"kind\": \"bool\"\n          },\n          \"tsType\": \"boolean\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"bool\"\n      },\n      \"requires\": [],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \"===\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"right\": {\n            \"kind\": \"bool\",\n            \"value\": true,\n            \"ty\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"return\",\n        \"var\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"later_ensures\": \"later_ensures\",\n      \"Promise\": \"Promise\",\n      \"later\": \"later\",\n      \"x\": \"x\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "async:proof",
+        "exit": 1,
+        "signal": null,
+        "ms": 2355,
+        "stdout": "Generated: <repo>/.tools/poc/async.dfy.gen\nCreated: <repo>/.tools/poc/async.dfy\nRunning dafny verify...\nasync.dfy(11,0): Error: a postcondition could not be proved on this return path\n   |\n11 | {\n   | ^\n\nasync.dfy(10,20): Related location: this is the postcondition that could not be proved\n   |\n10 |   ensures (later(x) == true)\n   |                     ^^\n\n\nDafny program verifier finished with 0 verified, 1 error\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "number",
+      "sourceDigest": "24e5a8910e05ed366fdef0082faac80aa26b13a5c0db4bcc4129d0c693206eae",
+      "solverSucceeded": true,
+      "complete": true,
+      "witnessed": false,
+      "explicitlyExcluded": true,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "number:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 1020,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/number.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"add\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"a\",\n          \"ty\": {\n            \"kind\": \"int\"\n          },\n          \"tsType\": \"number\"\n        },\n        {\n          \"name\": \"b\",\n          \"ty\": {\n            \"kind\": \"int\"\n          },\n          \"tsType\": \"number\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"int\"\n      },\n      \"requires\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \">=\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"a\",\n            \"ty\": {\n              \"kind\": \"int\"\n            }\n          },\n          \"right\": {\n            \"kind\": \"num\",\n            \"value\": 0,\n            \"ty\": {\n              \"kind\": \"nat\"\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        },\n        {\n          \"kind\": \"binop\",\n          \"op\": \">\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"b\",\n            \"ty\": {\n              \"kind\": \"int\"\n            }\n          },\n          \"right\": {\n            \"kind\": \"num\",\n            \"value\": 0,\n            \"ty\": {\n              \"kind\": \"nat\"\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \">\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"int\"\n            }\n          },\n          \"right\": {\n            \"kind\": \"var\",\n            \"name\": \"a\",\n            \"ty\": {\n              \"kind\": \"int\"\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"binop\",\n        \"return\",\n        \"var\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"add_ensures\": \"add_ensures\",\n      \"a\": \"a\",\n      \"add\": \"add\",\n      \"b\": \"b\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "number:proof",
+        "exit": 0,
+        "signal": null,
+        "ms": 2374,
+        "stdout": "Generated: <repo>/.tools/poc/number.dfy.gen\nCreated: <repo>/.tools/poc/number.dfy\nRunning dafny verify...\n\nDafny program verifier finished with 2 verified, 0 errors\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "bigint-negative-division",
+      "sourceDigest": "2477e0fa04716fc42fe587a9829735fb9eb02280c84d18fa5ab1fbccc500bc79",
+      "solverSucceeded": true,
+      "complete": true,
+      "witnessed": true,
+      "explicitlyExcluded": true,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "bigint-negative-division:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 984,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/bigint-negative-division.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"divide\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [],\n      \"returnTy\": {\n        \"kind\": \"int\",\n        \"big\": true\n      },\n      \"requires\": [],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \"===\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"unop\",\n            \"op\": \"-\",\n            \"expr\": {\n              \"kind\": \"bigint\",\n              \"value\": \"1\",\n              \"ty\": {\n                \"kind\": \"int\",\n                \"big\": true\n              }\n            },\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"bigint\",\n        \"binop\",\n        \"return\",\n        \"unop\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"JSTruncDiv\": \"JSTruncDiv\",\n      \"divide_ensures\": \"divide_ensures\",\n      \"divide\": \"divide\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "bigint-negative-division:proof",
+        "exit": 0,
+        "signal": null,
+        "ms": 2093,
+        "stdout": "Generated: <repo>/.tools/poc/bigint-negative-division.dfy.gen\nCreated: <repo>/.tools/poc/bigint-negative-division.dfy\nRunning dafny verify...\n\nDafny program verifier finished with 3 verified, 0 errors\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "bigint-positive-division",
+      "sourceDigest": "0cf463bf9b687e4a8867dd114549ba659d9c435f4b77844ecb9cc110edb55330",
+      "solverSucceeded": true,
+      "complete": true,
+      "witnessed": true,
+      "explicitlyExcluded": true,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "bigint-positive-division:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 955,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/bigint-positive-division.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"divide\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [],\n      \"returnTy\": {\n        \"kind\": \"int\",\n        \"big\": true\n      },\n      \"requires\": [],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \"===\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"1\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"bigint\",\n        \"binop\",\n        \"return\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"JSTruncDiv\": \"JSTruncDiv\",\n      \"divide_ensures\": \"divide_ensures\",\n      \"divide\": \"divide\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "bigint-positive-division:proof",
+        "exit": 0,
+        "signal": null,
+        "ms": 2067,
+        "stdout": "Generated: <repo>/.tools/poc/bigint-positive-division.dfy.gen\nCreated: <repo>/.tools/poc/bigint-positive-division.dfy\nRunning dafny verify...\n\nDafny program verifier finished with 3 verified, 0 errors\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "null-undefined",
+      "sourceDigest": "b24464d48aca66687159f1dc023d888672c0426b398b24dd54262ed943491306",
+      "solverSucceeded": true,
+      "complete": true,
+      "witnessed": true,
+      "explicitlyExcluded": true,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "null-undefined:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 1054,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/null-undefined.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"nullish\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"x\",\n          \"ty\": {\n            \"kind\": \"optional\",\n            \"inner\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"tsType\": \"boolean | null | undefined\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"bool\"\n      },\n      \"requires\": [],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \"===\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"right\": {\n            \"kind\": \"binop\",\n            \"op\": \"===\",\n            \"left\": {\n              \"kind\": \"var\",\n              \"name\": \"x\",\n              \"ty\": {\n                \"kind\": \"optional\",\n                \"inner\": {\n                  \"kind\": \"bool\"\n                }\n              }\n            },\n            \"right\": {\n              \"kind\": \"var\",\n              \"name\": \"undefined\",\n              \"ty\": {\n                \"kind\": \"void\"\n              }\n            },\n            \"ty\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"binop\",\n        \"return\",\n        \"var\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"_\": \"i_\",\n      \"nullish_ensures\": \"nullish_ensures\",\n      \"nullish\": \"nullish\",\n      \"x\": \"x\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "null-undefined:proof",
+        "exit": 0,
+        "signal": null,
+        "ms": 2060,
+        "stdout": "Generated: <repo>/.tools/poc/null-undefined.dfy.gen\nCreated: <repo>/.tools/poc/null-undefined.dfy\nRunning dafny verify...\n\nDafny program verifier finished with 1 verified, 0 errors\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "exception",
+      "sourceDigest": "c0ef8ef312ce4f11fcf776f4d4e8b11454dfb6cd0c47a6b5a3d273c894a3f3b1",
+      "solverSucceeded": false,
+      "complete": true,
+      "witnessed": true,
+      "explicitlyExcluded": true,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "exception:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 946,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/exception.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"positive\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"x\",\n          \"ty\": {\n            \"kind\": \"int\",\n            \"big\": true\n          },\n          \"tsType\": \"bigint\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"int\",\n        \"big\": true\n      },\n      \"requires\": [],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \">=\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"0\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"bigint\",\n        \"binop\",\n        \"if\",\n        \"return\",\n        \"throw\",\n        \"var\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"Error\": \"Error\",\n      \"positive\": \"positive\",\n      \"x\": \"x\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "exception:proof",
+        "exit": 1,
+        "signal": null,
+        "ms": 1970,
+        "stdout": "Generated: <repo>/.tools/poc/exception.dfy.gen\nCreated: <repo>/.tools/poc/exception.dfy\nRunning dafny verify...\nexception.dfy(8,4): Error: assertion might not hold\n  |\n8 |     assert false;\n  |     ^^^^^^\n\n\nDafny program verifier finished with 0 verified, 1 error\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "external",
+      "sourceDigest": "3197d33029a9e76b4eb3da0a8d460cd902812009bf0ae6d7e31043b19788ad6d",
+      "solverSucceeded": false,
+      "complete": false,
+      "witnessed": false,
+      "explicitlyExcluded": true,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "external:info",
+        "exit": 1,
+        "signal": null,
+        "ms": 946,
+        "stdout": "",
+        "stderr": "ERROR: external: function has no body\n"
+      },
+      "check": {
+        "label": "external:proof",
+        "exit": 1,
+        "signal": null,
+        "ms": 956,
+        "stdout": "",
+        "stderr": "ERROR: external: function has no body\n"
+      }
+    },
+    {
+      "name": "alias",
+      "sourceDigest": "69800122d7bf2618422fc3d368c9751edbf7e057183b7af4c45b6eca7d76e4c0",
+      "solverSucceeded": false,
+      "complete": true,
+      "witnessed": false,
+      "explicitlyExcluded": true,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "alias:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 992,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/alias.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"alias\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"xs\",\n          \"ty\": {\n            \"kind\": \"array\",\n            \"elem\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"tsType\": \"boolean[]\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"bool\"\n      },\n      \"requires\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \">\",\n          \"left\": {\n            \"kind\": \"field\",\n            \"obj\": {\n              \"kind\": \"var\",\n              \"name\": \"xs\",\n              \"ty\": {\n                \"kind\": \"array\",\n                \"elem\": {\n                  \"kind\": \"bool\"\n                }\n              }\n            },\n            \"field\": \"length\",\n            \"ty\": {\n              \"kind\": \"nat\"\n            },\n            \"isDiscriminant\": false\n          },\n          \"right\": {\n            \"kind\": \"num\",\n            \"value\": 0,\n            \"ty\": {\n              \"kind\": \"nat\"\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \"===\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"right\": {\n            \"kind\": \"bool\",\n            \"value\": false,\n            \"ty\": {\n              \"kind\": \"bool\"\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [],\n      \"isPure\": true,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"assign\",\n        \"bool\",\n        \"call\",\n        \"field\",\n        \"index\",\n        \"let\",\n        \"num\",\n        \"return\",\n        \"var\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"alias\": \"alias\",\n      \"xs\": \"xs\",\n      \"ys\": \"ys\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "alias:proof",
+        "exit": 1,
+        "signal": null,
+        "ms": 2056,
+        "stdout": "Generated: <repo>/.tools/poc/alias.dfy.gen\nCreated: <repo>/.tools/poc/alias.dfy\nRunning dafny verify...\nalias.dfy(10,2): Error: a postcondition could not be proved on this return path\n   |\n10 |   return xs[0];\n   |   ^^^^^^^^^^^^^\n\nalias.dfy(6,15): Related location: this is the postcondition that could not be proved\n  |\n6 |   ensures (res == false)\n  |                ^^\n\n\nDafny program verifier finished with 0 verified, 1 error\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "loop",
+      "sourceDigest": "89746ef5157d139a8f3c039f2145b0b4989fb733faaab6133f9ecfe0decbb0d3",
+      "solverSucceeded": false,
+      "complete": true,
+      "witnessed": false,
+      "explicitlyExcluded": true,
+      "accepted": false,
+      "expectedAccepted": false,
+      "ok": true,
+      "info": {
+        "label": "loop:info",
+        "exit": 0,
+        "signal": null,
+        "ms": 1001,
+        "stdout": "{\n  \"schema\": 1,\n  \"lemmascript\": \"0.6.6\",\n  \"file\": \"<repo>/.tools/poc/loop.ts\",\n  \"backendDirective\": null,\n  \"options\": {\n    \"extern-default\": \"impure\",\n    \"safe-slice\": false,\n    \"proof-dir\": null,\n    \"string-semantics\": \"javascript-utf16\",\n    \"dafny-library\": \"local\",\n    \"run-log\": true\n  },\n  \"typeDecls\": [],\n  \"externs\": [],\n  \"constants\": [],\n  \"functions\": [\n    {\n      \"name\": \"count\",\n      \"exported\": true,\n      \"typeParams\": [],\n      \"params\": [\n        {\n          \"name\": \"n\",\n          \"ty\": {\n            \"kind\": \"int\",\n            \"big\": true\n          },\n          \"tsType\": \"bigint\"\n        }\n      ],\n      \"returnTy\": {\n        \"kind\": \"int\",\n        \"big\": true\n      },\n      \"requires\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \">=\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"n\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"bigint\",\n            \"value\": \"0\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"ensures\": [\n        {\n          \"kind\": \"binop\",\n          \"op\": \"===\",\n          \"left\": {\n            \"kind\": \"var\",\n            \"name\": \"\\\\result\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"right\": {\n            \"kind\": \"var\",\n            \"name\": \"n\",\n            \"ty\": {\n              \"kind\": \"int\",\n              \"big\": true\n            }\n          },\n          \"ty\": {\n            \"kind\": \"bool\"\n          }\n        }\n      ],\n      \"decreases\": null,\n      \"contract\": [],\n      \"isPure\": false,\n      \"forcePure\": false,\n      \"autohavoc\": false,\n      \"bodyKinds\": [\n        \"assign\",\n        \"bigint\",\n        \"binop\",\n        \"let\",\n        \"return\",\n        \"var\",\n        \"while\"\n      ]\n    }\n  ],\n  \"classes\": [],\n  \"dafny\": {\n    \"emittedNames\": {\n      \"count\": \"count\",\n      \"i\": \"i\",\n      \"n\": \"n\"\n    }\n  }\n}\n",
+        "stderr": ""
+      },
+      "check": {
+        "label": "loop:proof",
+        "exit": 1,
+        "signal": null,
+        "ms": 2056,
+        "stdout": "Generated: <repo>/.tools/poc/loop.dfy.gen\nCreated: <repo>/.tools/poc/loop.dfy\nRunning dafny verify...\nloop.dfy(13,2): Error: a postcondition could not be proved on this return path\n   |\n13 |   return i;\n   |   ^^^^^^^^^\n\nloop.dfy(6,15): Related location: this is the postcondition that could not be proved\n  |\n6 |   ensures (res == n)\n  |                ^^\n\n\nDafny program verifier finished with 0 verified, 1 error\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "assumption-bypass",
+      "solverSucceeded": true,
+      "accepted": false,
+      "ok": true,
+      "check": {
+        "label": "assumption-bypass:proof",
+        "exit": 0,
+        "signal": null,
+        "ms": 1973,
+        "stdout": "Generated: <repo>/.tools/poc/always-true.dfy.gen\nRunning dafny verify...\n\nDafny program verifier finished with 1 verified, 0 errors\n",
+        "stderr": ""
+      },
+      "audit": {
+        "label": "assumption-bypass:audit",
+        "exit": 0,
+        "signal": null,
+        "ms": 862,
+        "stdout": "always-true.dfy(12,2): Warning: canIssueAdminToken_ensures: Definition has `assume {:axiom}` statement in body. Possible mitigation: Replace with `assert` and prove.\nDafny auditor completed with 1 findings\n\nDafny program verifier did not attempt verification\n",
+        "stderr": ""
+      },
+      "auditJsonProbe": {
+        "label": "assumption-bypass:audit-json",
+        "exit": 1,
+        "signal": null,
+        "ms": 297,
+        "stdout": "Description:\n  Report issues in the Dafny code that might limit the soundness claims of verification, emitting them as warnings or in a report document.\n\nUsage:\n  Dafny audit [<file>...] [options]\n\nArguments:\n  <file>  Dafny input files and/or a Dafny project file\n\nOptions:\n  --report-file <report-file>             Specify a path to store the audit report file. Without this, the report will take the form of standard warnings.\n  --report-format <format>                Specify the file format to use for the audit report. Supported options include: plain text in the format of warnings ('txt', 'text'); standalone HTML ('html'); a Markdown table ('md', 'markdown', 'md-table', 'markdown-table'); or an IETF-language document in Markdown format ('md-ietf', 'markdown-ietf'). With no option given, the format will be inferred from the filename extension. With no filename or format given, the report will consist of standard Dafny warnings.\n  --compare-report                        Compare the report that would have been generated with the existing file given by --report-file, and fail if they differ.\n  --warn-shadowing                        Emits a warning if the name of a declared variable caused another variable to be shadowed.\n  --warn-missing-constructor-parentheses  Emits a warning when a constructor name in a case pattern is not followed by parentheses.\n  --track-print-effects                   A compiled method, constructor, or iterator is allowed to have print effects only if it is marked with {{:print}}.\n  --allow-axioms                          Prevents a warning from being generated for axioms, such as assume statements and functions or methods without a body, that don't have an {:axiom} attribute. [default: False]\n  --enforce-determinism                   Check that only deterministic statements are used, so that values seen during execution will be the same in every run of the program.\n  --allow-external-contracts              Allow exporting callables with preconditions, and importing callables with postconditions\n  --find-project                          Uses the first specified input file as a starting path, from which to search for a project file by traversing up the file tree.\n  --stdin                                 Read standard input and treat it as an input .dfy file. [default: False]\n  --verbose                               Print additional information such as which files are emitted where.\n  --cores <count>                         Run the Dafny verifier using <n> cores, or using <XX%> of the machine's logical cores. [default: 4]\n  --library <library>                     The contents of this file and any files it includes can be referenced from other files as if they were included. \n                                          However, these contents are skipped during code generation and verification.\n                                          This option is useful in a diamond dependency situation, \n                                          to prevent code from the bottom dependency from being generated more than once.\n                                          The value may be a comma-separated list of files and folders. []\n  --allow-deprecation                     Do not warn about the use of deprecated features.\n  --prelude <file>                        Choose the Dafny prelude file.\n  --function-syntax <version>             The syntax for functions changed from Dafny version 3 to version 4. This switch controls access to the new syntax, and also provides a mode to help with migration.\n  \n                                          3 - Compiled functions are written `function method` and `predicate method`. Ghost functions are written `function` and `predicate`.\n                                          4 - Compiled functions are written `function` and `predicate`. Ghost functions are written `ghost function` and `ghost predicate`.\n                                          migration3to4 - Compiled functions are written `function method` and `predicate method`. Ghost functions are written `ghost function` and `ghost predicate`. To migrate from version 3 to version 4, use this flag on your version 3 program. This will give flag all occurrences of `function` and `predicate` as parsing errors. These are ghost functions, so change those into the new syntax `ghost function` and `ghost predicate`. Then, start using --functionSyntax:4. This will flag all occurrences of `function method` and `predicate method` as parsing errors. So, change those to just `function` and `predicate`. Now, your program uses version 4 syntax and has the exact same meaning as your previous version 3 program.\n                                          experimentalDefaultGhost - Like migration3to4, but allow `function` and `predicate` as alternatives to declaring ghost functions and predicates, respectively.\n                                          experimentalDefaultCompiled - Like migration3to4, but allow `function` and `predicate` as alternatives to declaring compiled\n                                              functions and predicates, respectively.\n                                          experimentalPredicateAlwaysGhost - Compiled functions are written `function`. Ghost functions are written `ghost function`. Predicates are always ghost and are written `predicate`. [default: 4]\n  --quantifier-syntax <version>           The syntax for quantification domains is changing from Dafny version 3 to version 4, more specifically where quantifier ranges (|\n                                          <Range>) are allowed. This switch gives early access to the new syntax.\n  \n                                          3 - Ranges are only allowed after all quantified variables are declared. \n                                              (e.g. set x, y | 0 <= x < |s| && y in s[x] && 0 <= y :: y)\n                                          4 - Ranges are allowed after each quantified variable declaration.\n                                              (e.g. set x | 0 <= x < |s|, y <- s[x] | 0 <= y :: y)\n  \n                                          Note that quantifier variable domains (<- <Domain>) are available in both syntax versions. [default: Version4]\n  --use-basename-for-filename             When parsing use basename of file for tokens instead of the path supplied on the command line\n  --emit-uncompilable-code                Rather than throwing an exception, allow compilers to emit uncompilable information including what is not compilable instead of regular code. Useful when developing compilers or to document for each test what compiler feature is missing\n  --reads-clauses-on-methods              Allows reads clauses on methods (with a default of 'reads *') as well as functions.\n  --standard-libraries                    Allow Dafny code to depend on the standard libraries included with the Dafny distribution.\n                                          See https://github.com/dafny-lang/dafny/blob/master/Source/DafnyStandardLibraries/README.md for more information.\n                                          Not compatible with the --unicode-char:false option.\n                                           [default: False]\n  -?, -h, --help                          Show help and usage information\n  --help-internal                         Show help and usage information, including options designed for developing the Dafny language and toolchain.\n\n\n\n",
+        "stderr": "Argument 'json' not recognized. Must be one of:\n\t'html'\n\t'md'\n\t'markdown'\n\t'md-table'\n\t'markdown-table'\n\t'md-ietf'\n\t'markdown-ietf'\n\t'txt'\n\n"
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+# This owner is a review routing rule, not evidence of an actual approval.
+/.github/ @kanoi-y
+/.pdd/ @kanoi-y
+/lemmascript.json @kanoi-y
+/src/ci/ @kanoi-y
+/src/verification/ @kanoi-y
+/pnpm-lock.yaml @kanoi-y

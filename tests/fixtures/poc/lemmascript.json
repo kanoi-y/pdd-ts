@@ -1,0 +1,6 @@
+{
+  "extern-default": "impure",
+  "dafny-library": "local",
+  "string-semantics": "javascript-utf16",
+  "run-log": true
+}

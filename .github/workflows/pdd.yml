@@ -1,0 +1,117 @@
+name: Trusted PDD evidence
+on:
+  workflow_dispatch:
+    inputs:
+      pull_number:
+        description: 'Approved PR number, or 0 for a main-branch trial (no approval claim)'
+        required: true
+        default: '0'
+permissions: {}
+jobs:
+  verifier:
+    name: Credential-free verification
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24.14.1'
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 10.32.1
+          run_install: false
+      - run: pnpm install --frozen-lockfile --ignore-scripts --store-dir .tools/pnpm-store
+      - run: node scripts/install-dafny.mjs
+      - run: pnpm build
+      - run: docker pull node:24.14.1-bookworm@sha256:80fc934952c8f1b2b4d39907af7211f8a9fff1a4c2cf673fb49099292c251cec
+      - run: node scripts/ci-verify.mjs "$PDD_PULL_NUMBER"
+        env:
+          PDD_PULL_NUMBER: ${{ inputs.pull_number }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: unsigned-pdd-evidence
+          path: .tools/attestation/evidence.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: candidate-verification-artifacts
+          path: .tools/ci-candidate/.pdd/evidence/
+          include-hidden-files: true
+          if-no-files-found: error
+  signer:
+    name: Attest structured evidence
+    needs: verifier
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      id-token: write
+      attestations: write
+      contents: read
+    steps:
+      # No candidate checkout, dependencies, scripts or tests in this job.
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: unsigned-pdd-evidence
+          path: signed
+      - uses: actions/attest-build-provenance@43d14bc2b83dec42d39ecae14e916627a18bb661 # v3
+        with:
+          subject-path: signed/evidence.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: attested-pdd-evidence
+          path: signed/evidence.json
+          if-no-files-found: error
+  publisher:
+    name: Publish protected check
+    environment: pdd-publisher
+    needs: signer
+    if: inputs.pull_number != '0'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      attestations: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24.14.1'
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 10.32.1
+          run_install: false
+      - run: pnpm install --frozen-lockfile --ignore-scripts --store-dir .tools/pnpm-store
+      - run: node scripts/install-dafny.mjs
+      - run: pnpm build
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: attested-pdd-evidence
+          path: .tools/signed
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: candidate-verification-artifacts
+          path: .tools/candidate-artifacts
+      - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        id: publisher-app
+        with:
+          app-id: ${{ vars.PDD_APP_ID }}
+          private-key: ${{ secrets.PDD_APP_PRIVATE_KEY }}
+          permission-checks: write
+          permission-contents: read
+          permission-pull-requests: read
+      - run: node scripts/ci-publish.mjs "$PDD_PULL_NUMBER"
+        env:
+          PDD_PULL_NUMBER: ${{ inputs.pull_number }}
+          GH_TOKEN: ${{ steps.publisher-app.outputs.token }}
+          PDD_ATTESTATION_TOKEN: ${{ github.token }}

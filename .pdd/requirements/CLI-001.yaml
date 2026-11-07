@@ -1,0 +1,15 @@
+id: CLI-001
+revision: 1
+title: Bounded external process execution
+intent: External tools run without a shell, without inherited credentials, with bounded combined output and a deadline that retained pipes cannot extend.
+risk: high
+target:
+  file: src/verification/process.ts
+  symbol: runProcess
+contracts: []
+acceptance:
+  - id: CLI-001-T1
+    kind: test
+    scenario: Shell substitution, hung processes, output flooding, missing executables and credential inheritance are rejected or contained.
+trustedBoundaries:
+  - node-process-runtime

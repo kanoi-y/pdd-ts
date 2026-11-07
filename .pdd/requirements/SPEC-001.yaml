@@ -1,0 +1,16 @@
+id: SPEC-001
+revision: 1
+title: Source contracts and premise witnesses
+intent: All source contract clauses are extracted from actual TypeScript and checked against the restricted semantic profile; a concrete valid witness is required for non-vacuous preconditions.
+risk: high
+target:
+  file: src/verification/contracts.ts
+  symbol: inspectTarget
+contracts: []
+acceptance:
+  - id: SPEC-001-T1
+    kind: test
+    scenario: Unsupported syntax, type errors, undeclared assumptions, missing postconditions, source changes and invalid or absent premise witnesses do not pass.
+trustedBoundaries:
+  - lemmascript-frontend
+  - typescript-frontend

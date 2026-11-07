@@ -1,0 +1,7 @@
+{
+  "extern-default": "impure",
+  "dafny-library": "local",
+  "string-semantics": "javascript-utf16",
+  "proof-dir": ".pdd/proofs",
+  "run-log": true
+}

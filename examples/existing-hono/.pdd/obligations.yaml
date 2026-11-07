@@ -1,0 +1,10 @@
+- id: HONO-AUTH-001-PROOF
+  requirementIds: [HONO-AUTH-001]
+  kind: source-proof
+  scope: src/domain/auth.ts#canIssueAdminToken
+  contractIds: [HONO-AUTH-001-C1]
+- id: HONO-AUTH-001-ROUTE
+  requirementIds: [HONO-AUTH-001]
+  kind: test
+  scope: POST /token-decision
+  contractIds: []

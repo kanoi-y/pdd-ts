@@ -1,0 +1,67 @@
+schemaVersion: 1
+tools: {}
+approvedAssumptions:
+  - profile:pdd-pure-v1
+targets:
+  - file: src/domain/split.ts
+    symbol: split
+    witnesses:
+      - total: "0"
+        requested: "0"
+      - total: "10"
+        requested: "3"
+      - total: "10"
+        requested: "11"
+testTargets:
+  - obligationId: SPLIT-001-TEST
+    files:
+      - tests/split.test.ts
+    inputs:
+      - src/app.ts
+      - src/domain/split.ts
+    requiredTests:
+      - "SPLIT-001: greenfield allocation T1: zero total and request"
+      - "SPLIT-001: greenfield allocation T1: empty request"
+      - "SPLIT-001: greenfield allocation T1: partial request"
+      - "SPLIT-001: greenfield allocation T1: exact request"
+      - "SPLIT-001: greenfield allocation T1: overlarge request"
+      - "SPLIT-001: greenfield allocation T1: request against zero"
+      - "SPLIT-001: greenfield allocation T1: beyond number precision"
+      - "SPLIT-001: greenfield allocation T2: decimal facade zero"
+      - "SPLIT-001: greenfield allocation T2: decimal facade partial request"
+      - "SPLIT-001: greenfield allocation T2: decimal facade clamping"
+      - "SPLIT-001: greenfield allocation T2: decimal facade leading zeros"
+      - "SPLIT-001: greenfield allocation T2: decimal facade beyond number
+        precision"
+      - "SPLIT-001: greenfield allocation T2: decimal facade maximum digit
+        length"
+      - "SPLIT-001: greenfield allocation T3: reject missing object"
+      - "SPLIT-001: greenfield allocation T3: reject null object"
+      - "SPLIT-001: greenfield allocation T3: reject array"
+      - "SPLIT-001: greenfield allocation T3: reject missing total"
+      - "SPLIT-001: greenfield allocation T3: reject missing request"
+      - "SPLIT-001: greenfield allocation T3: reject negative total"
+      - "SPLIT-001: greenfield allocation T3: reject negative request"
+      - "SPLIT-001: greenfield allocation T3: reject numeric total"
+      - "SPLIT-001: greenfield allocation T3: reject numeric request"
+      - "SPLIT-001: greenfield allocation T3: reject bigint total"
+      - "SPLIT-001: greenfield allocation T3: reject empty total"
+      - "SPLIT-001: greenfield allocation T3: reject decimal fraction"
+      - "SPLIT-001: greenfield allocation T3: reject exponent"
+      - "SPLIT-001: greenfield allocation T3: reject hexadecimal"
+      - "SPLIT-001: greenfield allocation T3: reject leading plus"
+      - "SPLIT-001: greenfield allocation T3: reject whitespace"
+      - "SPLIT-001: greenfield allocation T3: reject trailing newline"
+      - "SPLIT-001: greenfield allocation T3: reject unicode digits"
+      - "SPLIT-001: greenfield allocation T3: reject oversized total"
+      - "SPLIT-001: greenfield allocation T3: reject oversized request"
+      - "SPLIT-001: greenfield allocation T3: reject unexpected field"
+boundaries:
+  - id: SPLIT-DECIMAL-INPUT
+    callerFiles:
+      - src/app.ts
+    validatorFiles:
+      - src/app.ts
+    calleeScope: src/domain/split.ts#split
+    testObligationIds:
+      - SPLIT-001-TEST

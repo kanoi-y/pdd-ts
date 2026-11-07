@@ -1,0 +1,12 @@
+id: CLI-003
+revision: 1
+title: Safe AI-free commands and review packets
+intent: Initialize without clobbering, validate bounded project data, run required evidence, refresh freshness and render escaped explicit-scope review packets with actionable exit codes.
+risk: high
+target: {file: src/cli/runs.ts, symbol: verifyProject}
+contracts: []
+acceptance:
+  - id: CLI-003-T1
+    kind: test
+    scenario: Compiled CLI rejects aliases duplicates unsafe paths unknown flags missing tools and missing runs while actual proofs remain local trials.
+trustedBoundaries: [node-filesystem-runtime]

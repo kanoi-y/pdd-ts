@@ -1,0 +1,27 @@
+// Install the actual packed CLI offline from the populated dependency store, then invoke its bin.
+import { spawnSync } from 'node:child_process';
+import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const work = await mkdtemp(path.join(repo, '.tools/package-smoke-'));
+const env = { PATH: process.env.PATH, COREPACK_HOME: path.join(repo, '.tools/corepack'), COREPACK_ENABLE_NETWORK: '0' };
+function run(command, args, cwd = repo) {
+  const result = spawnSync(command, args, { cwd, env, encoding: 'utf8', timeout: 60000, maxBuffer: 2_000_000 });
+  if (result.status !== 0) throw new Error(`${command} failed (${result.status}):\n${result.stdout}\n${result.stderr}`);
+  return result.stdout;
+}
+const policy = JSON.parse(await readFile(path.join(repo, 'package.json'), 'utf8')).pnpm;
+run('pnpm', ['pack', '--pack-destination', work]);
+await writeFile(path.join(work, 'package.json'), JSON.stringify({ name: 'pdd-packed-smoke', private: true, packageManager: 'pnpm@10.32.1', pnpm: policy }) + '\n');
+run('pnpm', ['add', path.join(work, 'pdd-ts-0.1.0.tgz'), '--offline', '--ignore-scripts', '--store-dir', path.join(repo, '.tools/pnpm-store')], work);
+const cli = path.join(work, 'node_modules/.bin/pdd-ts');
+const help = run(cli, ['--help'], work);
+if (!help.includes('verify') || !help.includes('report')) throw new Error('Packed executable does not expose the expected CLI');
+const project = path.join(work, 'project');
+await mkdir(project);
+const initialized = JSON.parse(run(cli, ['init', '--project', project, '--json'], work));
+if (!initialized.initialized) throw new Error('Packed CLI did not initialize the project');
+JSON.parse(await readFile(path.join(project, 'lemmascript.json'), 'utf8'));
+console.log('PASS: offline tarball install, executable help and project initialization');

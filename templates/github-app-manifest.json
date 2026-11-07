@@ -1,0 +1,11 @@
+{
+  "name": "pdd-ts evidence kanoi-y",
+  "url": "https://github.com/kanoi-y/pdd-ts",
+  "public": false,
+  "default_permissions": {
+    "checks": "write",
+    "contents": "read",
+    "pull_requests": "read"
+  },
+  "default_events": []
+}

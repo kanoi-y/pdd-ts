@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-07T08:00:54.880Z",
+  "node": "v24.14.1",
+  "platform": "darwin",
+  "arch": "arm64",
+  "lemmascript": "0.6.6",
+  "dafny": "4.11.0",
+  "z3": "4.14.1",
+  "iterationsPerFixture": 1,
+  "scope": "Positive proof and empirical cases only. PDD additionally checks profile, witnesses, obligations, digests and report. No human-effort/usability conclusion.",
+  "measurements": [
+    {
+      "sample": "existing-hono",
+      "sourceSha256": "01e954a77dae0d4b2bdf9c6de38b9680b5352ecfe6b545113a0273b319804cde",
+      "tests": 24,
+      "direct": {
+        "durationMs": 5240,
+        "invocations": 6
+      },
+      "pdd": {
+        "durationMs": 7244,
+        "invocations": 1
+      }
+    },
+    {
+      "sample": "greenfield-domain",
+      "sourceSha256": "942b487392e5990885426cb30e833364d53cd71be8e9f80e43c4cdd298602702",
+      "tests": 34,
+      "direct": {
+        "durationMs": 5134,
+        "invocations": 6
+      },
+      "pdd": {
+        "durationMs": 7306,
+        "invocations": 1
+      }
+    }
+  ]
+}

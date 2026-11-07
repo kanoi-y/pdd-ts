@@ -1,0 +1,5 @@
+Generated: <repo>/.pdd/proofs/src/verification/acceptance.dfy.gen
+Created: <repo>/.pdd/proofs/src/verification/acceptance.dfy
+Running dafny verify...
+
+Dafny program verifier finished with 1 verified, 0 errors

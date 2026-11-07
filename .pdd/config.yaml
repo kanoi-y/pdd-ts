@@ -1,0 +1,574 @@
+schemaVersion: 1
+tools: {}
+approvedAssumptions:
+  - profile:pdd-pure-v1
+  - tcb:dafny-z3-verification
+  - tcb:github-api
+  - tcb:http-boundary
+  - tcb:lemmascript-frontend
+  - tcb:node-crypto-runtime
+  - tcb:node-filesystem-runtime
+  - tcb:node-process-runtime
+  - tcb:node-runtime
+  - tcb:typescript-frontend
+targets:
+  - file: src/verification/acceptance.ts
+    symbol: canAcceptEvidence
+testTargets:
+  - obligationId: self-tests
+    files:
+      - tests/examples/greenfield.test.ts
+      - tests/examples/hono.test.ts
+      - tests/integration/adapter.test.ts
+      - tests/integration/approval.test.ts
+      - tests/integration/baseline.test.ts
+      - tests/integration/boundaries.test.ts
+      - tests/integration/ci-authority.test.ts
+      - tests/integration/cli.test.ts
+      - tests/integration/contracts.test.ts
+      - tests/integration/doctor.test.ts
+      - tests/integration/provenance.test.ts
+      - tests/integration/spec.test.ts
+      - tests/unit/dafny-log.test.ts
+      - tests/unit/gate.test.ts
+      - tests/unit/process-paths.test.ts
+      - tests/unit/profile.test.ts
+      - tests/unit/spec-diff.test.ts
+    inputs:
+      - .github/CODEOWNERS
+      - .github/workflows/ci.yml
+      - .github/workflows/pdd.yml
+      - .pdd/config.yaml
+      - .pdd/obligations.yaml
+      - .pdd/requirements/CI-001.yaml
+      - .pdd/requirements/CLI-001.yaml
+      - .pdd/requirements/CLI-002.yaml
+      - .pdd/requirements/CLI-003.yaml
+      - .pdd/requirements/CORE-001.yaml
+      - .pdd/requirements/CORE-002.yaml
+      - .pdd/requirements/CORE-003.yaml
+      - .pdd/requirements/CORE-004.yaml
+      - .pdd/requirements/DEMO-001.yaml
+      - .pdd/requirements/SPEC-001.yaml
+      - .pdd/requirements/SPEC-002.yaml
+      - lemmascript.json
+      - package.json
+      - pnpm-lock.yaml
+      - scripts/ci-publish.mjs
+      - scripts/ci-test-worker.mjs
+      - scripts/ci-verify.mjs
+      - scripts/compare.mjs
+      - scripts/demo-negative.mjs
+      - scripts/demo.mjs
+      - scripts/install-dafny.mjs
+      - scripts/package-smoke.mjs
+      - scripts/poc.mjs
+      - src/ci/approval.ts
+      - src/ci/audit.ts
+      - src/ci/baseline.ts
+      - src/ci/commands.ts
+      - src/ci/doctor.ts
+      - src/ci/github.ts
+      - src/ci/provenance.ts
+      - src/ci/publish.ts
+      - src/ci/runner.ts
+      - src/cli/main.ts
+      - src/cli/runs.ts
+      - src/reporter/markdown.ts
+      - src/requirements/diff.ts
+      - src/requirements/io.ts
+      - src/requirements/project.ts
+      - src/requirements/schema.ts
+      - src/requirements/snapshot.ts
+      - src/verification/acceptance.ts
+      - src/verification/boundaries.ts
+      - src/verification/contracts.ts
+      - src/verification/dafny-log.ts
+      - src/verification/digest.ts
+      - src/verification/expressions.ts
+      - src/verification/gate.ts
+      - src/verification/lemmascript.ts
+      - src/verification/paths.ts
+      - src/verification/process.ts
+      - src/verification/profile.ts
+      - src/verification/sandbox.ts
+      - src/verification/tests.ts
+      - src/verification/toolchain.ts
+      - src/verification/types.ts
+      - tests/examples/greenfield.test.ts
+      - tests/examples/hono.test.ts
+      - tests/fixtures/poc/allocate.ts
+      - tests/fixtures/poc/auth.ts
+      - tests/fixtures/poc/lemmascript.json
+      - tests/fixtures/poc/split.ts
+      - tests/fixtures/poc/vacuous.ts
+      - tests/integration/adapter.test.ts
+      - tests/integration/approval.test.ts
+      - tests/integration/baseline.test.ts
+      - tests/integration/boundaries.test.ts
+      - tests/integration/ci-authority.test.ts
+      - tests/integration/cli.test.ts
+      - tests/integration/contracts.test.ts
+      - tests/integration/doctor.test.ts
+      - tests/integration/provenance.test.ts
+      - tests/integration/spec.test.ts
+      - tests/unit/dafny-log.test.ts
+      - tests/unit/gate.test.ts
+      - tests/unit/process-paths.test.ts
+      - tests/unit/profile.test.ts
+      - tests/unit/spec-diff.test.ts
+      - tsconfig.build.json
+      - tsconfig.json
+      - vitest.config.ts
+    requiredTests:
+      - "SPLIT-001: greenfield allocation T1: zero total and request"
+      - "SPLIT-001: greenfield allocation T1: empty request"
+      - "SPLIT-001: greenfield allocation T1: partial request"
+      - "SPLIT-001: greenfield allocation T1: exact request"
+      - "SPLIT-001: greenfield allocation T1: overlarge request"
+      - "SPLIT-001: greenfield allocation T1: request against zero"
+      - "SPLIT-001: greenfield allocation T1: beyond number precision"
+      - "SPLIT-001: greenfield allocation T2: decimal facade zero"
+      - "SPLIT-001: greenfield allocation T2: decimal facade partial request"
+      - "SPLIT-001: greenfield allocation T2: decimal facade clamping"
+      - "SPLIT-001: greenfield allocation T2: decimal facade leading zeros"
+      - "SPLIT-001: greenfield allocation T2: decimal facade beyond number
+        precision"
+      - "SPLIT-001: greenfield allocation T2: decimal facade maximum digit
+        length"
+      - "SPLIT-001: greenfield allocation T3: reject missing object"
+      - "SPLIT-001: greenfield allocation T3: reject null object"
+      - "SPLIT-001: greenfield allocation T3: reject array"
+      - "SPLIT-001: greenfield allocation T3: reject missing total"
+      - "SPLIT-001: greenfield allocation T3: reject missing request"
+      - "SPLIT-001: greenfield allocation T3: reject negative total"
+      - "SPLIT-001: greenfield allocation T3: reject negative request"
+      - "SPLIT-001: greenfield allocation T3: reject numeric total"
+      - "SPLIT-001: greenfield allocation T3: reject numeric request"
+      - "SPLIT-001: greenfield allocation T3: reject bigint total"
+      - "SPLIT-001: greenfield allocation T3: reject empty total"
+      - "SPLIT-001: greenfield allocation T3: reject decimal fraction"
+      - "SPLIT-001: greenfield allocation T3: reject exponent"
+      - "SPLIT-001: greenfield allocation T3: reject hexadecimal"
+      - "SPLIT-001: greenfield allocation T3: reject leading plus"
+      - "SPLIT-001: greenfield allocation T3: reject whitespace"
+      - "SPLIT-001: greenfield allocation T3: reject trailing newline"
+      - "SPLIT-001: greenfield allocation T3: reject unicode digits"
+      - "SPLIT-001: greenfield allocation T3: reject oversized total"
+      - "SPLIT-001: greenfield allocation T3: reject oversized request"
+      - "SPLIT-001: greenfield allocation T3: reject unexpected field"
+      - "HONO-AUTH-001: staged-adoption Hono route T1: admin / true returns true"
+      - "HONO-AUTH-001: staged-adoption Hono route T1: admin / false returns
+        false"
+      - "HONO-AUTH-001: staged-adoption Hono route T1: user / true returns false"
+      - "HONO-AUTH-001: staged-adoption Hono route T1: user / false returns
+        false"
+      - "HONO-AUTH-001: staged-adoption Hono route T1: awaits the server-side
+        identity and passes its request to the provider"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: absent identity undefined
+        returns 401"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: absent identity null
+        returns 401"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        0 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        1 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        2 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        3 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        4 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        5 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        6 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        7 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        8 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        9 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T2: malformed provider result
+        10 fails closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T3: provider throw fails
+        closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T3: provider reject fails
+        closed"
+      - "HONO-AUTH-001: staged-adoption Hono route T4: client fields cannot
+        override trusted identity 0"
+      - "HONO-AUTH-001: staged-adoption Hono route T4: client fields cannot
+        override trusted identity 1"
+      - "HONO-AUTH-001: staged-adoption Hono route T4: client fields cannot
+        override trusted identity 2"
+      - "HONO-AUTH-001: staged-adoption Hono route T4: malformed client JSON
+        cannot replace a valid trusted decision"
+      - "CORE-003: real source-linked proof evidence proves the actual source
+        and binds the verified member, artifacts and inputs"
+      - "CORE-003: real source-linked proof evidence rejects a real
+        counterexample rather than trusting process completion"
+      - "CORE-003: real source-linked proof evidence rejects an axiom added to
+        an otherwise additions-only proof"
+      - "CORE-003: real source-linked proof evidence records unsupported and
+        missing-tool outcomes distinctly"
+      - "CORE-003: real source-linked proof evidence does not overwrite a
+        previous run directory as if it were new evidence"
+      - "CORE-003: real source-linked proof evidence reports an inspection
+        timeout as unknown rather than a completed proof"
+      - "CORE-003 rejects additions-only source substitution:
+        comment-replacement"
+      - "CORE-003 rejects additions-only source substitution: proof-only-premise"
+      - "CORE-003 rejects additions-only source substitution: forged-sidecar"
+      - CI-001 externally authenticated exact-head approval accepts only an
+        allowlisted external exact-head human review
+      - 'CI-001 externally authenticated exact-head approval rejects invalid,
+        obsolete, self and superseded reviews:
+        {"id":10,"user":{"id":7,"type":"User"},"state":"DISMISSED","commit_id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","submitted_at":"2026-11-07T00:00:00Z"}'
+      - 'CI-001 externally authenticated exact-head approval rejects invalid,
+        obsolete, self and superseded reviews:
+        {"id":10,"user":{"id":7,"type":"User"},"state":"APPROVED","commit_id":"dddddddddddddddddddddddddddddddddddddddd","submitted_at":"2026-11-07T00:00:00Z"}'
+      - 'CI-001 externally authenticated exact-head approval rejects invalid,
+        obsolete, self and superseded reviews:
+        {"id":10,"user":{"id":8,"type":"User"},"state":"APPROVED","commit_id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","submitted_at":"2026-11-07T00:00:00Z"}'
+      - 'CI-001 externally authenticated exact-head approval rejects invalid,
+        obsolete, self and superseded reviews:
+        {"id":10,"user":{"id":7,"type":"Bot"},"state":"APPROVED","commit_id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","submitted_at":"2026-11-07T00:00:00Z"}'
+      - 'CI-001 externally authenticated exact-head approval rejects invalid,
+        obsolete, self and superseded reviews:
+        {"id":10,"user":{"id":7,"type":"User"},"state":"APPROVED","commit_id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","submitted_at":null}'
+      - 'CI-001 externally authenticated exact-head approval rejects invalid,
+        obsolete, self and superseded reviews:
+        {"id":10,"user":{"id":7,"type":"User"},"state":"APPROVED","commit_id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","submitted_at":"2026-11-07T00:00:00Z"}'
+      - 'CI-001 externally authenticated exact-head approval rejects invalid,
+        obsolete, self and superseded reviews:
+        {"id":10,"user":{"id":9,"type":"User"},"state":"APPROVED","commit_id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","submitted_at":"2026-11-07T00:00:00Z"}'
+      - "CI-001 externally authenticated exact-head approval rejects invalid,
+        obsolete, self and superseded reviews: undefined"
+      - CI-001 externally authenticated exact-head approval rejects a forged
+        digest, changed head and different base repository
+      - CI-002 loads protected baseline from committed inert files, ignoring
+        working changes
+      - CORE-004 empirical evidence and registered boundaries requires
+        structured successful named cases
+      - CORE-004 empirical evidence and registered boundaries rejects pending
+        cases
+      - CORE-004 empirical evidence and registered boundaries rejects failed
+        cases
+      - CORE-004 empirical evidence and registered boundaries rejects todo cases
+      - CORE-004 empirical evidence and registered boundaries rejects skipped
+        cases
+      - CORE-004 empirical evidence and registered boundaries rejects empty,
+        omitted, duplicate, inconsistent and forged successes
+      - CORE-004 empirical evidence and registered boundaries rejects
+        unregistered boundary IDs, absent validators and missing required tests
+      - CORE-004 runs actual test cases and invalidates changed validator inputs
+      - CI-005 isolates candidate execution from trusted verifier code and
+        authority
+      - CI-006 privileged entrypoint authority rejects pull_request at
+        refs/pull/1/merge before repository access or publication
+      - CI-006 privileged entrypoint authority rejects workflow_dispatch at
+        refs/heads/attacker before repository access or publication
+      - CI-006 privileged entrypoint authority rejects push at refs/heads/main
+        before repository access or publication
+      - CI-006 privileged entrypoint authority does not publish a bootstrap
+        trial or interpolate a malformed PR input
+      - "CLI-003: CLI review workflow initializes without modifying existing
+        source or clobbering configuration"
+      - "CLI-003: CLI review workflow rejects an empty required set and cannot
+        report success without an actual run"
+      - "CLI-003: CLI review workflow checks unsafe existing model paths before
+        creating a partial configuration"
+      - "CLI-003: CLI review workflow runs real proofs, shows a local trial and
+        rechecks freshness on report"
+      - "CLI-003: CLI review workflow does not accept YAML aliases, duplicate
+        keys, unknown flags or untrusted CI claims"
+      - "CLI-003: CLI review workflow reports unavailable tools as an error
+        without manufacturing evidence"
+      - "SPEC-001: actual source contracts and supported semantics extracts
+        contracts and a concrete input witness from a real synchronous source"
+      - "SPEC-001: actual source contracts and supported semantics does not
+        treat an impossible requires as an acceptable premise"
+      - "SPEC-001: actual source contracts and supported semantics requires
+        explicit valid witness inputs when preconditions are present"
+      - "SPEC-001: actual source contracts and supported semantics rejects
+        number before claiming source proof"
+      - "SPEC-001: actual source contracts and supported semantics rejects async
+        before claiming source proof"
+      - "SPEC-001: actual source contracts and supported semantics rejects
+        division before claiming source proof"
+      - "SPEC-001: actual source contracts and supported semantics rejects
+        assertion before claiming source proof"
+      - "SPEC-001: actual source contracts and supported semantics rejects throw
+        before claiming source proof"
+      - "SPEC-001: actual source contracts and supported semantics rejects call
+        before claiming source proof"
+      - "SPEC-001: actual source contracts and supported semantics rejects
+        aliasing before claiming source proof"
+      - "SPEC-001: actual source contracts and supported semantics rejects
+        undeclared import before claiming source proof"
+      - "SPEC-001: actual source contracts and supported semantics rejects
+        actual TypeScript type errors before verification"
+      - "SPEC-001: actual source contracts and supported semantics excludes
+        string arithmetic even when the contract and return type are valid"
+      - "SPEC-001: actual source contracts and supported semantics rejects
+        unsupported annotations even if their accompanying contract looks valid"
+      - "SPEC-001: actual source contracts and supported semantics rejects a
+        missing symbol or a function without postconditions"
+      - "SPEC-001: actual source contracts and supported semantics captures
+        every source contract clause, not just a referenced postcondition"
+      - CI-004 protected repository doctor accepts only required strict checks
+        with the expected issuer and enforced stale reviews
+      - CI-004 protected repository doctor rejects a same-name check from the
+        wrong app and a removable review policy
+      - CI-004 protected repository doctor distinguishes unavailable protection
+        data from ready
+      - CI-004 rejects the shared Actions issuer even when a same-name check is
+        required
+      - CI-004 requires publisher credentials confined to the exact default
+        branch
+      - CI-003 native attestation and candidate binding pins exact signer
+        identity, signer/source commits and hosted runners
+      - CI-003 native attestation and candidate binding binds candidate
+        separately from the trusted source commit
+      - CI-003 native attestation and candidate binding does not accept a
+        receipt with only user-set CI environment or fake JSON
+      - CI-003 requires one complete native verification entry, never
+        cross-entry field mixing
+      - "SPEC-002: complete specification snapshots keeps a body-only change out
+        of the specification digest"
+      - "SPEC-002: complete specification snapshots includes every precondition
+        even if the requirement only references ensures"
+      - "SPEC-002: complete specification snapshots rejects a missing source
+        clause instead of silently rebinding its contract ID"
+      - "SPEC-002: complete specification snapshots binds policy changes and
+        does not accept unknown requirement IDs"
+      - SPEC-002 rejects oversized source before launching contract extraction
+      - "CORE-003: account for the expected proof member accepts the actual
+        member log format observed from the pinned verifier"
+      - "CORE-003: account for the expected proof member does not confuse zero
+        work or helper-only work with the required source contract"
+      - "CORE-003: account for the expected proof member rejects failure in any
+        check of a member even when correctness passed"
+      - "CORE-003: account for the expected proof member rejects partially
+        parsed member logs rather than silently dropping malformed entries"
+      - "CORE-003: account for the expected proof member reads the auditor
+        summary instead of treating zero exit or a quoted zero as clean"
+      - "CORE-001: accept evidence only when every condition holds accepts
+        exactly the one all-true row of the six-condition truth table"
+      - "CORE-001: accept evidence only when every condition holds passes a
+        complete current authenticated approved proof"
+      - "CORE-001: accept evidence only when every condition holds blocks an
+        empty required set, even when every supplied evidence item passed"
+      - "CORE-001: accept evidence only when every condition holds blocks a
+        required item missing from the current run"
+      - "CORE-001: accept evidence only when every condition holds does not use
+        an older success when the current run has no result"
+      - "CORE-001: accept evidence only when every condition holds blocks
+        required proof status failed"
+      - "CORE-001: accept evidence only when every condition holds blocks
+        required proof status unsupported"
+      - "CORE-001: accept evidence only when every condition holds blocks
+        required proof status unknown"
+      - "CORE-001: accept evidence only when every condition holds blocks
+        required proof status not-run"
+      - "CORE-001: accept evidence only when every condition holds blocks
+        required proof status stale"
+      - "CORE-001: accept evidence only when every condition holds blocks
+        required proof status error"
+      - "CORE-001: accept evidence only when every condition holds rejects a
+        mismatched kind"
+      - "CORE-001: accept evidence only when every condition holds rejects a
+        mismatched scope"
+      - "CORE-001: accept evidence only when every condition holds rejects a
+        mismatched requirementIds"
+      - "CORE-001: accept evidence only when every condition holds rejects a
+        mismatched verifiedContractIds"
+      - "CORE-001: accept evidence only when every condition holds rejects a
+        mismatched verifiedSymbols"
+      - "CORE-001: accept evidence only when every condition holds rejects an
+        obsolete sourceDigest"
+      - "CORE-001: accept evidence only when every condition holds rejects an
+        obsolete specDigest"
+      - "CORE-001: accept evidence only when every condition holds rejects an
+        obsolete toolchainDigest"
+      - "CORE-001: accept evidence only when every condition holds rejects
+        duplicate current evidence instead of selecting the passing one"
+      - "CORE-001: accept evidence only when every condition holds rejects
+        duplicate obligation IDs rather than silently coalescing them"
+      - "CORE-001: accept evidence only when every condition holds does not
+        accept a self-reported CI run when external authentication is absent"
+      - "CORE-001: accept evidence only when every condition holds blocks
+        pending approval regardless of proof success"
+      - "CORE-001: accept evidence only when every condition holds blocks
+        invalid approval regardless of proof success"
+      - "CORE-001: accept evidence only when every condition holds labels a
+        locally successful run as a trial, never a protected CI pass"
+      - "CORE-001: accept evidence only when every condition holds blocks
+        zero-case, skipped or internally inconsistent test reports"
+      - "CORE-001: accept evidence only when every condition holds does not
+        accept an unapproved extra trust assumption"
+      - "CORE-001: accept evidence only when every condition holds never passes
+        a missing obligation under arbitrary surrounding successes"
+      - "CORE-001: accept evidence only when every condition holds rejects
+        malformed evidence and unknown fields instead of ignoring them"
+      - "CORE-001: accept evidence only when every condition holds uses
+        independently computed per-obligation source digests and rejects absent
+        map entries"
+      - "CORE-001: accept evidence only when every condition holds does not
+        accept a result from a different checkout commit"
+      - "CLI-001: bounded process execution without shell expansion preserves
+        literal argv rather than invoking shell substitution"
+      - "CLI-001: bounded process execution without shell expansion terminates a
+        hung process within the deadline"
+      - "CLI-001: bounded process execution without shell expansion bounds
+        combined output and kills a flooding subprocess"
+      - "CLI-001: bounded process execution without shell expansion returns at
+        the deadline even if a detached descendant keeps stdout open"
+      - "CLI-001: bounded process execution without shell expansion does not
+        leak parent GitHub credentials into code under test"
+      - "CLI-001: bounded process execution without shell expansion redacts
+        explicitly known secrets even when printed across chunks"
+      - "CLI-001: bounded process execution without shell expansion
+        distinguishes spawn failure from a completed nonzero exit"
+      - "CLI-002: project-contained artifact paths rejects escaping or invalid
+        path ../outside"
+      - "CLI-002: project-contained artifact paths rejects escaping or invalid
+        path a/../../outside"
+      - "CLI-002: project-contained artifact paths rejects escaping or invalid
+        path /etc/passwd"
+      - "CLI-002: project-contained artifact paths rejects escaping or invalid
+        path C:\\Windows\\file"
+      - "CLI-002: project-contained artifact paths rejects escaping or invalid
+        path x\0y"
+      - >-
+        CLI-002: project-contained artifact paths rejects escaping or invalid
+        path line
+
+        break.ts
+      - "CLI-002: project-contained artifact paths rejects escaping or invalid
+        path line\rbad.ts"
+      - "CLI-002: project-contained artifact paths rejects escaping or invalid
+        path \e[31m.ts"
+      - "CLI-002: project-contained artifact paths rejects a symlink escape for
+        both reads and new artifacts"
+      - "CLI-002: project-contained artifact paths allows a contained existing
+        file and contained new nested artifact"
+      - "CORE-002: content-based freshness is stable across input ordering and
+        detects dependency-only edits"
+      - "CORE-002: content-based freshness rejects missing, duplicated and
+        escaped inputs rather than hashing a partial set"
+      - CORE-002 hashes special object-key filenames without losing their bytes
+      - "SPEC-001: admitted source profile excludes unvalidated runtime
+        properties does not admit global function metadata as pure scalar logic"
+      - SPEC-003 protected specification transitions does not require another
+        approval when the complete snapshot is unchanged
+      - SPEC-003 protected specification transitions requires a revision bump
+        for every affected requirement including unreferenced premises
+      - SPEC-003 protected specification transitions reports deletions and
+        policy changes instead of silently losing obligations
+      - SPEC-003 protected specification transitions rejects incomplete
+        snapshots and decreasing revisions even with unchanged human text
+boundaries:
+  - id: dafny-z3-verification
+    callerFiles:
+      - src/verification/lemmascript.ts
+    validatorFiles:
+      - src/requirements/schema.ts
+      - src/verification/profile.ts
+    calleeScope: dafny-z3-verification
+    testObligationIds:
+      - self-tests
+    assumption: tcb:dafny-z3-verification
+  - id: github-api
+    callerFiles:
+      - src/ci/approval.ts
+    validatorFiles:
+      - src/ci/approval.ts
+      - src/ci/provenance.ts
+    calleeScope: github-api
+    testObligationIds:
+      - self-tests
+    assumption: tcb:github-api
+  - id: http-boundary
+    callerFiles:
+      - examples/existing-hono/src/domain/auth.ts
+    validatorFiles:
+      - src/requirements/schema.ts
+      - src/verification/profile.ts
+    calleeScope: http-boundary
+    testObligationIds:
+      - self-tests
+    assumption: tcb:http-boundary
+  - id: lemmascript-frontend
+    callerFiles:
+      - src/verification/lemmascript.ts
+      - src/verification/contracts.ts
+      - src/requirements/snapshot.ts
+    validatorFiles:
+      - src/requirements/schema.ts
+      - src/verification/profile.ts
+    calleeScope: lemmascript-frontend
+    testObligationIds:
+      - self-tests
+    assumption: tcb:lemmascript-frontend
+  - id: node-crypto-runtime
+    callerFiles:
+      - src/verification/digest.ts
+    validatorFiles:
+      - src/requirements/schema.ts
+      - src/verification/profile.ts
+    calleeScope: node-crypto-runtime
+    testObligationIds:
+      - self-tests
+    assumption: tcb:node-crypto-runtime
+  - id: node-filesystem-runtime
+    callerFiles:
+      - src/verification/paths.ts
+      - src/cli/runs.ts
+    validatorFiles:
+      - src/requirements/schema.ts
+      - src/verification/profile.ts
+    calleeScope: node-filesystem-runtime
+    testObligationIds:
+      - self-tests
+    assumption: tcb:node-filesystem-runtime
+  - id: node-process-runtime
+    callerFiles:
+      - src/verification/process.ts
+      - src/verification/lemmascript.ts
+      - src/verification/tests.ts
+    validatorFiles:
+      - src/requirements/schema.ts
+      - src/verification/profile.ts
+    calleeScope: node-process-runtime
+    testObligationIds:
+      - self-tests
+    assumption: tcb:node-process-runtime
+  - id: node-runtime
+    callerFiles:
+      - examples/existing-hono/src/domain/auth.ts
+    validatorFiles:
+      - src/requirements/schema.ts
+      - src/verification/profile.ts
+    calleeScope: node-runtime
+    testObligationIds:
+      - self-tests
+    assumption: tcb:node-runtime
+  - id: typescript-frontend
+    callerFiles:
+      - src/verification/contracts.ts
+    validatorFiles:
+      - src/requirements/schema.ts
+      - src/verification/profile.ts
+    calleeScope: typescript-frontend
+    testObligationIds:
+      - self-tests
+    assumption: tcb:typescript-frontend
+github:
+  repository: kanoi-y/pdd-ts
+  repositoryId: 1449042266
+  reviewerIds:
+    - 67132908
+  minApprovals: 1
+  workflow: .github/workflows/pdd.yml
+  checkContext: PDD protected gate

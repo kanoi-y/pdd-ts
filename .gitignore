@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.tools/
+.superpowers/
+.pdd/evidence/
+.pdd/reports/
+.lemmascript/
+*.ts.json
+*.dfy.base
+*.dfy.merged
+coverage/
+.DS_Store
+
+.pdd/approval.json

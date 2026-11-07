@@ -1,0 +1,23 @@
+- id: gate-proof
+  requirementIds:
+    - CORE-001
+  kind: source-proof
+  scope: src/verification/acceptance.ts#canAcceptEvidence
+  contractIds:
+    - CORE-001-C1
+- id: self-tests
+  requirementIds:
+    - CI-001
+    - CLI-001
+    - CLI-002
+    - CLI-003
+    - CORE-001
+    - CORE-002
+    - CORE-003
+    - CORE-004
+    - DEMO-001
+    - SPEC-001
+    - SPEC-002
+  kind: test
+  scope: pdd-ts runtime and CLI
+  contractIds: []

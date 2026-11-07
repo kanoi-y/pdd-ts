@@ -1,0 +1,10 @@
+- id: SPLIT-001-PROOF
+  requirementIds: [SPLIT-001]
+  kind: source-proof
+  scope: src/domain/split.ts#split
+  contractIds: [SPLIT-001-C1, SPLIT-001-C2, SPLIT-001-C3, SPLIT-001-C4]
+- id: SPLIT-001-TEST
+  requirementIds: [SPLIT-001]
+  kind: test
+  scope: splitDecimal runtime boundary and split allocation
+  contractIds: []
