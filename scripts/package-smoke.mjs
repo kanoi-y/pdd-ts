@@ -6,9 +6,9 @@ import { fileURLToPath } from 'node:url';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const work = await mkdtemp(path.join(repo, '.tools/package-smoke-'));
-const env = { PATH: process.env.PATH, COREPACK_HOME: path.join(repo, '.tools/corepack'), COREPACK_ENABLE_NETWORK: '0' };
+const env = { PATH: path.join(repo, '.tools/dafny-4.11.0/dafny') + path.delimiter + process.env.PATH, COREPACK_HOME: path.join(repo, '.tools/corepack'), COREPACK_ENABLE_NETWORK: '0' };
 function run(command, args, cwd = repo) {
-  const result = spawnSync(command, args, { cwd, env, encoding: 'utf8', timeout: 60000, maxBuffer: 2_000_000 });
+  const result = spawnSync(command, args, { cwd, env, encoding: 'utf8', timeout: 180000, maxBuffer: 2_000_000 });
   if (result.status !== 0) throw new Error(`${command} failed (${result.status}):\n${result.stdout}\n${result.stderr}`);
   return result.stdout;
 }
@@ -28,4 +28,11 @@ await mkdir(project);
 const initialized = JSON.parse(run(cli, ['init', '--project', project, '--json'], work));
 if (!initialized.initialized) throw new Error('Packed CLI did not initialize the project');
 JSON.parse(await readFile(path.join(project, 'lemmascript.json'), 'utf8'));
-console.log('PASS: offline tarball install, executable help and project initialization');
+const trials = [];
+for (const sample of ['examples/existing-hono', 'examples/greenfield-domain', '.']) {
+  const packet = JSON.parse(run(cli, ['verify', '--project', path.resolve(repo, sample), '--json']));
+  if (packet.gate.status !== 'trial' || packet.approval !== 'pending' || packet.evidence.some(item => item.status !== 'passed')) throw new Error('Packed verification incomplete: ' + sample);
+  trials.push({ project: sample, commit: packet.commit, dirty: packet.dirty, gate: packet.gate.status, approval: packet.approval, evidence: packet.evidence.map(item => ({ kind: item.kind, status: item.status, counts: item.counts })) });
+}
+await writeFile(path.join(repo, '.tools/packed-trials.json'), JSON.stringify(trials, null, 2) + '\n');
+console.log('PASS: offline tarball install, executable help/init, both examples and self verification');

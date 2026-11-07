@@ -1,4 +1,4 @@
-import {mkdir} from 'node:fs/promises';
+import {mkdir,rm} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import {sandboxArguments} from './sandbox.js';
 import { createRequire } from 'node:module';
@@ -39,8 +39,8 @@ export async function verifyTests(project:Project,obligationId:string,identity:V
   const inputs=await digestFiles(project.root,inputPaths); record.sourceDigest=inputs.digest;
   for(const file of target.files) await resolveProjectPath(project.root,file);
   const config=`${directory}/vitest.config.mjs`,output=`${directory}/results.json`;
-  await writeProjectFile(project.root,config,`export default ${JSON.stringify({test:{include:target.files,exclude:[],passWithNoTests:false,watch:false,testTimeout:60000,hookTimeout:60000,pool:'forks',maxWorkers:2}})};\n`); artifacts.push(config);
-  const args=[vitestCli,'run','--root',project.root,'--config',await resolveProjectPath(project.root,config),'--reporter=json','--outputFile',await resolveProjectPath(project.root,output,{allowMissing:true})];
+  await writeProjectFile(project.root,config,`export default ${JSON.stringify({cacheDir:path.join(project.root,directory,'vite-cache'),test:{include:target.files,exclude:[],passWithNoTests:false,watch:false,testTimeout:60000,hookTimeout:60000,pool:'forks',maxWorkers:2}})};\n`); artifacts.push(config);
+  const args=[vitestCli,'run','--configLoader','native','--root',project.root,'--config',await resolveProjectPath(project.root,config),'--reporter=json','--outputFile',await resolveProjectPath(project.root,output,{allowMissing:true})];
   let outcome;
   if(process.env.PDD_TEST_SANDBOX==='1') {
    const trustedRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
@@ -49,7 +49,11 @@ export async function verifyTests(project:Project,obligationId:string,identity:V
    const command=['node',path.join(trustedRoot,'scripts/ci-test-worker.mjs'),JSON.stringify(args)];
    try {outcome=await runProcess('docker',sandboxArguments({trustedRoot,projectRoot:project.root,artifactDirectory:await resolveProjectPath(project.root,directory),name,command,uid:process.getuid?.()??1001,gid:process.getgid?.()??1001}),{cwd:project.root,timeoutMs:120000,maxOutputBytes:2_097_152});}
    finally {await runProcess('docker',['rm','--force',name],{cwd:project.root,timeoutMs:10000});}
-  } else outcome=await runProcess(process.execPath,args,{cwd:project.root,timeoutMs:120000,maxOutputBytes:2_097_152});
+  } else {
+   const state=path.join(await resolveProjectPath(project.root,directory),'.tool-state');
+   try{outcome=await runProcess(process.execPath,args,{cwd:project.root,timeoutMs:120000,maxOutputBytes:2_097_152,env:{XDG_DATA_HOME:state}});}
+   finally{await rm(state,{recursive:true,force:true});}
+  }
   await writeProjectFile(project.root,`${directory}/process.json`,JSON.stringify(outcome,null,2)+'\n'); artifacts.push(`${directory}/process.json`);
   if(outcome.status==='completed') {
    const results=inspectTestReport(JSON.parse(await readProjectText(project.root,output,8_388_608)),target.requiredTests); artifacts.push(output);

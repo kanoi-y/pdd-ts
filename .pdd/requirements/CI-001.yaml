@@ -1,5 +1,5 @@
 id: CI-001
-revision: 3
+revision: 4
 title: External approval and CI authority
 intent: An approval or CI receipt may not authenticate itself; validate source
   identity, complete specification digest, external reviewer authority and the

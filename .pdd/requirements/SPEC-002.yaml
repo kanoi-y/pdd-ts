@@ -1,5 +1,5 @@
 id: SPEC-002
-revision: 2
+revision: 3
 title: Complete source specification and protected revisions
 intent: Hash all source clauses and protected metadata; reject unresolved
   contract references and require higher affected revisions rather than infer

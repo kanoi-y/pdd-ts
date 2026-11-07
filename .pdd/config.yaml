@@ -28,16 +28,19 @@ testTargets:
       - tests/integration/contracts.test.ts
       - tests/integration/doctor.test.ts
       - tests/integration/provenance.test.ts
+      - tests/integration/review-card.test.ts
       - tests/integration/spec.test.ts
       - tests/unit/dafny-log.test.ts
       - tests/unit/gate.test.ts
       - tests/unit/process-paths.test.ts
       - tests/unit/profile.test.ts
+      - tests/unit/report.test.ts
       - tests/unit/spec-diff.test.ts
     inputs:
       - .github/CODEOWNERS
       - .github/workflows/ci.yml
       - .github/workflows/pdd.yml
+      - .github/workflows/spec-review.yml
       - .pdd/config.yaml
       - .pdd/obligations.yaml
       - .pdd/requirements/CI-001.yaml
@@ -51,6 +54,26 @@ testTargets:
       - .pdd/requirements/DEMO-001.yaml
       - .pdd/requirements/SPEC-001.yaml
       - .pdd/requirements/SPEC-002.yaml
+      - examples/existing-hono/.pdd/.gitignore
+      - examples/existing-hono/.pdd/config.yaml
+      - examples/existing-hono/.pdd/obligations.yaml
+      - examples/existing-hono/.pdd/requirements/HONO-AUTH-001.yaml
+      - examples/existing-hono/README.md
+      - examples/existing-hono/lemmascript.json
+      - examples/existing-hono/src/app.ts
+      - examples/existing-hono/src/domain/auth.ts
+      - examples/existing-hono/tests/route.test.ts
+      - examples/existing-hono/verification-notes.md
+      - examples/greenfield-domain/.pdd/.gitignore
+      - examples/greenfield-domain/.pdd/config.yaml
+      - examples/greenfield-domain/.pdd/obligations.yaml
+      - examples/greenfield-domain/.pdd/requirements/SPLIT-001.yaml
+      - examples/greenfield-domain/README.md
+      - examples/greenfield-domain/lemmascript.json
+      - examples/greenfield-domain/src/app.ts
+      - examples/greenfield-domain/src/domain/split.ts
+      - examples/greenfield-domain/tests/split.test.ts
+      - examples/greenfield-domain/verification-notes.md
       - lemmascript.json
       - package.json
       - pnpm-lock.yaml
@@ -63,6 +86,7 @@ testTargets:
       - scripts/install-dafny.mjs
       - scripts/package-smoke.mjs
       - scripts/poc.mjs
+      - scripts/prepare-spec-review.mjs
       - src/ci/approval.ts
       - src/ci/audit.ts
       - src/ci/baseline.ts
@@ -71,6 +95,7 @@ testTargets:
       - src/ci/github.ts
       - src/ci/provenance.ts
       - src/ci/publish.ts
+      - src/ci/review.ts
       - src/ci/runner.ts
       - src/cli/main.ts
       - src/cli/runs.ts
@@ -95,6 +120,7 @@ testTargets:
       - src/verification/tests.ts
       - src/verification/toolchain.ts
       - src/verification/types.ts
+      - templates/github-app-manifest.json
       - tests/examples/greenfield.test.ts
       - tests/examples/hono.test.ts
       - tests/fixtures/poc/allocate.ts
@@ -111,11 +137,13 @@ testTargets:
       - tests/integration/contracts.test.ts
       - tests/integration/doctor.test.ts
       - tests/integration/provenance.test.ts
+      - tests/integration/review-card.test.ts
       - tests/integration/spec.test.ts
       - tests/unit/dafny-log.test.ts
       - tests/unit/gate.test.ts
       - tests/unit/process-paths.test.ts
       - tests/unit/profile.test.ts
+      - tests/unit/report.test.ts
       - tests/unit/spec-diff.test.ts
       - tsconfig.build.json
       - tsconfig.json
@@ -264,6 +292,8 @@ testTargets:
       - CORE-004 runs actual test cases and invalidates changed validator inputs
       - CI-005 isolates candidate execution from trusted verifier code and
         authority
+      - CI-005 loads generated configuration with read-only dependency
+        directories
       - CI-006 privileged entrypoint authority rejects pull_request at
         refs/pull/1/merge before repository access or publication
       - CI-006 privileged entrypoint authority rejects workflow_dispatch at
@@ -334,6 +364,23 @@ testTargets:
         receipt with only user-set CI environment or fake JSON
       - CI-003 requires one complete native verification entry, never
         cross-entry field mixing
+      - CI-001 human specification review preparation renders immutable complete
+        specifications, every intent and every extracted clause without
+        approving them
+      - CI-001 human specification review preparation rejects incomplete
+        snapshots, invalid revision transitions and mutable identities
+      - CI-001 human specification review preparation escapes parentheses in
+        pinned source URLs and refuses to truncate an oversized specification
+      - 'CI-001 human specification review preparation rejects untrusted
+        authority before any I/O: {"GITHUB_EVENT_NAME":"pull_request"}'
+      - 'CI-001 human specification review preparation rejects untrusted
+        authority before any I/O: {"GITHUB_REF":"refs/heads/codex/spec-review"}'
+      - 'CI-001 human specification review preparation rejects untrusted
+        authority before any I/O: {"GITHUB_SHA":"main"}'
+      - CI-001 human specification review preparation fetches only inert pinned
+        data and creates a Bot PR with the exact temporary body file
+      - CI-001 human specification review preparation fails before creating a PR
+        when the fixed remote branch moves
       - "SPEC-002: complete specification snapshots keeps a body-only change out
         of the specification digest"
       - "SPEC-002: complete specification snapshots includes every precondition
@@ -460,6 +507,7 @@ testTargets:
       - CORE-002 hashes special object-key filenames without losing their bytes
       - "SPEC-001: admitted source profile excludes unvalidated runtime
         properties does not admit global function metadata as pure scalar logic"
+      - CLI-003 exposes runtime trust assumptions alongside the proof scope
       - SPEC-003 protected specification transitions does not require another
         approval when the complete snapshot is unchanged
       - SPEC-003 protected specification transitions requires a revision bump

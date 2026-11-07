@@ -34,15 +34,15 @@ production credential in the sample.
 | `null` or `undefined` identity | 401 | `{ "allowed": false }` |
 | Malformed identity or thrown/rejected lookup | 503 | `{ "allowed": false }` |
 
-The real-route tests live in `tests/examples/hono.test.ts` at the repository
-root. They cover the complete four-case domain, asynchronous lookup, missing
+The real-route tests live in this example's `tests/route.test.ts`; the repository
+root wrapper `tests/examples/hono.test.ts` runs the same cases. They cover the complete four-case domain, asynchronous lookup, missing
 and malformed identity, provider exceptions, and client spoofing. The opaque
 cookie lookup in one test is a test fixture, not an authentication adapter.
 
 From the repository root, install its locked dependencies and run:
 
 ```sh
-pnpm install --frozen-lockfile
+pnpm install --frozen-lockfile --ignore-scripts --store-dir .tools/pnpm-store
 pnpm exec vitest run tests/examples/hono.test.ts
 pnpm typecheck
 pnpm test
@@ -70,16 +70,16 @@ node dist/cli/main.js report --project examples/existing-hono
 
 `tools: {}` selects the pinned Dafny/Z3 toolchain through `PATH` for the nested
 project. The source target is `src/domain/auth.ts#canIssueAdminToken`.
-`approvedAssumptions: [profile:pdd-pure-v1]` declares the technical profile; it
-is not human approval of a specification or authentication implementation.
+The policy permits the technical profile and the explicitly trusted
+`identity-provider:authentic-server-session` boundary. Neither is an external
+human approval of the specification or the authentication implementation.
 
-The required route-test obligation is intentionally present. Running Vitest
-directly does not create a CLI evidence receipt. Until that test command and the
-identity boundary are registered with an implemented empirical/boundary
-adapter, their missing evidence must block a complete gate, even when the
-source proof passes. The initial registry does not claim that registration or
-fabricate an externally approved review. Local runs remain trials; a protected
-CI decision needs independently authenticated provenance and review.
+The source-proof obligation and all 24 named route cases are registered separately.
+`verify` runs both and binds the caller/validator source to the route evidence.
+The report displays the identity-provider assumption and boundary explicitly.
+Missing/skipped tests or changed caller/validator inputs block or stale the gate.
+The actual source proof and route cases pass as a local trial; a protected CI
+pass additionally needs authenticated provenance and a current human review.
 
 Directly used API references: [Hono app/request](https://hono.dev/docs/api/hono),
 [Zod parsing](https://zod.dev/basics).

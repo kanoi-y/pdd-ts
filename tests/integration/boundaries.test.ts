@@ -14,7 +14,7 @@ describe('CORE-004 empirical evidence and registered boundaries',()=>{
  });
 });
 
-import { mkdtemp,mkdir,writeFile,rm } from 'node:fs/promises';
+import { mkdtemp,mkdir,writeFile,rm,readFile,chmod } from 'node:fs/promises';
 import path from 'node:path';
 import { verifyTests,empiricalToolDigest } from '../../src/verification/tests.js';
 import { checkEvidenceFreshness } from '../../src/verification/lemmascript.js';
@@ -41,4 +41,23 @@ it('CI-005 isolates candidate execution from trusted verifier code and authority
  expect(args).toContain('type=bind,src=/trusted,dst=/trusted,readonly');
  expect(args.some(arg=>arg.includes('docker.sock'))).toBe(false);
  expect(args.some(arg=>arg.includes('GH_TOKEN'))).toBe(false);
+});
+
+it('CI-005 loads generated configuration with read-only dependency directories',async()=>{
+ await mkdir('.tools',{recursive:true});const root=await mkdtemp(path.resolve('.tools/readonly-config-'));
+ try{
+  await mkdir(path.join(root,'node_modules'),{mode:0o755});
+  // Vitest owns API state separately from dependency code. A reserved config-cache
+  // entry makes bundling fail rather than silently writing into dependencies.
+  await mkdir(path.join(root,'node_modules/.vitest'),{mode:0o700});
+  await writeFile(path.join(root,'node_modules/.vite-temp'),'reserved',{mode:0o444});
+  await chmod(path.join(root,'node_modules'),0o555);
+  await writeFile(path.join(root,'package.json'),'{"type":"module"}');
+  await writeFile(path.join(root,'input.ts'),'export const value = 2;');
+  await writeFile(path.join(root,'input.test.ts'),"import {it,expect} from 'vitest'; import {value} from './input.js'; it('INPUT-002 readonly config',()=>expect(value+value).toBe(4));");
+  const project:Project={root,config:{schemaVersion:1,tools:{},targets:[],approvedAssumptions:[],testTargets:[{obligationId:'readonly-test',files:['input.test.ts'],inputs:['input.ts'],requiredTests:['INPUT-002 readonly config']}],boundaries:[]},requirements:[],obligations:[{id:'readonly-test',kind:'test',scope:'readonly config',requirementIds:['CI-005'],contractIds:[]}]};
+  const result=await verifyTests(project,'readonly-test',{id:'readonly-run',commit:'a'.repeat(40),specDigest:'b'.repeat(64)},await empiricalToolDigest());
+  expect(result.record.status,await readFile(path.join(root,'.pdd/evidence/readonly-run/readonly-test/process.json'),'utf8')).toBe('passed');
+  expect(result.diagnostics).toEqual([]);
+ }finally{await chmod(path.join(root,'node_modules'),0o755);await rm(root,{recursive:true,force:true});}
 });

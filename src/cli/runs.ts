@@ -31,6 +31,7 @@ export interface ReviewPacket {
   snapshotComplete: boolean; gate: GateResult; evidence: EvidenceRecord[];
   requirements: Project['requirements']; unverifiedRequirements: string[];
   diagnostics: SavedRun['diagnostics'];
+  boundaries: Project['config']['boundaries']; allowedAssumptions: string[];
 }
 
 export async function gitIdentity(root: string): Promise<{ commit: string; dirty: boolean }> {
@@ -92,7 +93,7 @@ async function reviewCurrent(project: Project, snapshot: SpecSnapshot, saved: Sa
   return { schemaVersion: 1, runId: saved.id, createdAt: saved.createdAt, commit: identity.commit, dirty: identity.dirty,
     origin: 'local', approval: 'pending', specDigest: snapshot.digest, recordedSpecDigest: saved.specDigest,
     snapshotComplete: snapshot.complete, gate, evidence, requirements: project.requirements,
-    unverifiedRequirements: project.requirements.filter(item => !covered.has(item.id)).map(item => item.id), diagnostics: saved.diagnostics };
+    unverifiedRequirements: project.requirements.filter(item => !covered.has(item.id)).map(item => item.id), boundaries: project.config.boundaries, allowedAssumptions: project.config.approvedAssumptions, diagnostics: saved.diagnostics };
 }
 
 export async function verifyProject(directory: string): Promise<ReviewPacket> {

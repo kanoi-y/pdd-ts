@@ -1,5 +1,5 @@
 id: SPEC-001
-revision: 2
+revision: 3
 title: Source contracts and premise witnesses
 intent: All source contract clauses are extracted from actual TypeScript and
   checked against the restricted semantic profile; a concrete valid witness is

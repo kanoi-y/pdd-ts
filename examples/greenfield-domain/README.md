@@ -38,7 +38,7 @@ both nonnegative premises; this sample does not make such bypasses safe.
 From the repository root:
 
 ```sh
-pnpm install --frozen-lockfile
+pnpm install --frozen-lockfile --ignore-scripts --store-dir .tools/pnpm-store
 pnpm exec vitest run tests/examples/greenfield.test.ts
 pnpm typecheck
 ```
@@ -60,8 +60,8 @@ node dist/cli/main.js report --project examples/greenfield-domain
 ```
 
 `tools: {}` uses the pinned proof tools on `PATH` for this nested project.
-Generated inputs, logs and receipts remain under ignored `.pdd/evidence/` and
-`.pdd/proofs/`. `approvedAssumptions: [profile:pdd-pure-v1]` declares the technical
+Logs and receipts remain under ignored `.pdd/evidence/`; the reproducible
+`.pdd/proofs/` files are committed source-linked verification inputs. `approvedAssumptions: [profile:pdd-pure-v1]` declares the technical
 profile, not human approval. Local proof and tests may satisfy the registered
 trial obligations while external approval remains pending. A protected CI
 decision requires independently authenticated provenance and external review.

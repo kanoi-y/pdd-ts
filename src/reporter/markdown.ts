@@ -15,11 +15,16 @@ export function renderMarkdown(packet: ReviewPacket): string {
     '## 30-second summary', '', `- Gate: ${packet.gate.status.toUpperCase()}`,
     `- Required evidence satisfied: ${packet.gate.satisfied.length}; findings: ${packet.gate.findings.length}`,
     `- Approval: ${packet.approval}`, `- Source commit: ${packet.commit}${packet.dirty ? ' (working tree has changes)' : ''}`,
-    `- Run: ${packet.runId}`, `- Specification: ${packet.specDigest}`, '', '## Requirements', '',
+    `- Registered runtime boundaries: ${packet.boundaries.length}`, `- Run: ${packet.runId}`, `- Specification: ${packet.specDigest}`, '', '## Requirements', '',
     '| Requirement | Intent | Risk |', '|---|---|---|'];
   for (const requirement of packet.requirements) lines.push(`| ${markdownText(requirement.id + ': ' + requirement.title)} | ${markdownText(requirement.intent)} | ${requirement.risk} |`);
   lines.push('', '## Evidence', '', '| Obligation | Kind | Result | Scope | Assumptions |', '|---|---|---|---|---|');
   for (const evidence of packet.evidence) lines.push(`| ${markdownText(evidence.obligationId)} | ${evidence.kind} | ${evidence.status} | ${markdownText(evidence.scope)} | ${markdownText(evidence.assumptions.join(', '))} |`);
+  lines.push('', '## Runtime trust boundaries', '',
+    'External facts remain trusted; input validation and executed cases provide empirical evidence.',
+    `Policy allowance: ${markdownText(packet.allowedAssumptions.join(', '))}`, '',
+    '| Boundary | Callee scope | Callers | Validators | Required tests | Trust premise |', '|---|---|---|---|---|---|');
+  for (const boundary of packet.boundaries) lines.push(`| ${[boundary.id,boundary.calleeScope,boundary.callerFiles.join(', '),boundary.validatorFiles.join(', '),boundary.testObligationIds.join(', '),boundary.assumption ?? 'No additional logical premise declared'].map(markdownText).join(' | ')} |`);
   lines.push('', '## Decisions, gaps and unverified scope', '');
   if(packet.origin==='local') lines.push('- Human specification approval and authenticated CI provenance are not established by this local report.');
   lines.push('- Review changed requirements, all premises and trusted boundaries; source proof does not establish the truth of an external identity.');
