@@ -1,26 +1,42 @@
-# Initial specification review request
+# 初期仕様のレビュー用日本語ガイド
 
-This document requests review of the complete initial specification and records no
-approval. The PR explicitly registers both sample specifications and required proofs;
-no source contract or input premise is weakened.
+## 日本語での確認ポイント
 
-The Bot-created PR body contains immutable source/configuration links, all thirteen
-requirements, every extracted source clause, the four required obligations, eleven
-runtime boundaries and the complete approved assumptions. Review the exact head
-personally using GitHub's review interface. Source proof, empirical tests, native
-CI signatures and human approval are separate evidence.
+このPRでは、pdd-ts自身と2つのサンプルを、同じ人間承認・証明・テスト・署名付きCIゲートの対象にします。承認の対象は、下記の要件に加え、ソース内の全契約・入力前提・信頼する外部要素・必須検証一覧です。
 
-The tested source-proof profile is deliberately restricted; a passing proof does
-not prove Node, HTTP identity providers, the translation toolchain or the test
-harness correct. The Hono example is a staged-adoption sample, not an external
-production pilot. Machine comparison is not a human usability study.
+| 要件ID | 承認する内容 |
+|---|---|
+| CI-001 | 承認記録やCI結果の自己申告を信用せず、正確なコミット、全仕様のダイジェスト、許可された人間のレビュー、保護された基準設定を照合する。偽造・失効・別コミット・別発行者の結果は受け入れない。 |
+| CLI-001 | 外部ツールをシェル経由で実行せず、認証情報を継承させない。出力と実行時間を制限し、停止しない子プロセスにも対処する。 |
+| CLI-002 | 入出力と証拠ファイルを対象プロジェクト内に限定する。絶対パス、ディレクトリ外への移動、シンボリックリンクによる逸脱などを拒否する。 |
+| CLI-003 | 既存ファイルを上書きせず初期化し、厳格に設定を検査する。実検証と鮮度の再照合を行い、保証範囲を明示したMarkdown／JSONレポートを生成する。ローカル成功を保護CIの合格と混同しない。 |
+| CORE-001 | 必須の証拠が一意に存在し、対象・種類が一致し、成功・鮮度・来歴・必要な承認を満たす場合だけ受け入れる。空の必須一覧、欠落、重複、skip、0件、古い証拠、未認証の結果は合格にしない。 |
+| CORE-002 | ソース、依存関係、仕様、証明ファイル、ツール入力の内容から鮮度を判定する。変更は以前の証拠を無効にし、欠落ファイルを省略してハッシュを作らない。 |
+| CORE-003 | 実際に検証した関数・全契約・前提を満たす具体的な入力例・証明入力・固定ツール・仮定監査・検証ログを証拠に結び付ける。古いログの再利用や過去の実行結果の上書きを認めない。 |
+| CORE-004 | 登録された名前付きテストの実実行と整合する正の件数を要求する。呼び出し元と入力検証処理も証拠に結び付ける。テストをプログラム全体の形式証明とは表示しない。 |
+| DEMO-001 | 配布用パッケージの実CLIで、Honoへの段階導入例と新規のbigint業務ロジック例を通し実行する。認可回避、金額消失、入力検証や必須テストの欠落を拒否する。 |
+| HONO-AUTH-001 | 純粋な認可関数は、検証済みのサーバー側IDが管理者で、認証も成功した場合に限り許可する。HTTP経由の4組合せ、ID欠落、不正な認証提供元の応答、例外、クライアントからの偽装を24ケースで検証する。 |
+| SPEC-001 | ソース内の全契約を抽出し、制限付き意味論の対応範囲を検査する。入力前提がある場合は、それを満たす具体的な入力例を必須にし、矛盾した前提による見かけの証明を避ける。 |
+| SPEC-002 | 契約・前提・保護ポリシーを含む完全な仕様ダイジェストを計算する。解決できない契約参照は拒否し、影響する要件の改訂番号増加と再承認を要求する。文章から仕様の強弱を自動推定しない。 |
+| SPLIT-001 | 非負の総額と要求額を入力前提とし、最初の配分額を総額以下に抑える。両配分の非負性と合計保存を証明する。公開APIは最大256桁の非負の10進文字列だけを受け入れ、34ケースで変換・境界・不正入力を検証する。 |
 
-For the predeclared evaluation protocol in ../evaluation.md, record actual review
-time and whether you can identify the proved property, unverified boundaries,
-additional assumptions and pending approval. Human setup/maintenance comparisons
-remain pending until measured; do not infer them from this initial review.
+### 証明で保証することと、信頼に置くこと
 
-The root protected registry includes the complete Hono and bigint specifications,
-source-proof obligations and actual runtime boundaries. Both sample source proofs
-and their existing 24/34 runtime cases are therefore required by the same signed
-protected gate, rather than relying on separate ordinary-CI demo successes.
+- `canAcceptEvidence`：6つの必要条件すべてが真の場合に限り、証拠を受け入れる。
+- `canIssueAdminToken`：型と宣言した意味論の前提の下で、`role === "admin" && passwordOk` と許可結果が一致する。
+- `split`：`total >= 0n` と `requested >= 0n` の前提の下で、両配分が非負であり、合計が元の総額と一致する。
+- HTTPの入力検証、サーバー側IDの真正性、Node.jsの実行・ファイル・暗号処理、GitHub API、翻訳・証明ツールチェーンの正しさまでを、これらの関数の証明で保証するわけではない。実行時の境界とテストを別に登録し、真正なサーバーセッションを認証提供元が返すことは明示的な信頼前提とする。
+- 翻訳器全体の意味保存を証明したものではない。Hono例は段階導入を再現するサンプルであり、外部の本番導入実績ではない。
+
+### レビュー時に判断すること
+
+1. 各要件とソース契約が、意図する動作を表しているか。
+2. bigintの入力前提と、認証提供元を含む信頼前提を受け入れられるか。
+3. 必須の3つのソース証明と登録テストに、必要な検証の欠落がないか。
+4. 証明・テスト・信頼前提・CI署名・人間承認の保証範囲を混同していないか。
+
+人間の承認と、その承認を確認した専用Appによる保護チェックの成功は、まだ確定していません。理解度・導入負荷・維持負荷についての人間による比較評価も未完了です。この本文の日本語説明はレビューの補助であり、以下の完全な仕様データと固定ソースへの参照が照合対象です。
+
+## 完全な仕様データとの関係
+
+このガイドは人間による承認記録ではありません。PR本文に固定した対象コミットと仕様ダイジェストを確認し、全13要件・4必須義務・11信頼境界・抽出した全契約を照合してください。完全な台帳の原文や契約式は、表示言語に合わせて書き換えていません。

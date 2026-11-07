@@ -44,10 +44,13 @@ describe('CI-001 human specification review preparation', () => {
     expect(card).toBe(renderHumanReviewCard(input));
     for (const value of [head.digest,baseSha,headSha,'enabled === true','\\result === enabled']) expect(card).toContain(value);
     for (let index=1;index<=11;index++) expect(card).toContain(`REVIEW-${String(index).padStart(3,'0')}`);
-    expect(card).toContain('revision 1');
-    expect(card).toContain('Human approval: pending');
-    expect(card).toContain('conditional');
-    expect(card).toContain('empirical');
+    expect(card).toContain('改訂 1');
+    expect(card).toContain('人間の承認：未完了');
+    expect(card).toContain('前提の下で成立');
+    expect(card).toContain('経験的な証拠');
+    expect(card).toContain('## 抽出したすべてのソース契約');
+    expect(card).toContain('## 前提・仮定と実行時の信頼境界');
+    expect(card).not.toContain('Review the complete PDD specification');
     expect(card).toContain(`https://github.com/${repository}/blob/${headSha}/src/decision.ts`);
     expect(card).toContain(`https://github.com/${repository}/blob/${headSha}/.pdd/config.yaml`);
     expect(card).not.toContain('<script>');
