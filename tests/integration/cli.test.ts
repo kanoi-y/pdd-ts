@@ -97,7 +97,8 @@ describe('CLI-003: CLI review workflow', () => {
     expect(report.status, report.stderr).toBe(0);
     expect(JSON.parse(report.stdout).gate.status).toBe('trial');
     const markdown = spawnSync(process.execPath, [cli, 'report', '--project', root], { encoding: 'utf8', env: { PATH: `${repo}/.tools/dafny-4.11.0/dafny:${process.env.PATH}` } });
-    expect(markdown.stdout).toContain('LOCAL TRIAL');
+    expect(markdown.stdout).toContain('手元の検証');
+    expect(markdown.stdout).not.toContain('CIの出所の確認が完了');
     expect(markdown.stdout).not.toContain('<img');
     expect(markdown.stdout).not.toContain(root);
     await writeFile(path.join(root, 'src/auth.ts'), (await readFile(path.join(root, 'src/auth.ts'), 'utf8')).replace('return role === "admin" && passwordOk;', 'return true;'));
@@ -137,4 +138,40 @@ it('CLI-003 doctor identifies an empty required registry as insufficient',async(
  const result=command(root,'doctor');const data=JSON.parse(result.stdout);
  expect(data.protectedReady).toBe(false);
  expect(data.checks).toContainEqual(expect.objectContaining({name:'required-registry',status:'insufficient'}));
+});
+
+
+it('CLI-003 never describes an unresolved contract as a confirmed behavior',async()=>{
+ const root=await project();await configure(root);
+ const file=path.join(root,'.pdd/requirements/AUTH-001.yaml');
+ const requirement=parse(await readFile(file,'utf8'));
+ requirement.contracts[0].sourceRef.index=999;
+ requirement.contracts[0].human='セッションの有効期限も検査する。';
+ await writeFile(file,stringify(requirement));commit(root);
+ const result=command(root,'verify');expect(result.status,result.stderr).toBe(1);
+ const packet=JSON.parse(result.stdout);
+ expect(packet.snapshotComplete).toBe(false);expect(packet.gate.status).toBe('blocked');
+ expect(packet.evidence[0].status).toBe('passed');
+ const report=spawnSync(process.execPath,[cli,'report','--project',root],{encoding:'utf8',env:{PATH:`${repo}/.tools/dafny-4.11.0/dafny:${process.env.PATH}`}});
+ expect(report.status,report.stderr).toBe(1);
+ const front=report.stdout.split('<details>')[0]!;
+ expect(front).toContain('開発側');
+ expect(front).not.toContain('セッションの有効期限も検査する。');
+ expect(report.stdout).toContain('セッションの有効期限も検査する。');
+});
+it('CLI-003 does not hide an unreferenced source precondition from the human review',async()=>{
+ const root=await project();await configure(root);
+ const source=path.join(root,'src/auth.ts');
+ await writeFile(source,(await readFile(source,'utf8')).replace('//@ ensures','//@ requires role === "admin"\n//@ ensures').replace('return role === "admin" && passwordOk;','return passwordOk;'));
+ const configFile=path.join(root,'.pdd/config.yaml'),config=parse(await readFile(configFile,'utf8'));
+ config.targets[0].witnesses=[{role:'admin',passwordOk:true}];await writeFile(configFile,stringify(config));commit(root);
+ expect(command(root,'verify').status).toBe(0);commit(root);
+ const result=command(root,'verify');expect(result.status,result.stderr).toBe(0);
+ const packet=JSON.parse(result.stdout);expect(packet.snapshotComplete).toBe(true);expect(packet.dirty).toBe(false);
+ expect(packet.evidence[0].status).toBe('passed');
+ const output=spawnSync(process.execPath,[cli,'report','--project',root],{encoding:'utf8',env:{PATH:`${repo}/.tools/dafny-4.11.0/dafny:${process.env.PATH}`}});
+ const front=output.stdout.split('<details>')[0]!;
+ expect(front).toContain('入力条件の説明');expect(front).toContain('開発側');
+ expect(front).not.toContain('Both conditions are necessary and sufficient.');
+ expect(output.stdout).toContain('role ===');
 });

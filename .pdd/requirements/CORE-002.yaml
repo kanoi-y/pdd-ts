@@ -1,9 +1,7 @@
 id: CORE-002
-revision: 6
-title: Content-based source and proof freshness
-intent: A change to any declared source, dependency, specification, proof
-  addition or tool input invalidates previous evidence; missing inputs cannot be
-  silently omitted.
+revision: 7
+title: コードや仕様が変わったら古い検証結果を使わない
+intent: 登録したソース、依存、仕様、追加した証明、ツール入力のいずれかが変わると、以前の検証結果を無効にする。存在しない入力を黙って除外しない。
 risk: high
 target:
   file: src/verification/digest.ts
@@ -12,7 +10,6 @@ contracts: []
 acceptance:
   - id: CORE-002-T1
     kind: test
-    scenario: File ordering does not change the digest; dependency-only changes do,
-      and missing/duplicate/escaped files fail.
+    scenario: ファイルの並び順だけではハッシュが変わらず、依存だけの変更でもハッシュが変わる。欠落・重複・外部のパスは拒否する。
 trustedBoundaries:
   - node-crypto-runtime
