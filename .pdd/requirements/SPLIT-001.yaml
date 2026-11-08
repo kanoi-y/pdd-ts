@@ -1,9 +1,7 @@
 id: SPLIT-001
-revision: 2
-title: Split nonnegative units without loss
-intent: Clamp the first share to the available total and preserve every unit.
-  The public facade accepts only nonnegative decimal strings of at most 256
-  digits for both total and requested and returns decimal-string shares.
+revision: 3
+title: 総量を失わず二つに配分する
+intent: 最初の配分を利用可能な総量以下に抑え、すべての数量を二つの配分に残す。公開する入口は、総量・希望量ともに256桁以下の非負の10進整数文字列だけを受け付け、二つの配分を10進整数文字列で返す。
 risk: high
 target:
   file: examples/greenfield-domain/src/domain/split.ts
@@ -11,7 +9,7 @@ target:
 contracts:
   - id: SPLIT-001-C1
     kind: precondition
-    human: Total is nonnegative.
+    human: 総量は0以上である。
     sourceRef:
       file: examples/greenfield-domain/src/domain/split.ts
       symbol: split
@@ -20,7 +18,7 @@ contracts:
     semantics: bigint-nonnegative-v1
   - id: SPLIT-001-C2
     kind: precondition
-    human: Requested amount is nonnegative.
+    human: 希望量は0以上である。
     sourceRef:
       file: examples/greenfield-domain/src/domain/split.ts
       symbol: split
@@ -29,7 +27,7 @@ contracts:
     semantics: bigint-nonnegative-v1
   - id: SPLIT-001-C3
     kind: postcondition
-    human: Both shares are nonnegative.
+    human: 二つの配分はいずれも0以上である。
     sourceRef:
       file: examples/greenfield-domain/src/domain/split.ts
       symbol: split
@@ -38,7 +36,7 @@ contracts:
     semantics: bigint-nonnegative-v1
   - id: SPLIT-001-C4
     kind: postcondition
-    human: The sum of both shares equals the original total.
+    human: 二つの配分を足すと元の総量に等しい。
     sourceRef:
       file: examples/greenfield-domain/src/domain/split.ts
       symbol: split
@@ -48,15 +46,12 @@ contracts:
 acceptance:
   - id: SPLIT-001-T1
     kind: test
-    scenario: The actual pure function clamps an overlarge request, handles zero and
-      exact boundaries, and preserves values beyond JavaScript number precision.
+    scenario: 実際の純粋関数が、希望量の超過、0、総量と同じ量を扱い、JavaScriptのnumberの精度を超える数量も保存する。
   - id: SPLIT-001-T2
     kind: test
-    scenario: The public facade validates, converts and serializes decimal strings
-      without losing units, including the 256-digit limit.
+    scenario: 公開する入口が10進整数文字列を検査・変換し、256桁の上限を含め、数量を失わずに文字列へ戻す。
   - id: SPLIT-001-T3
     kind: test
-    scenario: Negative, malformed, coercible, absent and oversized values are
-      rejected before reaching the pure function.
+    scenario: 負数、不正な形式、暗黙変換できてしまう値、欠落、大きすぎる値を、純粋関数へ渡す前に拒否する。
 trustedBoundaries:
   - SPLIT-DECIMAL-INPUT

@@ -1,10 +1,7 @@
 id: HONO-AUTH-001
-revision: 2
-title: Decide administrator eligibility from trusted identity
-intent: The pure decision returns true if and only if the validated server-side
-  identity is an administrator with successful authentication. The HTTP route
-  cannot obtain either authorization input from client JSON or unverified
-  headers.
+revision: 3
+title: 管理者向け操作を許可する条件
+intent: 検証済みのサーバー側本人情報が管理者かつ認証成功なら、判定関数は許可を返し、それ以外は拒否する。HTTPの入口では、この二つの認可判断用の値をクライアントのJSONや未検証のヘッダーから取得しない。
 risk: high
 target:
   file: examples/existing-hono/src/domain/auth.ts
@@ -12,8 +9,7 @@ target:
 contracts:
   - id: HONO-AUTH-001-C1
     kind: postcondition
-    human: Eligibility is equivalent to administrator role and successful
-      authentication.
+    human: 管理者であり、かつ認証に成功している場合だけ許可する。
     sourceRef:
       file: examples/existing-hono/src/domain/auth.ts
       symbol: canIssueAdminToken
@@ -23,18 +19,15 @@ contracts:
 acceptance:
   - id: HONO-AUTH-001-T1
     kind: test
-    scenario: All four role and authentication combinations produce their literal
-      expected decisions through the actual Hono route.
+    scenario: 管理者かどうか・認証済みかどうかの4通りについて、実際のHonoの入口が期待する判断を返す。
   - id: HONO-AUTH-001-T2
     kind: test
-    scenario: Missing identity returns 401 and malformed provider output fails closed.
+    scenario: 本人情報がない場合は401とし、取得元が不正な形式の情報を返した場合も許可しない。
   - id: HONO-AUTH-001-T3
     kind: test
-    scenario: A thrown or rejected identity lookup fails closed without exposing the
-      provider error.
+    scenario: 本人情報の取得で例外や非同期の失敗が起きた場合も許可せず、取得元のエラー内容を外へ漏らさない。
   - id: HONO-AUTH-001-T4
     kind: test
-    scenario: Client JSON, headers and query parameters cannot override the trusted
-      server-side identity or create a missing identity.
+    scenario: クライアントのJSON・ヘッダー・クエリで、サーバー側の本人情報を上書きしたり、存在しない本人情報を作ったりできない。
 trustedBoundaries:
   - HONO-AUTH-IDENTITY-PROVIDER

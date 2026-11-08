@@ -1,9 +1,7 @@
 id: CI-001
-revision: 7
-title: External approval and CI authority
-intent: An approval or CI receipt may not authenticate itself; validate source
-  identity, complete specification digest, external reviewer authority and the
-  protected policy baseline.
+revision: 8
+title: 本人承認とCIの出所を独立に確認する
+intent: 承認記録やCIの記録に書かれた自己申告だけを信用しない。対象コード、仕様全体のハッシュ、外部の本人レビュー権限、保護された基準を独立に照合する。
 risk: high
 target:
   file: src/ci/approval.ts
@@ -12,7 +10,6 @@ contracts: []
 acceptance:
   - id: CI-001-T1
     kind: test
-    scenario: Fabricated, stale, wrong-source, wrong-issuer and dismissed approvals
-      or checks fail.
+    scenario: 偽造・古い対象・別ソース・別の発行元・取り消された承認やチェックを受け入れない。
 trustedBoundaries:
   - github-api

@@ -165,6 +165,7 @@ testTargets:
       - tsconfig.build.json
       - tsconfig.json
       - vitest.config.ts
+      - src/reporter/summary.ts
     requiredTests:
       - CLI-003 doctor identifies an empty required registry as insufficient
       - CI-003 parses actual native verification timestamps with UTC offsets
@@ -540,6 +541,26 @@ testTargets:
         into the protected specification
       - CI-007 restores verification artifacts exclusively without precreating
         or overwriting evidence
+      - CLI-003 returns missing test evidence to the developer before requesting
+        human approval
+      - CLI-003 requires an explanation of unapproved trust instead of an opaque
+        approval request
+      - CLI-003 explains only verified contracts and keeps local success
+        separate from CI approval
+      - CLI-003 keeps proof status failed out of confirmed behavior
+      - CLI-003 keeps proof status unsupported out of confirmed behavior
+      - CLI-003 keeps proof status unknown out of confirmed behavior
+      - CLI-003 keeps proof status not-run out of confirmed behavior
+      - CLI-003 keeps proof status stale out of confirmed behavior
+      - CLI-003 keeps proof status error out of confirmed behavior
+      - CLI-003 retains missing obligations and unsafe authored text without
+        inventing a passing result
+      - CLI-003 identifies completed authenticated CI only with the verified
+        packet approval
+      - CLI-003 does not turn a local passed label into an authenticated CI claim
+      - CLI-003 never describes an unresolved contract as a confirmed behavior
+      - CLI-003 does not hide an unreferenced source precondition from the human
+        review
 boundaries:
   - id: dafny-z3-verification
     callerFiles:

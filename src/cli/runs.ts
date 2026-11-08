@@ -29,7 +29,7 @@ export interface ReviewPacket {
   schemaVersion: 1; runId: string; createdAt: string; commit: string; dirty: boolean;
   origin: 'local'|'ci'; approval: 'pending'|'approved'; specDigest: string; recordedSpecDigest: string;
   snapshotComplete: boolean; gate: GateResult; evidence: EvidenceRecord[];
-  requirements: Project['requirements']; unverifiedRequirements: string[];
+  requirements: Project['requirements']; obligations: Project['obligations']; sourceContracts: SpecSnapshot['contracts']; unverifiedRequirements: string[];
   diagnostics: SavedRun['diagnostics'];
   boundaries: Project['config']['boundaries']; allowedAssumptions: string[];
 }
@@ -92,7 +92,7 @@ async function reviewCurrent(project: Project, snapshot: SpecSnapshot, saved: Sa
   for(const requirement of project.requirements) if(!covered.has(requirement.id)) {gate.status='blocked';gate.findings.push({code:'uncovered-requirement',message:`No required obligation: ${requirement.id}`});}
   return { schemaVersion: 1, runId: saved.id, createdAt: saved.createdAt, commit: identity.commit, dirty: identity.dirty,
     origin: 'local', approval: 'pending', specDigest: snapshot.digest, recordedSpecDigest: saved.specDigest,
-    snapshotComplete: snapshot.complete, gate, evidence, requirements: project.requirements,
+    snapshotComplete: snapshot.complete, gate, evidence, requirements: project.requirements, obligations: project.obligations, sourceContracts: snapshot.contracts,
     unverifiedRequirements: project.requirements.filter(item => !covered.has(item.id)).map(item => item.id), boundaries: project.config.boundaries, allowedAssumptions: project.config.approvedAssumptions, diagnostics: saved.diagnostics };
 }
 

@@ -1,9 +1,7 @@
 id: CLI-002
-revision: 6
-title: Project-contained verification paths
-intent: Verification inputs and artifacts must use canonical relative paths
-  contained within the selected project; symlink and traversal escapes are
-  rejected.
+revision: 7
+title: 検証対象と出力を選んだプロジェクト内に限定する
+intent: 検証の入力と成果物には、選んだプロジェクトの内側に収まる正規化された相対パスを使う。シンボリックリンクや上位ディレクトリへの移動による脱出を拒否する。
 risk: high
 target:
   file: src/verification/paths.ts
@@ -12,7 +10,6 @@ contracts: []
 acceptance:
   - id: CLI-002-T1
     kind: test
-    scenario: Traversal, absolute paths, null bytes and symlink escapes fail while
-      contained files and new artifact paths resolve.
+    scenario: 上位への移動、絶対パス、ヌル文字、外部へのシンボリックリンクを拒否し、内部の既存ファイルと新規成果物は扱える。
 trustedBoundaries:
   - node-filesystem-runtime
