@@ -1,3 +1,4 @@
+import {decisionPlanFromSnapshot,renderDecisionPlan} from '../workflow/plan.js';
 import type { ReviewPacket } from '../cli/runs.js';
 import { renderScanChanges } from '../analysis/atlas.js';
 import { summarizeReview } from './summary.js';
@@ -11,7 +12,7 @@ function artifactLink(relative: string): string {
 }
 const block=(value:unknown):string=>'<pre>'+JSON.stringify(value,null,2).replace(/[\u202a-\u202e\u2066-\u2069]/g,char=>'\\u'+char.charCodeAt(0).toString(16).padStart(4,'0')).replace(/[&<>]/g,char=>`&#${char.charCodeAt(0)};`)+'</pre>';
 
-export function renderMarkdown(packet: ReviewPacket): string {
+function renderEvidenceMarkdown(packet: ReviewPacket): string {
   const summary=summarizeReview(packet);
   const lines=['# 検証結果と次にすること','','登録した要件をどこまで確認できたか、開発側の対応と人にお願いする仕様の確認をまとめた資料です。',''];
   if(summary.stage==='needs-development') lines.push('**現在の結論：開発側の対応が必要です。いまは人に承認をお願いする段階ではありません。**');
@@ -36,6 +37,7 @@ export function renderMarkdown(packet: ReviewPacket): string {
   if(summary.stage==='needs-development') lines.push('現時点で承認は求めません。開発側が上の問題を解消し、必要な仕様判断があれば、内容・理由・影響を説明してから改めて依頼します。');
   else if(summary.stage==='verified-ci') lines.push('この対象についての本人承認は確認済みです。コードや仕様が変わった場合は、新しい対象に対する確認が必要です。');
   else lines.push('上に書いた振る舞いが、実現したい仕様でよいかを確認してください。仕様が違う場合は、期待する振る舞いを開発側へ伝えてください。承認は対象コミットに対する本人レビューで確認します。');
+  if(packet.workflow)lines.push('', '## 仕様判断の記録', '', packet.workflow.blocked?'現在の入力に未決の高リスク仕様または不正な判断入力があります。これ以上の検証は進めず、planで判断事項と開発側の対応を確認してください。':'回答は作者の記録です。本人承認は外部レビューで別途確認します。');
   if(packet.atlasUpdate)lines.push('',renderScanChanges(packet.atlasUpdate));
   lines.push('','<details>','<summary>対象コード・検証結果・前提・根拠ファイルを確認する</summary>','',
     `- 判定の記録：${packet.gate.status}`,
@@ -48,6 +50,7 @@ export function renderMarkdown(packet: ReviewPacket): string {
     '', '### 要件と契約の完全な登録',block(packet.requirements),
     '', '### ソースから抽出した全契約（未参照の入力条件を含む）',block(packet.sourceContracts),
     '', '### 必須の検証項目',block(packet.obligations),
+    ...(packet.workflow?['','### 仕様判断入力の記録',block(packet.workflow)]:[]),
     ...(packet.atlasUpdate?['','### Atlas更新候補の記録',block(packet.atlasUpdate)]:[]),
     '', '### 判定・診断の原文',block({gate:packet.gate,diagnostics:packet.diagnostics,unverifiedRequirements:packet.unverifiedRequirements}),
     '', '### 実行時に信頼する境界と、許可された前提',
@@ -61,4 +64,10 @@ export function renderMarkdown(packet: ReviewPacket): string {
   }
   lines.push('</details>','');
   return lines.join('\n');
+}
+
+export function renderMarkdown(packet:ReviewPacket):string {
+ if(!packet.workflow?.blocked)return renderEvidenceMarkdown(packet);
+ const plan=decisionPlanFromSnapshot({workflow:packet.workflow,complete:packet.snapshotComplete,digest:packet.specDigest,errors:packet.workflow.registry?[]:['判断入力を開発側で修正してください。']});
+ return renderDecisionPlan(plan)+'\n<details>\n<summary>検証の判定と証拠の詳細</summary>\n\n'+renderEvidenceMarkdown(packet)+'\n</details>\n';
 }

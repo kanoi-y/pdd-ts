@@ -1,0 +1,24 @@
+id: WF-001
+revision: 1
+title: 未決の仕様判断を整理し、既存CLIで安全に実装・検証・レビューを進める
+intent: 作者が登録した仕様判断だけを人向けCardへ束ね、事実調査と実装作業を開発側へ分ける。未決の高リスク事項があればworkerを開始せず、回答と根拠は仕様の鮮度へ結び付ける。Skillは任意導入とし、作者の回答やAgentの判断を本人承認・証明にしない。
+risk: high
+target:
+  file: src/workflow/plan.ts
+  symbol: planProject
+contracts: []
+acceptance:
+  - id: WF-001-T1
+    kind: test
+    scenario: planは読み取り専用で、仕様判断をgroup化し、開発作業・不足・未認証の回答を区別する。高リスクはblockingfalseでも停止し、空のQueueや初期化だけを実装許可にしない。
+  - id: WF-001-T2
+    kind: test
+    scenario: 不正な分類・承認field・未知ID・重複・危険パス・範囲外行・リンク・巨大入力・非UTF8を拒否する。入力を命令として実行せず、根拠のハッシュを保持する。
+  - id: WF-001-T3
+    kind: test
+    scenario: 未決の高リスク事項ではテスト・証明workerを起動しない。検証中の回答変更も再照合し、回答や根拠の変更を仕様ハッシュと要件revisionへ結び付ける。本人レビュー資料に原文を残す。
+  - id: WF-001-T4
+    kind: test
+    scenario: 明示指定したCodexのプロジェクト内にだけ5つのSkillを導入し、既存・リンク先を上書きしない。reviewは実証拠を再照合し、Skillや作者の記録から承認を捏造しない。
+trustedBoundaries:
+  - node-filesystem-runtime

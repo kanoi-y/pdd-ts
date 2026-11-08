@@ -42,7 +42,6 @@ testTargets:
       - tests/integration/provenance.test.ts
       - tests/integration/publisher.test.ts
       - tests/integration/review-card.test.ts
-      - tests/integration/scan.test.ts
       - tests/integration/spec.test.ts
       - tests/unit/dafny-log.test.ts
       - tests/unit/gate.test.ts
@@ -71,6 +70,7 @@ testTargets:
       - .pdd/requirements/SPEC-001.yaml
       - .pdd/requirements/SPEC-002.yaml
       - .pdd/requirements/SPLIT-001.yaml
+      - .pdd/requirements/WF-001.yaml
       - examples/existing-hono/.pdd/.gitignore
       - examples/existing-hono/.pdd/config.yaml
       - examples/existing-hono/.pdd/obligations.yaml
@@ -124,6 +124,7 @@ testTargets:
       - src/reporter/markdown.ts
       - src/reporter/summary.ts
       - src/reporter/text.ts
+      - src/requirements/decisions.ts
       - src/requirements/diff.ts
       - src/requirements/io.ts
       - src/requirements/project.ts
@@ -144,7 +145,14 @@ testTargets:
       - src/verification/tests.ts
       - src/verification/toolchain.ts
       - src/verification/types.ts
+      - src/workflow/plan.ts
+      - src/workflow/skills.ts
       - templates/github-app-manifest.json
+      - templates/skills/pdd-implement/SKILL.md
+      - templates/skills/pdd-intake/SKILL.md
+      - templates/skills/pdd-plan/SKILL.md
+      - templates/skills/pdd-review/SKILL.md
+      - templates/skills/pdd-verify/SKILL.md
       - tests/examples/greenfield.test.ts
       - tests/examples/hono.test.ts
       - tests/fixtures/attestation/native-gh-verification.json
@@ -166,6 +174,7 @@ testTargets:
       - tests/integration/review-card.test.ts
       - tests/integration/scan.test.ts
       - tests/integration/spec.test.ts
+      - tests/integration/workflow.test.ts
       - tests/unit/dafny-log.test.ts
       - tests/unit/gate.test.ts
       - tests/unit/process-paths.test.ts
@@ -175,6 +184,7 @@ testTargets:
       - tsconfig.build.json
       - tsconfig.json
       - vitest.config.ts
+      - templates/skills/pdd-plan/references/decisions.md
     requiredTests:
       - CLI-003 doctor identifies an empty required registry as insufficient
       - CI-003 parses actual native verification timestamps with UTC offsets
@@ -570,6 +580,318 @@ testTargets:
       - CLI-003 never describes an unresolved contract as a confirmed behavior
       - CLI-003 does not hide an unreferenced source precondition from the human
         review
+  - obligationId: workflow-tests
+    files:
+      - tests/integration/workflow.test.ts
+    inputs:
+      - .github/CODEOWNERS
+      - .github/workflows/ci.yml
+      - .github/workflows/pdd.yml
+      - .github/workflows/spec-review.yml
+      - .pdd/config.yaml
+      - .pdd/obligations.yaml
+      - .pdd/requirements/CI-001.yaml
+      - .pdd/requirements/CLI-001.yaml
+      - .pdd/requirements/CLI-002.yaml
+      - .pdd/requirements/CLI-003.yaml
+      - .pdd/requirements/CORE-001.yaml
+      - .pdd/requirements/CORE-002.yaml
+      - .pdd/requirements/CORE-003.yaml
+      - .pdd/requirements/CORE-004.yaml
+      - .pdd/requirements/DEMO-001.yaml
+      - .pdd/requirements/HONO-AUTH-001.yaml
+      - .pdd/requirements/SCAN-001.yaml
+      - .pdd/requirements/SPEC-001.yaml
+      - .pdd/requirements/SPEC-002.yaml
+      - .pdd/requirements/SPLIT-001.yaml
+      - .pdd/requirements/WF-001.yaml
+      - examples/existing-hono/.pdd/.gitignore
+      - examples/existing-hono/.pdd/config.yaml
+      - examples/existing-hono/.pdd/obligations.yaml
+      - examples/existing-hono/.pdd/requirements/HONO-AUTH-001.yaml
+      - examples/existing-hono/README.md
+      - examples/existing-hono/lemmascript.json
+      - examples/existing-hono/src/app.ts
+      - examples/existing-hono/src/domain/auth.ts
+      - examples/existing-hono/tests/route.test.ts
+      - examples/existing-hono/verification-notes.md
+      - examples/greenfield-domain/.pdd/.gitignore
+      - examples/greenfield-domain/.pdd/config.yaml
+      - examples/greenfield-domain/.pdd/obligations.yaml
+      - examples/greenfield-domain/.pdd/requirements/SPLIT-001.yaml
+      - examples/greenfield-domain/README.md
+      - examples/greenfield-domain/lemmascript.json
+      - examples/greenfield-domain/src/app.ts
+      - examples/greenfield-domain/src/domain/split.ts
+      - examples/greenfield-domain/tests/split.test.ts
+      - examples/greenfield-domain/verification-notes.md
+      - lemmascript.json
+      - package.json
+      - pnpm-lock.yaml
+      - scripts/ci-publish.mjs
+      - scripts/ci-test-worker.mjs
+      - scripts/ci-verify.mjs
+      - scripts/compare.mjs
+      - scripts/demo-negative.mjs
+      - scripts/demo.mjs
+      - scripts/install-dafny.mjs
+      - scripts/package-smoke.mjs
+      - scripts/poc.mjs
+      - scripts/prepare-spec-review.mjs
+      - src/analysis/atlas.ts
+      - src/analysis/changes.ts
+      - src/analysis/configuration.ts
+      - src/analysis/history.ts
+      - src/analysis/scan.ts
+      - src/ci/approval.ts
+      - src/ci/audit.ts
+      - src/ci/baseline.ts
+      - src/ci/commands.ts
+      - src/ci/doctor.ts
+      - src/ci/github.ts
+      - src/ci/provenance.ts
+      - src/ci/publish.ts
+      - src/ci/review.ts
+      - src/ci/runner.ts
+      - src/cli/main.ts
+      - src/cli/runs.ts
+      - src/reporter/markdown.ts
+      - src/reporter/summary.ts
+      - src/reporter/text.ts
+      - src/requirements/decisions.ts
+      - src/requirements/diff.ts
+      - src/requirements/io.ts
+      - src/requirements/project.ts
+      - src/requirements/schema.ts
+      - src/requirements/snapshot.ts
+      - src/verification/acceptance.ts
+      - src/verification/boundaries.ts
+      - src/verification/contracts.ts
+      - src/verification/dafny-log.ts
+      - src/verification/digest.ts
+      - src/verification/expressions.ts
+      - src/verification/gate.ts
+      - src/verification/lemmascript.ts
+      - src/verification/paths.ts
+      - src/verification/process.ts
+      - src/verification/profile.ts
+      - src/verification/sandbox.ts
+      - src/verification/tests.ts
+      - src/verification/toolchain.ts
+      - src/verification/types.ts
+      - src/workflow/plan.ts
+      - src/workflow/skills.ts
+      - templates/github-app-manifest.json
+      - templates/skills/pdd-implement/SKILL.md
+      - templates/skills/pdd-intake/SKILL.md
+      - templates/skills/pdd-plan/SKILL.md
+      - templates/skills/pdd-review/SKILL.md
+      - templates/skills/pdd-verify/SKILL.md
+      - tests/examples/greenfield.test.ts
+      - tests/examples/hono.test.ts
+      - tests/fixtures/attestation/native-gh-verification.json
+      - tests/fixtures/poc/allocate.ts
+      - tests/fixtures/poc/auth.ts
+      - tests/fixtures/poc/lemmascript.json
+      - tests/fixtures/poc/split.ts
+      - tests/fixtures/poc/vacuous.ts
+      - tests/integration/adapter.test.ts
+      - tests/integration/approval.test.ts
+      - tests/integration/baseline.test.ts
+      - tests/integration/boundaries.test.ts
+      - tests/integration/ci-authority.test.ts
+      - tests/integration/cli.test.ts
+      - tests/integration/contracts.test.ts
+      - tests/integration/doctor.test.ts
+      - tests/integration/provenance.test.ts
+      - tests/integration/publisher.test.ts
+      - tests/integration/review-card.test.ts
+      - tests/integration/scan.test.ts
+      - tests/integration/spec.test.ts
+      - tests/integration/workflow.test.ts
+      - tests/unit/dafny-log.test.ts
+      - tests/unit/gate.test.ts
+      - tests/unit/process-paths.test.ts
+      - tests/unit/profile.test.ts
+      - tests/unit/report.test.ts
+      - tests/unit/spec-diff.test.ts
+      - tsconfig.build.json
+      - tsconfig.json
+      - vitest.config.ts
+      - templates/skills/pdd-plan/references/decisions.md
+    requiredTests:
+      - WF-001 plans without running code and does not treat an empty queue as
+        approval
+      - WF-001 groups human questions and keeps facts and implementation tasks
+        with development
+      - WF-001 never upgrades an authored answer into owner approval
+      - WF-001 rejects fabricated approval fields unknown references unsafe
+        evidence and invalid lines
+      - WF-001 blocks high-risk workers before executing empirical tests
+      - WF-001 installs project skills only explicitly and never overwrites
+        existing paths
+      - WF-001 renders blocking human decisions before technical evidence
+      - WF-001 keeps low-risk nonblocking questions open without inventing
+        permission
+      - WF-001 binds answers and evidence changes into specification freshness
+      - WF-001 rejects oversized duplicate and linked decision registries
+      - WF-001 preflights every skill destination before writing and rejects
+        links
+      - WF-001 keeps review as evidence reporting and rejects unrelated adapter
+        options
+      - WF-001 requires requirement revision changes for answers and includes
+        them in human review
+      - WF-001 rechecks decisions changed by a worker before returning its result
+      - WF-001 rejects non-UTF8 evidence instead of hashing replacement
+        characters
+      - WF-001 reports an empty initialized project as development work rather
+        than readiness
+      - WF-001 suppresses configured tool execution in blocked verify report and
+        review
+      - WF-001 stops subsequent workers when a running worker changes its
+        decision input
+      - WF-001 shares review input inventories without omitting mandatory scope
+        coverage
+  - obligationId: scan-tests
+    files:
+      - tests/integration/scan.test.ts
+    inputs:
+      - .github/CODEOWNERS
+      - .github/workflows/ci.yml
+      - .github/workflows/pdd.yml
+      - .github/workflows/spec-review.yml
+      - .pdd/config.yaml
+      - .pdd/obligations.yaml
+      - .pdd/requirements/CI-001.yaml
+      - .pdd/requirements/CLI-001.yaml
+      - .pdd/requirements/CLI-002.yaml
+      - .pdd/requirements/CLI-003.yaml
+      - .pdd/requirements/CORE-001.yaml
+      - .pdd/requirements/CORE-002.yaml
+      - .pdd/requirements/CORE-003.yaml
+      - .pdd/requirements/CORE-004.yaml
+      - .pdd/requirements/DEMO-001.yaml
+      - .pdd/requirements/HONO-AUTH-001.yaml
+      - .pdd/requirements/SCAN-001.yaml
+      - .pdd/requirements/SPEC-001.yaml
+      - .pdd/requirements/SPEC-002.yaml
+      - .pdd/requirements/SPLIT-001.yaml
+      - .pdd/requirements/WF-001.yaml
+      - examples/existing-hono/.pdd/.gitignore
+      - examples/existing-hono/.pdd/config.yaml
+      - examples/existing-hono/.pdd/obligations.yaml
+      - examples/existing-hono/.pdd/requirements/HONO-AUTH-001.yaml
+      - examples/existing-hono/README.md
+      - examples/existing-hono/lemmascript.json
+      - examples/existing-hono/src/app.ts
+      - examples/existing-hono/src/domain/auth.ts
+      - examples/existing-hono/tests/route.test.ts
+      - examples/existing-hono/verification-notes.md
+      - examples/greenfield-domain/.pdd/.gitignore
+      - examples/greenfield-domain/.pdd/config.yaml
+      - examples/greenfield-domain/.pdd/obligations.yaml
+      - examples/greenfield-domain/.pdd/requirements/SPLIT-001.yaml
+      - examples/greenfield-domain/README.md
+      - examples/greenfield-domain/lemmascript.json
+      - examples/greenfield-domain/src/app.ts
+      - examples/greenfield-domain/src/domain/split.ts
+      - examples/greenfield-domain/tests/split.test.ts
+      - examples/greenfield-domain/verification-notes.md
+      - lemmascript.json
+      - package.json
+      - pnpm-lock.yaml
+      - scripts/ci-publish.mjs
+      - scripts/ci-test-worker.mjs
+      - scripts/ci-verify.mjs
+      - scripts/compare.mjs
+      - scripts/demo-negative.mjs
+      - scripts/demo.mjs
+      - scripts/install-dafny.mjs
+      - scripts/package-smoke.mjs
+      - scripts/poc.mjs
+      - scripts/prepare-spec-review.mjs
+      - src/analysis/atlas.ts
+      - src/analysis/changes.ts
+      - src/analysis/configuration.ts
+      - src/analysis/history.ts
+      - src/analysis/scan.ts
+      - src/ci/approval.ts
+      - src/ci/audit.ts
+      - src/ci/baseline.ts
+      - src/ci/commands.ts
+      - src/ci/doctor.ts
+      - src/ci/github.ts
+      - src/ci/provenance.ts
+      - src/ci/publish.ts
+      - src/ci/review.ts
+      - src/ci/runner.ts
+      - src/cli/main.ts
+      - src/cli/runs.ts
+      - src/reporter/markdown.ts
+      - src/reporter/summary.ts
+      - src/reporter/text.ts
+      - src/requirements/decisions.ts
+      - src/requirements/diff.ts
+      - src/requirements/io.ts
+      - src/requirements/project.ts
+      - src/requirements/schema.ts
+      - src/requirements/snapshot.ts
+      - src/verification/acceptance.ts
+      - src/verification/boundaries.ts
+      - src/verification/contracts.ts
+      - src/verification/dafny-log.ts
+      - src/verification/digest.ts
+      - src/verification/expressions.ts
+      - src/verification/gate.ts
+      - src/verification/lemmascript.ts
+      - src/verification/paths.ts
+      - src/verification/process.ts
+      - src/verification/profile.ts
+      - src/verification/sandbox.ts
+      - src/verification/tests.ts
+      - src/verification/toolchain.ts
+      - src/verification/types.ts
+      - src/workflow/plan.ts
+      - src/workflow/skills.ts
+      - templates/github-app-manifest.json
+      - templates/skills/pdd-implement/SKILL.md
+      - templates/skills/pdd-intake/SKILL.md
+      - templates/skills/pdd-plan/SKILL.md
+      - templates/skills/pdd-review/SKILL.md
+      - templates/skills/pdd-verify/SKILL.md
+      - tests/examples/greenfield.test.ts
+      - tests/examples/hono.test.ts
+      - tests/fixtures/attestation/native-gh-verification.json
+      - tests/fixtures/poc/allocate.ts
+      - tests/fixtures/poc/auth.ts
+      - tests/fixtures/poc/lemmascript.json
+      - tests/fixtures/poc/split.ts
+      - tests/fixtures/poc/vacuous.ts
+      - tests/integration/adapter.test.ts
+      - tests/integration/approval.test.ts
+      - tests/integration/baseline.test.ts
+      - tests/integration/boundaries.test.ts
+      - tests/integration/ci-authority.test.ts
+      - tests/integration/cli.test.ts
+      - tests/integration/contracts.test.ts
+      - tests/integration/doctor.test.ts
+      - tests/integration/provenance.test.ts
+      - tests/integration/publisher.test.ts
+      - tests/integration/review-card.test.ts
+      - tests/integration/scan.test.ts
+      - tests/integration/spec.test.ts
+      - tests/integration/workflow.test.ts
+      - tests/unit/dafny-log.test.ts
+      - tests/unit/gate.test.ts
+      - tests/unit/process-paths.test.ts
+      - tests/unit/profile.test.ts
+      - tests/unit/report.test.ts
+      - tests/unit/spec-diff.test.ts
+      - tsconfig.build.json
+      - tsconfig.json
+      - vitest.config.ts
+      - templates/skills/pdd-plan/references/decisions.md
+    requiredTests:
       - SCAN-001 surveys an uninitialized project without executing or changing
         its files
       - SCAN-001 labels injected calls unknown instead of inventing a runtime
@@ -671,12 +993,16 @@ boundaries:
       - src/verification/paths.ts
       - src/cli/runs.ts
       - src/analysis/scan.ts
+      - src/requirements/decisions.ts
+      - src/workflow/skills.ts
     validatorFiles:
       - src/requirements/schema.ts
       - src/verification/profile.ts
     calleeScope: node-filesystem-runtime
     testObligationIds:
       - self-tests
+      - workflow-tests
+      - scan-tests
     assumption: tcb:node-filesystem-runtime
   - id: node-process-runtime
     callerFiles:
@@ -690,6 +1016,8 @@ boundaries:
     calleeScope: node-process-runtime
     testObligationIds:
       - self-tests
+      - scan-tests
+      - workflow-tests
     assumption: tcb:node-process-runtime
   - id: node-runtime
     callerFiles:
@@ -712,6 +1040,7 @@ boundaries:
     calleeScope: typescript-frontend
     testObligationIds:
       - self-tests
+      - scan-tests
     assumption: tcb:typescript-frontend
   - id: HONO-AUTH-IDENTITY-PROVIDER
     callerFiles:

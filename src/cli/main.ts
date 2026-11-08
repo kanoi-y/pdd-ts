@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import {installSkills} from '../workflow/skills.js';
+import {planProject,renderDecisionPlan} from '../workflow/plan.js';
 import {scanHistory} from '../analysis/history.js';
 import { compareScans,readScanBaseline } from '../analysis/changes.js';
 import { renderScanChanges } from '../analysis/atlas.js';
@@ -26,7 +28,7 @@ try {
   const parsed = parseArgs({ args, allowPositionals: true, strict: true, options: {
     project: { type: 'string', default: root }, json: { type: 'boolean', default: false },
     attestation:{type:'string'}, pr: {type:'string'}, baseline: {type:'string'},
-    previous:{type:'string'}, history:{type:'boolean',default:false},
+    agent:{type:'string'}, previous:{type:'string'}, history:{type:'boolean',default:false},
     ci: { type: 'boolean', default: false }, run: { type: 'string' }, help: { type: 'boolean', short: 'h' },
   } });
   root = path.resolve(parsed.values.project);
@@ -35,12 +37,19 @@ try {
   if (parsed.positionals.length > 1) throw new Error('Unexpected positional arguments');
   if (parsed.values.ci && (command!=='audit' || !parsed.values.baseline || !parsed.values.pr || !parsed.values.attestation)) throw new Error('CI audit requires --baseline SHA --pr NUMBER --attestation PROJECT_RELATIVE_FILE');
   if ((parsed.values.pr || parsed.values.baseline) && !['approve','audit'].includes(command)) throw new Error('--pr and --baseline are only valid with approve');
+  if(parsed.values.agent&&command!=='skills')throw new Error('--agent is only valid with skills');
   if(parsed.values.history&&command!=='scan'&&!parsed.values.help)throw new Error('--history is only valid with scan');
-  if(parsed.values.previous&&!['scan','report'].includes(command))throw new Error('--previous is only valid with scan or report');
-  if (parsed.values.run && !['report', 'audit'].includes(command)) throw new Error('--run is only valid with report or audit');
+  if(parsed.values.previous&&!['scan','report','review'].includes(command))throw new Error('--previous is only valid with scan, report or review');
+  if (parsed.values.run && !['report', 'review', 'audit'].includes(command)) throw new Error('--run is only valid with report, review or audit');
   if (parsed.values.help || command === 'help') {
-    const help = 'pdd-ts <init|doctor|verify|report|audit|approve|scan> [--project DIR] [--json]\nreport/audit: [--run ID]\nscan/report: [--previous PROJECT_RELATIVE_SCAN_JSON]\nscan: [--history]\napprove: --pr NUMBER --baseline SHA\nLocal checks are trials; they do not establish protected CI approval.\n';
+    const help = 'pdd-ts <init|doctor|verify|report|audit|approve|scan|plan|skills|review> [--project DIR] [--json]\nreport/review/audit: [--run ID]\nscan/report/review: [--previous PROJECT_RELATIVE_SCAN_JSON]\nscan: [--history]\nskills: --agent codex\napprove: --pr NUMBER --baseline SHA\nLocal checks are trials; they do not establish protected CI approval.\n';
     process.stdout.write(json ? JSON.stringify({ help }) + '\n' : help);
+  } else if(command==='skills'){
+    if(parsed.values.attestation||!parsed.values.agent)throw new Error('skills requires --agent codex');
+    const result=await installSkills(root,parsed.values.agent);process.stdout.write(JSON.stringify(result,null,2)+'\n');
+  } else if (command === 'plan') {
+    if(parsed.values.attestation)throw new Error('--attestation is only valid with CI audit');
+    const plan=await planProject(root);process.stdout.write(json?JSON.stringify(plan,null,2)+'\n':renderDecisionPlan(plan));if(plan.blocked||!plan.snapshotComplete||plan.status==='needs-development')process.exitCode=1;
   } else if (command === 'scan') {
     if(parsed.values.attestation) throw new Error('--attestation is only valid with CI audit');
     const result=await scanProject(root);
@@ -78,7 +87,7 @@ try {
     if (!parsed.values.pr || !parsed.values.baseline) throw new Error('approve requires --pr NUMBER --baseline IMMUTABLE_SHA');
     const result = await approveProject(root, Number(parsed.values.pr), parsed.values.baseline);
     process.stdout.write(JSON.stringify(result,null,2)+'\n');
-  } else if (['verify', 'report', 'audit'].includes(command)) {
+  } else if (['verify', 'report', 'review', 'audit'].includes(command)) {
     const packet = parsed.values.ci ? await auditCI(root,parsed.values.baseline!,Number(parsed.values.pr),parsed.values.attestation!) : command === 'verify' ? await verifyProject(root) : await reportProject(root, parsed.values.run);
     if(parsed.values.previous)packet.atlasUpdate=compareScans(await readScanBaseline(root,parsed.values.previous),await scanProject(root));
     const markdown = renderMarkdown(packet);

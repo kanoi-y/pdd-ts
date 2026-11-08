@@ -20,7 +20,6 @@
     - SPEC-001
     - SPEC-002
     - SPLIT-001
-    - SCAN-001
   kind: test
   scope: pdd-ts runtime and CLI
   contractIds: []
@@ -41,3 +40,15 @@
     - SPLIT-001-C2
     - SPLIT-001-C3
     - SPLIT-001-C4
+- id: workflow-tests
+  requirementIds:
+    - WF-001
+  kind: test
+  scope: pdd-ts decision workflow and project skills
+  contractIds: []
+- id: scan-tests
+  requirementIds:
+    - SCAN-001
+  kind: test
+  scope: pdd-ts read-only architecture survey
+  contractIds: []

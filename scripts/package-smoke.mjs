@@ -36,6 +36,12 @@ if (!history || !['available','incomplete','unavailable'].includes(history.statu
 const initialized = JSON.parse(run(cli, ['init', '--project', project, '--json'], work));
 if (!initialized.initialized) throw new Error('Packed CLI did not initialize the project');
 JSON.parse(await readFile(path.join(project, 'lemmascript.json'), 'utf8'));
+const skills = JSON.parse(run(cli, ['skills', '--project', project, '--agent', 'codex', '--json'], work));
+if (skills.installed.length !== 5 || !skills.supportingFiles.length) throw new Error('Packed project skills incomplete');
+for (const file of [...skills.installed,...skills.supportingFiles]) await readFile(path.join(project,file),'utf8');
+const planned = JSON.parse(run(cli, ['plan', '--project', repo, '--json']));
+if (planned.kind !== 'decision-plan' || planned.implementationPermission !== 'not-established') throw new Error('Packed plan is incomplete');
+
 const trials = [];
 for (const sample of ['examples/existing-hono', 'examples/greenfield-domain', '.']) {
   const packet = JSON.parse(run(cli, ['verify', '--project', path.resolve(repo, sample), '--json']));
@@ -43,4 +49,4 @@ for (const sample of ['examples/existing-hono', 'examples/greenfield-domain', '.
   trials.push({ project: sample, commit: packet.commit, dirty: packet.dirty, gate: packet.gate.status, approval: packet.approval, evidence: packet.evidence.map(item => ({ kind: item.kind, status: item.status, counts: item.counts })) });
 }
 await writeFile(path.join(repo, '.tools/packed-trials.json'), JSON.stringify(trials, null, 2) + '\n');
-console.log('PASS: offline tarball install, executable help/scan/init, both examples and self verification');
+console.log('PASS: offline tarball install, executable help/scan/init/plan/skills, both examples and self verification');

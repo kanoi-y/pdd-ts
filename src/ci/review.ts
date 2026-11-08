@@ -111,9 +111,12 @@ export function renderHumanReviewCard(input:ReviewCardInput):string {
     const file=entry.scope.slice(0,entry.scope.lastIndexOf('#'));
     lines.push('',block(entry.scope),`[対象コミットのソース](${sourceUrl(repository,headSha,file)})`,block(entry.declaration));
   }
+  if(head.workflow)lines.push('', '## 作者が記録した仕様判断と根拠', '回答の記録は本人認証ではありません。この対象へのレビューで内容を確認してください。',block(head.workflow));
+  const inputSets:{id:string;files:string[]}[]=[];const inputIds=new Map<string,string>();
+  const testScopes=head.metadata.config.testTargets.map(target=>{const key=canonicalJson(target.inputs);let id=inputIds.get(key);if(!id){id=`I${inputSets.length+1}`;inputIds.set(key,id);inputSets.push({id,files:target.inputs});}return {obligationId:target.obligationId,files:target.files,inputSetId:id,requiredCaseCount:target.requiredTests.length};});
   lines.push('','## 前提・仮定と実行時の信頼境界',block(head.metadata.config.approvedAssumptions),block(head.metadata.config.boundaries),
     '', '## モデル設定と証明対象',block(head.metadata.modelConfig),block(head.metadata.config.targets),
-    '', '## 必須の証拠とテスト範囲',block(head.metadata.obligations),block(head.metadata.config.testTargets.map(target=>({obligationId:target.obligationId,files:target.files,inputs:target.inputs,requiredCaseCount:target.requiredTests.length}))),
+    '', '## 必須の証拠とテスト範囲',block(head.metadata.obligations),block(testScopes), '', '## 検証入力の共通一覧（各inputSetIdの全ファイル）',block(inputSets),
     '', '## 基準からの仕様変更',block(diff),'',
     'GitHubのレビュー画面から、ご本人としてレビューしてください。承認は後続処理で、対象コミット・許可された本人のID・独立に再計算した仕様ダイジェストに照合されます。このPR本文はレビューの補助資料であり、承認記録ではありません。','','</details>','');
   const card=lines.join('\n');
