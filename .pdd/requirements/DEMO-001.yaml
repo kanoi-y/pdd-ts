@@ -1,5 +1,5 @@
 id: DEMO-001
-revision: 10
+revision: 11
 title: 既存構成への段階導入と新規開発を通しで試せる
 intent: 同じ配布用CLIで、段階導入を再現するHonoサンプルと、新規開発のbigintサンプルを検証できる。関数の形式証明と、外部との境界をテストした結果を区別する。
 risk: high

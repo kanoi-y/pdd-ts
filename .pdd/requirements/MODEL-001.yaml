@@ -1,0 +1,23 @@
+id: MODEL-001
+revision: 1
+title: 有限状態のジョブキューを検査し、モデル・実装・反例を区別する
+intent: 同時二重実行・試行上限・非終端デッドロックを有限状態閉包で検査し、上限到達はunknown。モデル/対応表/実装入力を仕様と証拠に結び付け、SQLite競合と観測トレースの一致を別の経験的検証として示す。
+risk: high
+target:
+  file: src/model/queue.ts
+  symbol: checkQueueModel
+contracts: []
+acceptance:
+  - id: MODEL-001-T1
+    kind: model-check
+    scenario: 原子的取得は有限閉包で成功。非原子的取得は二重実行、復旧なしはデッドロックの最短反例。状態/深さ/遷移/時間上限はunknown。公平性なし。
+  - id: MODEL-001-T2
+    kind: integration
+    scenario: model-check/verify/reviewで実行し、入力・対応表・実装・成果物の変更や不正を合格にしない。未決の高リスクでは実行しない。
+  - id: MODEL-001-T3
+    kind: integration
+    scenario: SQLiteの独立接続による競合、古いattemptの拒否、実際の再試行/停止後復旧トレースを検証。対応表と有限トレースをコードの証明にしない。
+trustedBoundaries:
+  - node-filesystem-runtime
+  - model-sqlite
+  - model-worker-stop

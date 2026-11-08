@@ -1,0 +1,306 @@
+{
+  "schemaVersion": 1,
+  "scope": "Local actual CLI and SQLite observations; not authenticated CI, source proof, human approval or usability trial",
+  "node": "v24.14.1",
+  "sourceDigests": {
+    "src/model/queue.ts": "d8c4a855bc8e2828b9a5ab653cba42f45bd14b6bcf46d8fc79d2799ba2ad3e51",
+    "src/model/adapter.ts": "7f428bc313daff61412a547a70c5086812cfad8885ddc351b2ef62681d32e14b",
+    "src/cli/main.ts": "f865322d98b8b03d360ccf4fd6e954c6908acb7278d8750d16150eddaa68f9ec",
+    "src/cli/runs.ts": "cd0b3496874b5b342a178cbab8f153679868d895698f4f9107667f585af4fa0e",
+    "examples/job-queue/src/queue.ts": "f9ecb06dac3c5618e4929abbdc7e89416da935fa817f4870c5defe55bf295110"
+  },
+  "operations": {
+    "model": "node dist/cli/main.js model-check --project <disposable-fixture> --model model.json --json",
+    "trace": "same CLI with --trace trace.json",
+    "sqlite": "two worker threads call SqliteQueue.claim on independent SQLite connections"
+  },
+  "concurrentClaims": [
+    {
+      "worker": 0,
+      "attempt": null
+    },
+    {
+      "worker": 1,
+      "attempt": 1
+    }
+  ],
+  "observations": {
+    "normal": {
+      "exitCode": 0,
+      "response": {
+        "schemaVersion": 1,
+        "kind": "model-check",
+        "adapter": "job-queue-v1",
+        "status": "passed",
+        "guarantee": "finite-model-only",
+        "fairness": "none",
+        "method": "breadth-first-exhaustive",
+        "exhaustive": true,
+        "model": {
+          "schemaVersion": 1,
+          "kind": "job-queue-v1",
+          "workers": 2,
+          "maxAttempts": 2,
+          "claim": "atomic",
+          "recovery": true,
+          "limits": {
+            "states": 1000,
+            "depth": 64
+          }
+        },
+        "explored": {
+          "states": 12,
+          "transitions": 19,
+          "depth": 5
+        },
+        "violation": null,
+        "reason": "reachable-state-space-exhausted",
+        "counterexample": []
+      }
+    },
+    "duplicate": {
+      "exitCode": 1,
+      "response": {
+        "schemaVersion": 1,
+        "kind": "model-check",
+        "adapter": "job-queue-v1",
+        "status": "failed",
+        "guarantee": "finite-model-only",
+        "fairness": "none",
+        "method": "breadth-first-exhaustive",
+        "exhaustive": false,
+        "model": {
+          "schemaVersion": 1,
+          "kind": "job-queue-v1",
+          "workers": 2,
+          "maxAttempts": 2,
+          "claim": "split-read-write",
+          "recovery": true,
+          "limits": {
+            "states": 1000,
+            "depth": 64
+          }
+        },
+        "explored": {
+          "states": 22,
+          "transitions": 29,
+          "depth": 4
+        },
+        "violation": "simultaneous-execution",
+        "reason": "simultaneous-execution",
+        "counterexample": [
+          {
+            "action": "initial",
+            "worker": null,
+            "state": {
+              "phase": "pending",
+              "attempts": 0,
+              "active": [],
+              "readers": []
+            }
+          },
+          {
+            "action": "read",
+            "worker": 0,
+            "state": {
+              "phase": "pending",
+              "attempts": 0,
+              "active": [],
+              "readers": [
+                0
+              ]
+            }
+          },
+          {
+            "action": "read",
+            "worker": 1,
+            "state": {
+              "phase": "pending",
+              "attempts": 0,
+              "active": [],
+              "readers": [
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "action": "start",
+            "worker": 0,
+            "state": {
+              "phase": "running",
+              "attempts": 1,
+              "active": [
+                0
+              ],
+              "readers": [
+                1
+              ]
+            }
+          },
+          {
+            "action": "start",
+            "worker": 1,
+            "state": {
+              "phase": "running",
+              "attempts": 2,
+              "active": [
+                0,
+                1
+              ],
+              "readers": []
+            }
+          }
+        ]
+      }
+    },
+    "deadlock": {
+      "exitCode": 1,
+      "response": {
+        "schemaVersion": 1,
+        "kind": "model-check",
+        "adapter": "job-queue-v1",
+        "status": "failed",
+        "guarantee": "finite-model-only",
+        "fairness": "none",
+        "method": "breadth-first-exhaustive",
+        "exhaustive": false,
+        "model": {
+          "schemaVersion": 1,
+          "kind": "job-queue-v1",
+          "workers": 2,
+          "maxAttempts": 2,
+          "claim": "atomic",
+          "recovery": false,
+          "limits": {
+            "states": 1000,
+            "depth": 64
+          }
+        },
+        "explored": {
+          "states": 7,
+          "transitions": 9,
+          "depth": 2
+        },
+        "violation": "deadlock",
+        "reason": "deadlock",
+        "counterexample": [
+          {
+            "action": "initial",
+            "worker": null,
+            "state": {
+              "phase": "pending",
+              "attempts": 0,
+              "active": [],
+              "readers": []
+            }
+          },
+          {
+            "action": "claim",
+            "worker": 0,
+            "state": {
+              "phase": "running",
+              "attempts": 1,
+              "active": [
+                0
+              ],
+              "readers": []
+            }
+          },
+          {
+            "action": "crash",
+            "worker": 0,
+            "state": {
+              "phase": "running",
+              "attempts": 1,
+              "active": [],
+              "readers": []
+            }
+          }
+        ]
+      }
+    },
+    "limited": {
+      "exitCode": 1,
+      "response": {
+        "schemaVersion": 1,
+        "kind": "model-check",
+        "adapter": "job-queue-v1",
+        "status": "unknown",
+        "guarantee": "finite-model-only",
+        "fairness": "none",
+        "method": "breadth-first-exhaustive",
+        "exhaustive": false,
+        "model": {
+          "schemaVersion": 1,
+          "kind": "job-queue-v1",
+          "workers": 2,
+          "maxAttempts": 2,
+          "claim": "atomic",
+          "recovery": true,
+          "limits": {
+            "states": 1,
+            "depth": 64
+          }
+        },
+        "explored": {
+          "states": 1,
+          "transitions": 1,
+          "depth": 0
+        },
+        "violation": null,
+        "reason": "state-limit",
+        "counterexample": []
+      }
+    },
+    "actualSQLite": {
+      "first": 1,
+      "competingClaim": null,
+      "second": 2,
+      "final": {
+        "phase": "completed",
+        "attempts": 2,
+        "active": [],
+        "readers": []
+      }
+    },
+    "trace": {
+      "exitCode": 0,
+      "response": {
+        "schemaVersion": 1,
+        "kind": "model-check",
+        "adapter": "job-queue-v1",
+        "status": "passed",
+        "guarantee": "finite-model-only",
+        "fairness": "none",
+        "method": "breadth-first-exhaustive",
+        "exhaustive": true,
+        "model": {
+          "schemaVersion": 1,
+          "kind": "job-queue-v1",
+          "workers": 2,
+          "maxAttempts": 2,
+          "claim": "atomic",
+          "recovery": true,
+          "limits": {
+            "states": 1000,
+            "depth": 64
+          }
+        },
+        "explored": {
+          "states": 12,
+          "transitions": 19,
+          "depth": 5
+        },
+        "violation": null,
+        "reason": "reachable-state-space-exhausted",
+        "counterexample": [],
+        "traceComparison": {
+          "status": "matched",
+          "index": 5,
+          "guarantee": "observed-trace-only"
+        }
+      }
+    }
+  }
+}

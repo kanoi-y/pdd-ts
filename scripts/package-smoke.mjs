@@ -42,11 +42,13 @@ for (const file of [...skills.installed,...skills.supportingFiles]) await readFi
 const planned = JSON.parse(run(cli, ['plan', '--project', repo, '--json']));
 if (planned.kind !== 'decision-plan' || planned.implementationPermission !== 'not-established') throw new Error('Packed plan is incomplete');
 
+const model=JSON.parse(run(cli,['model-check','--project',path.join(repo,'examples/job-queue'),'--model','model.json','--json']));
+if(model.status!=='passed'||!model.exhaustive||model.guarantee!=='finite-model-only')throw new Error('Packed model checker incomplete');
 const trials = [];
-for (const sample of ['examples/existing-hono', 'examples/greenfield-domain', '.']) {
+for (const sample of ['examples/existing-hono', 'examples/greenfield-domain', 'examples/job-queue', '.']) {
   const packet = JSON.parse(run(cli, ['verify', '--project', path.resolve(repo, sample), '--json']));
   if (packet.gate.status !== 'trial' || packet.approval !== 'pending' || packet.evidence.some(item => item.status !== 'passed')) throw new Error('Packed verification incomplete: ' + sample);
   trials.push({ project: sample, commit: packet.commit, dirty: packet.dirty, gate: packet.gate.status, approval: packet.approval, evidence: packet.evidence.map(item => ({ kind: item.kind, status: item.status, counts: item.counts })) });
 }
 await writeFile(path.join(repo, '.tools/packed-trials.json'), JSON.stringify(trials, null, 2) + '\n');
-console.log('PASS: offline tarball install, executable help/scan/init/plan/skills, both examples and self verification');
+console.log('PASS: offline tarball install, executable help/scan/init/plan/skills, all three examples, model-check and self verification');

@@ -1,3 +1,4 @@
+import {modelTargetSchema} from '../model/adapter.js';
 import { access, mkdir, readdir, realpath } from 'node:fs/promises';
 import { z } from 'zod';
 import { identifier, obligationSchema, obligationsSchema } from './schema.js';
@@ -33,6 +34,7 @@ export const projectConfigSchema = z.strictObject({
   }).default({}),
   approvedAssumptions: z.array(text).max(100).default(['profile:pdd-pure-v1']),
   targets: z.array(targetSchema).max(1000).default([]),
+  modelTargets:z.array(modelTargetSchema).max(100).optional(),
   testTargets: z.array(z.strictObject({obligationId: identifier, files:z.array(file).min(1).max(1000), inputs:z.array(file).min(1).max(10000), requiredTests:z.array(text).min(1).max(10000)})).max(1000).default([]),
   boundaries: z.array(z.strictObject({id:identifier,callerFiles:z.array(file).min(1),validatorFiles:z.array(file).min(1),calleeScope:text,testObligationIds:z.array(identifier).min(1),assumption:text.optional()})).max(1000).default([]),
   github: z.strictObject({ repository: z.string().regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/), reviewerIds: z.array(z.number().int().positive()).min(1), minApprovals: z.number().int().min(1).max(10).default(1), workflow: file.default('.github/workflows/pdd.yml'), repositoryId:z.number().int().positive().optional(), checkAppId:z.number().int().positive().optional(), checkContext:text.default('PDD protected gate') }).optional(),
@@ -91,6 +93,13 @@ export async function loadProject(directory: string): Promise<Project> {
       if (!owner || !contract || !obligation.requirementIds.includes(owner.id) || `${contract.sourceRef.file}#${contract.sourceRef.symbol}` !== obligation.scope) throw new Error(`Unbound source contract ${id}`);
     }
   }
+  const modelIds=(config.modelTargets??[]).map(t=>t.obligationId);
+  if(new Set(modelIds).size!==modelIds.length)throw new Error('Duplicate model target');
+  for(const target of config.modelTargets??[]){
+    if(!obligations.some(o=>o.id===target.obligationId&&o.kind==='model-check'&&o.contractIds.length===0))throw new Error('Model target requires a model-check obligation without source contracts');
+    await resolveProjectPath(root,target.file);await resolveProjectPath(root,target.mapping);
+  }
+  for(const o of obligations)if(o.kind==='model-check'&&!modelIds.includes(o.id))throw new Error('Model obligation has no target');
   const testIds=config.testTargets.map(item=>item.obligationId);
   if(new Set(testIds).size!==testIds.length) throw new Error('Duplicate empirical target');
   for(const target of config.testTargets) {

@@ -1,3 +1,5 @@
+import {modelInputs,modelToolDigest,verifyModel,modelResultSchema,readModelJson} from '../model/adapter.js';
+import type {ModelResult} from '../model/queue.js';
 import {readDecisionRegistry} from '../requirements/decisions.js';
 import type { ScanChanges } from '../analysis/changes.js';
 import { randomUUID } from 'node:crypto';
@@ -30,6 +32,7 @@ export class NoRunError extends Error {}
 export interface ReviewPacket {
   workflow?:SpecSnapshot['workflow'];
   atlasUpdate?:ScanChanges;
+  modelChecks?:{obligationId:string;result:ModelResult}[];
   schemaVersion: 1; runId: string; createdAt: string; commit: string; dirty: boolean;
   origin: 'local'|'ci'; approval: 'pending'|'approved'; specDigest: string; recordedSpecDigest: string;
   snapshotComplete: boolean; gate: GateResult; evidence: EvidenceRecord[];
@@ -57,10 +60,10 @@ async function currentProofInputs(project: Project, scope: string): Promise<stri
   return files;
 }
 
-async function currentToolchain(project:Project):Promise<string> {
+export async function currentToolchain(project:Project):Promise<string> {
   const proof = project.obligations.some(item=>item.kind==='source-proof') ? (await describeToolchain(project.root,project.config.tools)).digest : 'none';
   const empirical = project.obligations.some(item=>item.kind==='test') ? await empiricalToolDigest() : 'none';
-  return sha256(JSON.stringify({proof,empirical}));
+  return sha256(JSON.stringify({proof,empirical,...(project.obligations.some(o=>o.kind==='model-check')?{model:await modelToolDigest()}:{})}));
 }
 
 async function reviewCurrent(project: Project, snapshot: SpecSnapshot, saved: SavedRun): Promise<ReviewPacket> {
@@ -70,9 +73,9 @@ async function reviewCurrent(project: Project, snapshot: SpecSnapshot, saved: Sa
   let toolchainDigest = sha256('unavailable');
   if(!snapshot.workflow?.blocked)try { toolchainDigest = await currentToolchain(project); }
   catch { /* An unavailable current toolchain cannot match a previously successful record. */ }
-  for (const obligation of project.obligations.filter(item => ['source-proof','test'].includes(item.kind))) {
+  for (const obligation of project.obligations.filter(item => ['source-proof','test','model-check'].includes(item.kind))) {
     try {
-      const files = obligation.kind==='test' ? empiricalInputs(project,obligation.id) : await currentProofInputs(project, obligation.scope);
+      const files = obligation.kind==='model-check' ? (await modelInputs(project,obligation.id)).files : obligation.kind==='test' ? empiricalInputs(project,obligation.id) : await currentProofInputs(project, obligation.scope);
       expectedSourceDigests[obligation.id] = (await digestFiles(project.root, files)).digest;
       const record = evidence.find(item => item.obligationId === obligation.id);
       if (record && (await checkEvidenceFreshness(project.root, record, files) === 'stale' || record.specDigest !== snapshot.digest || record.toolchainDigest !== toolchainDigest || record.commit !== identity.commit)) {
@@ -83,6 +86,14 @@ async function reviewCurrent(project: Project, snapshot: SpecSnapshot, saved: Sa
       if (record?.status === 'passed') record.status = 'stale';
     }
   }
+  const modelChecks:NonNullable<ReviewPacket['modelChecks']>=[];
+  for(const record of evidence.filter(e=>e.kind==='model-check'))try{
+    const file=`.pdd/evidence/${saved.id}/${record.obligationId}/model-result.json`;
+    if(!record.artifactPaths.includes(file))throw new Error('Missing model result artifact');
+    const result=modelResultSchema.parse(await readModelJson(project.root,file));
+    if(record.status==='passed'&&(result.status!=='passed'||!result.exhaustive||result.violation!==null||result.counterexample.length!==0||result.reason!=='reachable-state-space-exhausted'||canonicalJson(result.model)!==canonicalJson((await modelInputs(project,record.obligationId)).model)))throw new Error('Inconsistent model result');
+    modelChecks.push({obligationId:record.obligationId,result});
+  }catch{if(record.status==='passed')record.status='stale';}
   const gate = evaluateGate(project.obligations, evidence, {
     runId: saved.id, commit: identity.commit, sourceDigest: sha256('per-obligation'), expectedSourceDigests,
     specDigest: snapshot.digest, toolchainDigest, mode: 'trial', approval: 'pending', approvedAssumptions: project.config.approvedAssumptions,
@@ -96,7 +107,7 @@ async function reviewCurrent(project: Project, snapshot: SpecSnapshot, saved: Sa
   for(const requirement of project.requirements) if(!covered.has(requirement.id)) {gate.status='blocked';gate.findings.push({code:'uncovered-requirement',message:`No required obligation: ${requirement.id}`});}
   return { schemaVersion: 1, runId: saved.id, createdAt: saved.createdAt, commit: identity.commit, dirty: identity.dirty,
     origin: 'local', approval: 'pending', specDigest: snapshot.digest, recordedSpecDigest: saved.specDigest,
-    snapshotComplete: snapshot.complete, gate, evidence, requirements: project.requirements, obligations: project.obligations, sourceContracts: snapshot.contracts, ...(snapshot.workflow?{workflow:snapshot.workflow}:{}),
+    ...(modelChecks.length?{modelChecks}:{}), snapshotComplete: snapshot.complete, gate, evidence, requirements: project.requirements, obligations: project.obligations, sourceContracts: snapshot.contracts, ...(snapshot.workflow?{workflow:snapshot.workflow}:{}),
     unverifiedRequirements: project.requirements.filter(item => !covered.has(item.id)).map(item => item.id), boundaries: project.config.boundaries, allowedAssumptions: project.config.approvedAssumptions, diagnostics: saved.diagnostics };
 }
 
@@ -115,6 +126,7 @@ export async function verifyProject(directory: string): Promise<ReviewPacket> {
       result.record.toolchainDigest=toolchainDigest;
     saved.evidence.push(result.record); saved.diagnostics.push({obligationId:obligation.id,messages:result.diagnostics}); continue;
     }
+    if(obligation.kind==='model-check'){const result=await verifyModel(project,obligation.id,{id,commit:identity.commit,specDigest:snapshot.digest},toolchainDigest);saved.evidence.push(result.record);saved.diagnostics.push({obligationId:obligation.id,messages:result.diagnostics});continue;}
     if (obligation.kind !== 'source-proof') continue;
     const target = project.config.targets.find(item => `${item.file}#${item.symbol}` === obligation.scope)!;
     const result = await verifySource(project.root, { ...target, obligationId: obligation.id, requirementIds: obligation.requirementIds, contractIds: obligation.contractIds }, { id, commit: identity.commit, specDigest: snapshot.digest }, project.config.tools);

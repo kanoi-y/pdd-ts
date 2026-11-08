@@ -1,5 +1,12 @@
 # Implementation evidence and continuation ledger
 
+## 最新: Phase 5統合とPhase 6実装
+
+- PR5は本人のb319936承認・保護CI42474316552試行3・署名照合・専用App成功後、8a6c3e8へ通常統合。main CI42475439289成功。以前の独立レビューの利用上限は解消し、workflow19＋review-card8の27件が成功。
+- ユーザーはPhase5/6の実装完了を指示。人の比較試用は後日。PRは日本語で簡潔に、変更点→実際の操作/返答→制約を示し、全仕様は必要時だけ詳細欄へ置く。
+- 実装計画: `docs/plans/2026-11-08-state-model.md`。高リスクレビュー深度とAtlas確認を補完し、job-queue-v1有限モデルの検査・反例・SQLite実装対応/競合/トレース照合を追加。新機能をsource-proofとは扱わない。
+- 最終wholeは280/280・24ファイル・型チェック/ビルド成功（84.17秒）。独立48件と45モデル検査・反例30本再生が成功し、残るImportant/Criticalなし。実配布CLIで3例と自身、3ソース証明・24/34/3/280テスト成功。操作の記録は`docs/evidence/phase6-behavior.json`。新しいPRの通常CI・本人承認/保護CIは別途必要。下の旧checkpointは歴史的記録。
+
 ## Scope and authority
 
 The user requested implementation through Phase 0–3 of the integrated plan and

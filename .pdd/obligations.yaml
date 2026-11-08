@@ -52,3 +52,10 @@
   kind: test
   scope: pdd-ts read-only architecture survey
   contractIds: []
+- id: model-tests
+  requirementIds:
+    - MODEL-001
+    - WF-001
+  kind: test
+  scope: finite-queue-and-review-depth
+  contractIds: []

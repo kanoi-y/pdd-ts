@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import {checkQueueModel,matchQueueTrace} from '../model/queue.js';
+import {readModelJson} from '../model/adapter.js';
 import {installSkills} from '../workflow/skills.js';
 import {planProject,renderDecisionPlan} from '../workflow/plan.js';
 import {scanHistory} from '../analysis/history.js';
@@ -10,9 +12,8 @@ import { parseArgs } from 'node:util';
 import path from 'node:path';
 import { initProject, loadProject } from '../requirements/project.js';
 import { writeProjectFile } from '../requirements/io.js';
-import { verifyProject, reportProject, gitIdentity, NoRunError } from './runs.js';
+import { verifyProject, reportProject, gitIdentity, NoRunError,currentToolchain } from './runs.js';
 import { renderMarkdown } from '../reporter/markdown.js';
-import { describeToolchain } from '../verification/toolchain.js';
 
 import {validateBoundaries} from '../verification/boundaries.js';
 import {doctorGitHub} from '../ci/doctor.js';
@@ -28,7 +29,7 @@ try {
   const parsed = parseArgs({ args, allowPositionals: true, strict: true, options: {
     project: { type: 'string', default: root }, json: { type: 'boolean', default: false },
     attestation:{type:'string'}, pr: {type:'string'}, baseline: {type:'string'},
-    agent:{type:'string'}, previous:{type:'string'}, history:{type:'boolean',default:false},
+    trace:{type:'string'}, model:{type:'string'}, agent:{type:'string'}, previous:{type:'string'}, history:{type:'boolean',default:false},
     ci: { type: 'boolean', default: false }, run: { type: 'string' }, help: { type: 'boolean', short: 'h' },
   } });
   root = path.resolve(parsed.values.project);
@@ -37,13 +38,20 @@ try {
   if (parsed.positionals.length > 1) throw new Error('Unexpected positional arguments');
   if (parsed.values.ci && (command!=='audit' || !parsed.values.baseline || !parsed.values.pr || !parsed.values.attestation)) throw new Error('CI audit requires --baseline SHA --pr NUMBER --attestation PROJECT_RELATIVE_FILE');
   if ((parsed.values.pr || parsed.values.baseline) && !['approve','audit'].includes(command)) throw new Error('--pr and --baseline are only valid with approve');
+  if(parsed.values.trace&&command!=='model-check')throw new Error('--trace is only valid with model-check');
+  if(parsed.values.model&&command!=='model-check')throw new Error('--model is only valid with model-check');
   if(parsed.values.agent&&command!=='skills')throw new Error('--agent is only valid with skills');
   if(parsed.values.history&&command!=='scan'&&!parsed.values.help)throw new Error('--history is only valid with scan');
   if(parsed.values.previous&&!['scan','report','review'].includes(command))throw new Error('--previous is only valid with scan, report or review');
   if (parsed.values.run && !['report', 'review', 'audit'].includes(command)) throw new Error('--run is only valid with report, review or audit');
   if (parsed.values.help || command === 'help') {
-    const help = 'pdd-ts <init|doctor|verify|report|audit|approve|scan|plan|skills|review> [--project DIR] [--json]\nreport/review/audit: [--run ID]\nscan/report/review: [--previous PROJECT_RELATIVE_SCAN_JSON]\nscan: [--history]\nskills: --agent codex\napprove: --pr NUMBER --baseline SHA\nLocal checks are trials; they do not establish protected CI approval.\n';
+    const help = 'pdd-ts <init|doctor|verify|report|audit|approve|scan|plan|skills|review|model-check> [--project DIR] [--json]\nreport/review/audit: [--run ID]\nscan/report/review: [--previous PROJECT_RELATIVE_SCAN_JSON]\nmodel-check: --model PROJECT_RELATIVE_JSON [--trace PROJECT_RELATIVE_JSON]\nscan: [--history]\nskills: --agent codex\napprove: --pr NUMBER --baseline SHA\nLocal checks are trials; they do not establish protected CI approval.\n';
     process.stdout.write(json ? JSON.stringify({ help }) + '\n' : help);
+  } else if(command==='model-check'){
+    if(!parsed.values.model||parsed.values.attestation)throw new Error('model-check requires --model PROJECT_RELATIVE_JSON');
+    const result=checkQueueModel(await readModelJson(root,parsed.values.model));
+    const traceComparison=parsed.values.trace?matchQueueTrace(result.model,await readModelJson(root,parsed.values.trace)):undefined;
+    process.stdout.write(JSON.stringify({...result,...(traceComparison?{traceComparison}:{})},null,2)+'\n');if(result.status!=='passed'||traceComparison?.status==='mismatch')process.exitCode=1;
   } else if(command==='skills'){
     if(parsed.values.attestation||!parsed.values.agent)throw new Error('skills requires --agent codex');
     const result=await installSkills(root,parsed.values.agent);process.stdout.write(JSON.stringify(result,null,2)+'\n');
@@ -67,11 +75,11 @@ try {
       const project = await loadProject(root);
       checks.push({ name: 'configuration', status: 'ready', message: 'Project configuration and registry are valid' });
       const covered=new Set(project.obligations.flatMap(item=>item.requirementIds));
-      const registered=project.requirements.length>0 && project.obligations.length>0 && project.requirements.every(item=>covered.has(item.id)) && project.obligations.every(item=>item.kind==='source-proof' || item.kind==='test' && project.config.testTargets.some(target=>target.obligationId===item.id)) && validateBoundaries(project).length===0;
+      const registered=project.requirements.length>0 && project.obligations.length>0 && project.requirements.every(item=>covered.has(item.id)) && project.obligations.every(item=>item.kind==='source-proof' || item.kind==='model-check' && project.config.modelTargets?.some(t=>t.obligationId===item.id) || item.kind==='test' && project.config.testTargets.some(target=>target.obligationId===item.id)) && validateBoundaries(project).length===0;
       checks.push({name:'required-registry',status:registered?'ready':'insufficient',message:registered?'Nonempty required evidence and runtime boundaries registered':'Register a complete nonempty supported requirement/obligation set and its boundaries'});
       try {
-        const tools = await describeToolchain(root, project.config.tools);
-        checks.push({ name: 'toolchain', status: 'ready', message: `Pinned toolchain: ${tools.digest}` });
+        const digest=await currentToolchain(project);
+        checks.push({ name: 'toolchain', status: 'ready', message: `Registered backend toolchain: ${digest}` });
       } catch (error) { checks.push({ name: 'toolchain', status: 'error', message: clean(error instanceof Error ? error.message : 'Unavailable') }); }
       try { const identity=await gitIdentity(root); checks.push({ name: 'source', status: identity.dirty?'dirty':'ready', message: identity.dirty?'Commit current inputs for protected verification':'Clean Git source identity available' }); }
       catch (error) { checks.push({ name: 'source', status: 'error', message: clean(error instanceof Error ? error.message : 'Unavailable') }); }

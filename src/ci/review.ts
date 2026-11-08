@@ -66,6 +66,8 @@ export function renderHumanReviewCard(input:ReviewCardInput):string {
     '',
     diff.changed?'変更された意図・契約・入力前提・信頼前提・必須検証を確認してください。':'定義した仕様は同一です。今回のコード差分とCI結果を確認してください。',
   ];
+  const high=head.metadata.requirements.filter(r=>r.risk==='high');
+  if(high.length)lines.push('', '## 高リスク変更の確認', '- [ ] 主要Diff・入力条件・認可/外部境界・失敗後の状態を確認する。', '- [ ] 有限状態モデルの結果とコードの証明・実行テストを区別する。Atlas差分はreview --previousで根拠と比較する。', '- [ ] 未決の仕様はplanの判断カードへ戻す。作者の回答は本人承認ではない。');
   if(addedAssumptions.length) lines.push('','**追加された信頼前提（要確認）**',block(addedAssumptions));
   if(unapprovedAssumptions.length) lines.push('','**未許可の信頼前提**',block(unapprovedAssumptions));
   if(diff.deletedRequirements.length) lines.push('','**削除される要件**',block(diff.deletedRequirements));
@@ -111,6 +113,7 @@ export function renderHumanReviewCard(input:ReviewCardInput):string {
     const file=entry.scope.slice(0,entry.scope.lastIndexOf('#'));
     lines.push('',block(entry.scope),`[対象コミットのソース](${sourceUrl(repository,headSha,file)})`,block(entry.declaration));
   }
+  if(head.models)lines.push('', '## 有限状態モデルと実装の対応（コードの証明ではありません）',block(head.models));
   if(head.workflow)lines.push('', '## 作者が記録した仕様判断と根拠', '回答の記録は本人認証ではありません。この対象へのレビューで内容を確認してください。',block(head.workflow));
   const inputSets:{id:string;files:string[]}[]=[];const inputIds=new Map<string,string>();
   const testScopes=head.metadata.config.testTargets.map(target=>{const key=canonicalJson(target.inputs);let id=inputIds.get(key);if(!id){id=`I${inputSets.length+1}`;inputIds.set(key,id);inputSets.push({id,files:target.inputs});}return {obligationId:target.obligationId,files:target.files,inputSetId:id,requiredCaseCount:target.requiredTests.length};});

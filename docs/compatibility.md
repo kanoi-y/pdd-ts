@@ -20,7 +20,7 @@ Run `node scripts/install-dafny.mjs`, then `pnpm test:poc`. Actual source hashes
 | bigint division/remainder | Excluded initially | Positive and negative division probed; successful sample proofs do not establish all sign/zero cases |
 | `number`, including integer-looking numbers | Excluded | Mathematical addition can prove a strict increase while `9007199254740992 + 1` rounds to the same JS number |
 | null and undefined | Excluded | Typed extraction merges the optional models, although JS distinguishes the values |
-| async/await, promises | Excluded | Not part of synchronous source-proof profile; empirical integration or future model checking |
+| async/await, promises | Excluded | Not part of synchronous source-proof profile; empirical integration; the separate finite queue model does not prove async TypeScript source semantics |
 | throwing, external calls, mutation/aliasing, loops | Excluded initially | Dedicated probes recorded; future admission requires specified exception/effect/termination semantics and conformance fixtures |
 | imported executable logic, dynamic loading and unknown dependencies | Excluded unless full scope can be established | Type/source dependency changes must invalidate freshness; unresolved dependencies cannot be silently trusted |
 | contradictory preconditions | Never accepted as ordinary functional proof | `vacuous` proves its postcondition in the solver; independent concrete witness/premise gate rejects it |
@@ -43,3 +43,9 @@ Trust includes TypeScript/LemmaScript extraction and lowering, configured charac
 Passing these finite probes is evidence for selecting a restricted profile. It is not a proof that the translator is sound for every admitted program. State the profile and assumptions in every source-proof report; use runtime validation and tests at unverified callers and I/O boundaries.
 
 The first production profile rejects executable imports, nested functions, arbitrary calls, mutable variables, prototype-sensitive record keys and arithmetic on non-bigint values. It typechecks admitted source using ts-morph's in-memory standard libraries before invoking the proof frontend. Missing dependency scope is never filled by an implicit trusted contract.
+
+## Finite queue model adapter
+
+`job-queue-v1` is a built-in explicit-state breadth-first checker, not a source-proof backend. The fixed properties are at most one active worker, bounded attempts and absence of reachable nonterminal deadlocks. The finite instance has one job, 2–4 workers and 1–5 attempts. No fairness or eventual-success property is asserted. A search limit (10,000 states / depth128 / 100,000 transitions / 1second maximum) returns unknown unless closure is exhausted. Failed results carry a shortest reachable counterexample.
+
+Model JSON, authored implementation mapping and mapped file bytes bind to specification and evidence digests. Mapping is explanatory data, not a verified refinement. Trace matching checks only the supplied observed trace. The SQLite example uses actual independent connections and worker threads; its SQLite API is experimental in pinned Node24.14.1. It assumes process death has been confirmed before crash/recovery; a lease timeout alone is insufficient. No external-effect exactly-once or production distributed-system guarantee follows.

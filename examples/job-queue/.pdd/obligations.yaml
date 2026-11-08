@@ -1,0 +1,20 @@
+[
+  {
+    "id": "JOB-MODEL",
+    "requirementIds": [
+      "JOB-001"
+    ],
+    "kind": "model-check",
+    "scope": "job-queue",
+    "contractIds": []
+  },
+  {
+    "id": "JOB-TEST",
+    "requirementIds": [
+      "JOB-001"
+    ],
+    "kind": "test",
+    "scope": "job-queue",
+    "contractIds": []
+  }
+]

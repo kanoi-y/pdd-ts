@@ -1,0 +1,28 @@
+{
+  "id": "JOB-001",
+  "revision": 1,
+  "title": "有限モデルの同時二重実行・上限・停止後復旧",
+  "intent": "1ジョブ2worker最大2試行のモデル検査をSQLiteの競合・トレーステストと区別して示す。本番分散環境や外部副作用のexactly-onceを証明しない。",
+  "risk": "high",
+  "target": {
+    "file": "src/queue.ts",
+    "symbol": "SqliteQueue"
+  },
+  "contracts": [],
+  "acceptance": [
+    {
+      "id": "JOB-T1",
+      "kind": "model-check",
+      "scenario": "有限状態閉包で同時実行数1以下、最大試行数、非終端デッドロックなしを検査"
+    },
+    {
+      "id": "JOB-T2",
+      "kind": "integration",
+      "scenario": "独立接続の同時claim、再試行・停止後復旧の実トレース、古いattemptでの完了拒否"
+    }
+  ],
+  "trustedBoundaries": [
+    "JOB-SQLITE",
+    "JOB-STOP"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "action": "claim",
+      "file": "src/queue.ts",
+      "symbol": "SqliteQueue",
+      "explanation": "条件付きUPDATEが取得と試行回数増加を1文で行う"
+    },
+    {
+      "action": "complete",
+      "file": "src/queue.ts",
+      "symbol": "SqliteQueue",
+      "explanation": "workerとattemptの一致を条件として完了する"
+    },
+    {
+      "action": "fail",
+      "file": "src/queue.ts",
+      "symbol": "SqliteQueue",
+      "explanation": "workerとattemptの一致を条件として失敗へ移る"
+    },
+    {
+      "action": "crash",
+      "file": "src/queue.ts",
+      "symbol": "SqliteQueue",
+      "explanation": "実際のworker停止確認後にownerを除く。タイムアウトだけでは呼ばない"
+    },
+    {
+      "action": "recover",
+      "file": "src/queue.ts",
+      "symbol": "SqliteQueue",
+      "explanation": "停止済みのrunningをfailedへ移す"
+    },
+    {
+      "action": "retry",
+      "file": "src/queue.ts",
+      "symbol": "SqliteQueue",
+      "explanation": "試行上限未満のfailedだけをpendingへ戻す"
+    }
+  ]
+}
