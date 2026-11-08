@@ -1,4 +1,4 @@
-import { loadProject } from '../../src/requirements/project.js';
+import { loadProject, initProject } from '../../src/requirements/project.js';
 import { createSpecSnapshot } from '../../src/requirements/snapshot.js';
 import { compareSpecs } from '../../src/requirements/diff.js';
 import { renderHumanReviewCard } from '../../src/ci/review.js';
@@ -13,7 +13,7 @@ const call = (root: string, command: string, extra: string[] = []) => spawnSync(
 async function fixture() {
     const root = await mkdtemp(path.join(os.tmpdir(), 'pdd-workflow-'));
     roots.push(root);
-    expect(call(root, 'init').status).toBe(0);
+    await initProject(root);
     await writeFile(path.join(root, 'domain.ts'), 'export function domain(){return true;}\n');
     for (const [id, risk] of [['AUTH-1', 'high'], ['TEXT-1', 'low']])
         await writeFile(path.join(root, `.pdd/requirements/${id}.yaml`), stringify({ id, revision: 1, title: id, intent: 'Authored behavior', risk, target: { file: 'domain.ts', symbol: 'domain' }, contracts: [], acceptance: [], trustedBoundaries: [] }));
@@ -131,4 +131,17 @@ it('WF-001 stops subsequent workers when a running worker changes its decision i
     expect(await readFile(path.join(root, '.pdd/decisions.yaml'), 'utf8')).toContain('state: open');
     expect(await readdir(root)).not.toContain('SECOND_WORKER');
     expect(JSON.parse(r.stdout).workflow.blocked).toBe(true);
+});
+it('WF-001 shares review input inventories without omitting mandatory scope coverage', async () => {
+    const root = await fixture();
+    for (const file of ['first.test.ts', 'second.test.ts', 'SHARED_SCOPE_MARKER.ts'])
+        await writeFile(path.join(root, file), 'export const marker=true;');
+    await writeFile(path.join(root, '.pdd/config.yaml'), stringify({ schemaVersion: 1, targets: [], testTargets: ['first', 'second'].map(id => ({ obligationId: id, files: [id + '.test.ts'], inputs: ['SHARED_SCOPE_MARKER.ts'], requiredTests: [id] })) }));
+    await writeFile(path.join(root, '.pdd/obligations.yaml'), stringify(['first', 'second'].map(id => ({ id, requirementIds: ['AUTH-1', 'TEXT-1'], kind: 'test', scope: id, contractIds: [] }))));
+    const snapshot = await createSpecSnapshot(await loadProject(root));
+    const body = renderHumanReviewCard({ repository: 'example/project', baseSha: 'a'.repeat(40), headSha: 'b'.repeat(40), baseline: snapshot, head: snapshot });
+    expect(body.match(/SHARED_SCOPE_MARKER/g)).toHaveLength(1);
+    expect(body).toContain('first.test.ts');
+    expect(body).toContain('second.test.ts');
+    expect(body).toContain('requiredCaseCount');
 });
