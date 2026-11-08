@@ -96,6 +96,8 @@ describe('CLI-003: CLI review workflow', () => {
     const report = command(root, 'report');
     expect(report.status, report.stderr).toBe(0);
     expect(JSON.parse(report.stdout).gate.status).toBe('trial');
+    const beforeScan=command(root,'scan');expect(beforeScan.status,beforeScan.stdout).toBe(0);
+    await writeFile(path.join(root,'.pdd/evidence/atlas-before.json'),beforeScan.stdout);
     const markdown = spawnSync(process.execPath, [cli, 'report', '--project', root], { encoding: 'utf8', env: { PATH: `${repo}/.tools/dafny-4.11.0/dafny:${process.env.PATH}` } });
     expect(markdown.stdout).toContain('手元の検証');
     expect(markdown.stdout).not.toContain('CIの出所の確認が完了');
@@ -105,6 +107,11 @@ describe('CLI-003: CLI review workflow', () => {
     const stale = command(root, 'report');
     expect(stale.status).toBe(1);
     expect(JSON.parse(stale.stdout).evidence[0].status).toBe('stale');
+    const withAtlas=command(root,'report','--previous','.pdd/evidence/atlas-before.json');
+    expect(withAtlas.status,withAtlas.stdout).toBe(1);const updated=JSON.parse(withAtlas.stdout);
+    expect(updated.gate).toEqual(JSON.parse(stale.stdout).gate);
+    expect(updated.atlasUpdate.files.changed).toContain('src/auth.ts');
+    expect(updated.atlasUpdate.status).toBe('proposal');
   });
 
   it('does not accept YAML aliases, duplicate keys, unknown flags or untrusted CI claims', async () => {

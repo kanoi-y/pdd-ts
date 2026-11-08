@@ -1,3 +1,4 @@
+import type { ScanChanges } from '../analysis/changes.js';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { evidenceSchema, identifier, digestSchema } from '../requirements/schema.js';
@@ -26,6 +27,7 @@ export const savedRunSchema = z.strictObject({
 export type SavedRun = z.infer<typeof savedRunSchema>;
 export class NoRunError extends Error {}
 export interface ReviewPacket {
+  atlasUpdate?:ScanChanges;
   schemaVersion: 1; runId: string; createdAt: string; commit: string; dirty: boolean;
   origin: 'local'|'ci'; approval: 'pending'|'approved'; specDigest: string; recordedSpecDigest: string;
   snapshotComplete: boolean; gate: GateResult; evidence: EvidenceRecord[];
