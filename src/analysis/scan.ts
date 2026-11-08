@@ -1,3 +1,6 @@
+import { readScanConfiguration, isScanConfig } from './configuration.js';
+import type { ScanConfiguration } from './configuration.js';
+import type { ScanHistory } from './history.js';
 import { constants } from 'node:fs';
 import { open, opendir, realpath } from 'node:fs/promises';
 import path from 'node:path';
@@ -61,6 +64,8 @@ export interface ScanReport {
         digest: string;
         bytes: number;
     }[];
+    configuration: ScanConfiguration;
+    history?: ScanHistory;
     metadata: {
         packageName: string | null;
         dependencies: string[];
@@ -189,7 +194,7 @@ export async function scanProject(directory: string): Promise<ScanReport> {
                     break;
                 continue;
             }
-            if (!entry.isFile() || !(/\.(?:[cm]?ts|tsx)$/.test(entry.name) || relative === '' && metadataNames.has(entry.name) || /^\.github\/workflows\/[^/]+\.ya?ml$/.test(file)))
+            if (!entry.isFile() || !(/\.(?:[cm]?ts|tsx)$/.test(entry.name) || relative === '' && metadataNames.has(entry.name) || isScanConfig(entry.name) || /^\.github\/workflows\/[^/]+\.ya?ml$/.test(file)))
                 continue;
             if (inputs.length >= MAX_FILES) {
                 issue('file-limit', file, '調査するファイル数の上限を超えました。');
@@ -218,7 +223,9 @@ export async function scanProject(directory: string): Promise<ScanReport> {
     await walk('', 0);
     inputs.sort((a, b) => a.file < b.file ? -1 : a.file > b.file ? 1 : 0);
     const hashes = new Map(inputs.map(i => [i.file, i.digest]));
-    const report: ScanReport = { schemaVersion: 1, kind: 'architecture-scan', sourceDigest: digest(JSON.stringify(inputs)), coverage: { complete: issues.length === 0, scope: '選択したディレクトリ内の通常のTS/TSX、ルートのREADME/package/tsconfig、.github/workflowsのYAML（ファイルの観測のみ）。実行時の動作や外部モジュールの内部は対象外。', excluded: [...excluded, 'ドットで始まる項目（.github/workflowsの明示例外を除く）', 'TS/TSXと許可したメタデータ以外'] }, inputs, metadata: { packageName: null, dependencies: [], scriptNames: [], tsconfigObserved: files.has('tsconfig.json'), entrypoints: [], testFiles: [...files.keys()].filter(file => /(?:^|\/)(?:tests?|__tests__)\/|\.(?:test|spec)\.[cm]?tsx?$/.test(file)), ciFiles: [...files.keys()].filter(file => /^\.github\/workflows\/[^/]+\.ya?ml$/.test(file)) }, modules: [], functions: [], boundaries: [], routes: [], candidates: [], issues };
+    const configuration = readScanConfiguration(files, hashes);
+    issues.push(...configuration.issues);
+    const report: ScanReport = { schemaVersion: 1, kind: 'architecture-scan', sourceDigest: digest(JSON.stringify(inputs)), coverage: { complete: issues.length === 0, scope: '選択したディレクトリ内の通常のTS/TSX、ルートのREADME/packageと標準名tsconfigのJSONC、.github/workflowsのYAML（ファイルの観測のみ）。実行時の動作や外部モジュールの内部は対象外。', excluded: [...excluded, 'ドットで始まる項目（.github/workflowsの明示例外を除く）', 'TS/TSXと許可したメタデータ以外'] }, inputs, configuration: configuration.metadata, metadata: { packageName: null, dependencies: [], scriptNames: [], tsconfigObserved: files.has('tsconfig.json'), entrypoints: [], testFiles: [...files.keys()].filter(file => /(?:^|\/)(?:tests?|__tests__)\/|\.(?:test|spec)\.[cm]?tsx?$/.test(file)), ciFiles: [...files.keys()].filter(file => /^\.github\/workflows\/[^/]+\.ya?ml$/.test(file)) }, modules: [], functions: [], boundaries: [], routes: [], candidates: [], issues };
     const packageText = files.get('package.json');
     if (packageText)
         try {
@@ -247,7 +254,7 @@ export async function scanProject(directory: string): Promise<ScanReport> {
         catch {
             issue('metadata-error', 'package.json', 'package.jsonをJSONとして読めません。');
         }
-    const project = new Project({ useInMemoryFileSystem: true, skipAddingFilesFromTsConfig: true, compilerOptions: { noLib: true, module: ModuleKind.NodeNext, moduleResolution: ModuleResolutionKind.NodeNext, target: ScriptTarget.Latest, jsx: ts.JsxEmit.Preserve } });
+    const project = new Project({ useInMemoryFileSystem: true, skipAddingFilesFromTsConfig: true, compilerOptions: { ...configuration.compilerOptions, noLib: true, module: ModuleKind.NodeNext, moduleResolution: ModuleResolutionKind.NodeNext, target: ScriptTarget.Latest, jsx: ts.JsxEmit.Preserve } });
     const sources: SourceFile[] = [];
     for (const [file, text] of files)
         if (/\.(?:[cm]?ts|tsx)$/.test(file))
@@ -319,12 +326,13 @@ export async function scanProject(directory: string): Promise<ScanReport> {
                 if (!specifier)
                     continue;
                 const target = declaration.getModuleSpecifierSourceFile();
-                if (specifier.startsWith('.')) {
+                const mappedAlias = configuration.metadata.paths.some(({ pattern }) => { const star = pattern.indexOf('*'); return star < 0 ? specifier === pattern : specifier.length >= pattern.length - 1 && specifier.startsWith(pattern.slice(0, star)) && specifier.endsWith(pattern.slice(star + 1)); });
+                if (target || specifier.startsWith('.') || mappedAlias) {
                     if (target)
                         imports.push({ specifier, resolution: 'local', target: relative(target), evidence: evidence(declaration) });
                     else {
                         imports.push({ specifier, resolution: 'unresolved', evidence: evidence(declaration) });
-                        issue('unresolved-import', relative(source), '相対importの参照先を確認できません。');
+                        issue(mappedAlias ? 'unresolved-alias' : 'unresolved-import', relative(source), mappedAlias ? '設定にある別名importの参照先を確認できません。' : '相対importの参照先を確認できません。');
                     }
                 }
                 else

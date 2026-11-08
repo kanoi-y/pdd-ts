@@ -106,6 +106,8 @@ testTargets:
       - scripts/prepare-spec-review.mjs
       - src/analysis/atlas.ts
       - src/analysis/changes.ts
+      - src/analysis/configuration.ts
+      - src/analysis/history.ts
       - src/analysis/scan.ts
       - src/ci/approval.ts
       - src/ci/audit.ts
@@ -595,6 +597,22 @@ testTargets:
         path
       - SCAN-001 keeps same-line callbacks and shadowed nested declarations
         distinct
+      - SCAN-001 resolves JSONC paths through local tsconfig inheritance without
+        running plugins
+      - SCAN-001 respects child baseUrl overrides and does not resolve an
+        external config
+      - SCAN-001 rejects cyclic malformed and escaping configuration instead of
+        guessing aliases
+      - SCAN-001 reads bounded Git change frequency only when explicitly
+        requested
+      - SCAN-001 reports missing or unborn Git history without weakening the
+        scan result
+      - SCAN-001 bounds history and refuses shallow or promisor frequency claims
+      - SCAN-001 bounds repeated configuration inheritance and exposes
+        unresolved local aliases
+      - SCAN-001 treats marker-like Git filenames as data rather than fabricated
+        commits
+      - SCAN-001 does not invent baseUrl lookup for unrelated bare imports
 boundaries:
   - id: dafny-z3-verification
     callerFiles:
@@ -652,6 +670,7 @@ boundaries:
     callerFiles:
       - src/verification/paths.ts
       - src/cli/runs.ts
+      - src/analysis/scan.ts
     validatorFiles:
       - src/requirements/schema.ts
       - src/verification/profile.ts
@@ -664,6 +683,7 @@ boundaries:
       - src/verification/process.ts
       - src/verification/lemmascript.ts
       - src/verification/tests.ts
+      - src/analysis/history.ts
     validatorFiles:
       - src/requirements/schema.ts
       - src/verification/profile.ts
@@ -684,6 +704,8 @@ boundaries:
   - id: typescript-frontend
     callerFiles:
       - src/verification/contracts.ts
+      - src/analysis/scan.ts
+      - src/analysis/configuration.ts
     validatorFiles:
       - src/requirements/schema.ts
       - src/verification/profile.ts

@@ -56,12 +56,23 @@ export function createAtlas(scan: ScanReport): ArchitectureAtlas {
             flows.push({ name: `${fn.name}を入口とするフロー候補`, status: 'inferred', statusArgument: null, functionId: fn.id, steps: fn.calls.map(c => c.expression), evidence: [fn.evidence], unknowns: ['外部からの実際の呼び出し、呼び出し順、分岐の到達性、重要度は未確認です。'] });
     const header = ['# Architecture Atlas — 現状調査', '', notes, '', `- 調査の範囲：${t(scan.coverage.scope)}`, `- 読み取った入力：${scan.inputs.length}件／関数の宣言：${scan.functions.length}件`, `- 範囲内の調査：${scan.coverage.complete ? '完了' : '未完了（読み取れない対象や制限を含みます）'}`,
         `- 除外：${scan.coverage.excluded.map(t).join('、')}`, ''];
-    const overview = [...header, '## 確認済みの構造', '', `- package名の記載：${scan.metadata.packageName ? t(scan.metadata.packageName) : '未記載'}`, `- import/exportを観測したモジュール：${scan.modules.length}件`, `- 外部・動的な呼び出し構文：${scan.boundaries.length}件。実際のI/Oと断定していません。`, '', '## 推測と未確認', '', '- 関数の重要度やドメインの責務は、コードだけから決定していません。', '- tsconfig、packageのスクリプト、アプリは実行していません。パス別名や実行時の依存は未解決の場合があります。', '- コードが今そう書かれていることを、正しい業務仕様として承認しません。', '- 変更頻度はGit履歴を調査していないため未確認です。', '', ...scan.issues.map(i => `- 未確認：${t(i.file)} — ${t(i.message)}（${t(i.code)}）`)];
-    overview.push('', '## 設定・テスト・CIの観測', '', `- tsconfigのファイル：${scan.metadata.tsconfigObserved ? 'あり（設定は実行・適用していません）' : '未確認'}`, `- テストファイル候補：${scan.metadata.testFiles.length}件（命名からの推測）`, `- CIファイル：${scan.metadata.ciFiles.length}件（内容は実行・認証していません）`);
+    const overview = [...header, '## 確認済みの構造', '', `- package名の記載：${scan.metadata.packageName ? t(scan.metadata.packageName) : '未記載'}`, `- import/exportを観測したモジュール：${scan.modules.length}件`, `- 外部・動的な呼び出し構文：${scan.boundaries.length}件。実際のI/Oと断定していません。`, '', '## 推測と未確認', '', '- 関数の重要度やドメインの責務は、コードだけから決定していません。', '- 設定・plugin・packageのスクリプト・アプリは実行していません。baseUrl/pathsの静的解決と、実行時の依存は別です。', '- コードが今そう書かれていることを、正しい業務仕様として承認しません。', scan.history ? '- 変更頻度は後述の限定したGit履歴の観測です。' : '- Git変更頻度は未調査です。必要な場合だけscan --historyを指定してください。', '', ...scan.issues.map(i => `- 未確認：${t(i.file)} — ${t(i.message)}（${t(i.code)}）`)];
+    overview.push('', '## 設定・テスト・CIの観測', '', `- tsconfigのファイル：${scan.metadata.tsconfigObserved ? 'あり（baseUrl/paths以外の設定は適用していません）' : '未確認'}`, `- テストファイル候補：${scan.metadata.testFiles.length}件（命名からの推測）`, `- CIファイル：${scan.metadata.ciFiles.length}件（内容は実行・認証していません）`);
     for (const entry of scan.metadata.entrypoints.slice(0, 20))
         overview.push(`- packageの入口の記載 ${t(entry.field)}：${t(entry.value)}（実行時の入口は未確認）`);
     for (const file of scan.metadata.ciFiles.slice(0, 20))
         overview.push('- CIの根拠：' + t(file));
+    overview.push('', '## tsconfigの限定した静的解決', '', `- 状態：${scan.configuration.status === 'applied' ? '限定設定を解析（宣言されたbaseUrl/pathsのみ静的参照へ適用）' : scan.configuration.status === 'absent' ? 'ルートtsconfigなし' : '未解決（設定を適用せず保留）'}`, ...scan.configuration.notes.map(n => '- ' + t(n)));
+    for (const e of scan.configuration.evidence)
+        overview.push('- 設定の根拠：' + cite(e));
+    for (const item of scan.configuration.paths.slice(0, 20))
+        overview.push(`- 別名 ${t(item.pattern)} → ${item.targets.map(t).join('、')}`);
+    if (scan.history) {
+        const h = scan.history;
+        overview.push('', '## Git変更頻度（任意の調査）', '', `- 状態：${h.status === 'available' ? '履歴を観測' : h.status === 'incomplete' ? '不完全' : '取得できず'}`, `- 基準コミット：${h.head ?? '未確認'}`, `- 対象コミット：${h.commitCount}件／上限${h.limit}件`, `- 浅い履歴：${h.shallow === null ? '未確認' : h.shallow ? 'はい' : 'いいえ'}`, ...h.notes.map(n => '- ' + t(n)));
+        for (const file of h.files.slice(0, 20))
+            overview.push(`- ${t(file.file)}：${file.changes}コミットで変更`);
+    }
     const moduleIds = new Map(scan.modules.slice(0, limit).map((m, i) => [m.file, `M${i}`]));
     const domain = ['# 構造と境界', '', notes, '', '## モジュール依存（静的なimport）', '', '```mermaid', 'flowchart LR'];
     if (!moduleIds.size)

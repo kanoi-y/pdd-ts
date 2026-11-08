@@ -1,5 +1,5 @@
 id: SCAN-001
-revision: 1
+revision: 2
 title: 既存TypeScriptを変更せず調査し、根拠付きの構造と更新候補を示す
 intent: 初期化・Git・証明ツールを要求せず、対象コードや設定を実行しない静的調査を提供する。相対パス・行・入力ハッシュを根拠に、観測・推測・未確認を区別した日本語Atlasと比較結果を返す。調査結果を仕様承認や検証ゲートの証拠にはしない。
 risk: high
@@ -19,7 +19,16 @@ acceptance:
     scenario: 出力をエスケープし、図に未信頼の識別子を埋め込まない。Honoの返却構文から最大3フロー候補を根拠付きで示し、実行順・到達性・業務上の正しさを保証しない。
   - id: SCAN-001-T4
     kind: test
-    scenario: 比較元の形式と入力ハッシュの整合性を検査し、範囲が違う場合や不完全な場合は削除を推定しない。Review Packetの更新候補は検証ゲートを変更しない。
+    scenario: 比較元の形式と入力ハッシュの整合性を検査し、範囲が違う場合や不完全な場合は削除を推定しない。Review
+      Packetの更新候補は検証ゲートを変更しない。
+  - id: SCAN-001-T5
+    kind: test
+    scenario: 標準名tsconfigの局所継承とbaseUrl/pathsをデータとして解析し、相対基準と子設定の上書きを守る。外部・循環・範囲外・過大な継承や未解決別名を隠さず、pluginや設定スクリプトを実行しない。
+  - id: SCAN-001-T6
+    kind: test
+    scenario: 明示指定した場合だけ、最近100件を上限とするGit
+      first-parent変更頻度を読み取る。Git未導入・unborn・浅い履歴・promisor設定は明示し、取得・危険な補助コマンド・indexや設定の変更をしない。履歴を証明や承認として扱わない。
 trustedBoundaries:
   - node-filesystem-runtime
   - typescript-frontend
+  - node-process-runtime

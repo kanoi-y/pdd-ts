@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import {scanHistory} from '../analysis/history.js';
 import { compareScans,readScanBaseline } from '../analysis/changes.js';
 import { renderScanChanges } from '../analysis/atlas.js';
 import { createAtlas, renderAtlas } from '../analysis/atlas.js';
@@ -25,7 +26,7 @@ try {
   const parsed = parseArgs({ args, allowPositionals: true, strict: true, options: {
     project: { type: 'string', default: root }, json: { type: 'boolean', default: false },
     attestation:{type:'string'}, pr: {type:'string'}, baseline: {type:'string'},
-    previous:{type:'string'},
+    previous:{type:'string'}, history:{type:'boolean',default:false},
     ci: { type: 'boolean', default: false }, run: { type: 'string' }, help: { type: 'boolean', short: 'h' },
   } });
   root = path.resolve(parsed.values.project);
@@ -34,14 +35,16 @@ try {
   if (parsed.positionals.length > 1) throw new Error('Unexpected positional arguments');
   if (parsed.values.ci && (command!=='audit' || !parsed.values.baseline || !parsed.values.pr || !parsed.values.attestation)) throw new Error('CI audit requires --baseline SHA --pr NUMBER --attestation PROJECT_RELATIVE_FILE');
   if ((parsed.values.pr || parsed.values.baseline) && !['approve','audit'].includes(command)) throw new Error('--pr and --baseline are only valid with approve');
+  if(parsed.values.history&&command!=='scan'&&!parsed.values.help)throw new Error('--history is only valid with scan');
   if(parsed.values.previous&&!['scan','report'].includes(command))throw new Error('--previous is only valid with scan or report');
   if (parsed.values.run && !['report', 'audit'].includes(command)) throw new Error('--run is only valid with report or audit');
   if (parsed.values.help || command === 'help') {
-    const help = 'pdd-ts <init|doctor|verify|report|audit|approve|scan> [--project DIR] [--json]\nreport/audit: [--run ID]\nscan/report: [--previous PROJECT_RELATIVE_SCAN_JSON]\napprove: --pr NUMBER --baseline SHA\nLocal checks are trials; they do not establish protected CI approval.\n';
+    const help = 'pdd-ts <init|doctor|verify|report|audit|approve|scan> [--project DIR] [--json]\nreport/audit: [--run ID]\nscan/report: [--previous PROJECT_RELATIVE_SCAN_JSON]\nscan: [--history]\napprove: --pr NUMBER --baseline SHA\nLocal checks are trials; they do not establish protected CI approval.\n';
     process.stdout.write(json ? JSON.stringify({ help }) + '\n' : help);
   } else if (command === 'scan') {
     if(parsed.values.attestation) throw new Error('--attestation is only valid with CI audit');
     const result=await scanProject(root);
+    if(parsed.values.history)result.history=await scanHistory(root,result.inputs.map(i=>i.file));
     const atlas=createAtlas(result);
     const changes=parsed.values.previous?compareScans(await readScanBaseline(root,parsed.values.previous),result):undefined;
     process.stdout.write(json?JSON.stringify({...result,atlas,...(changes?{changes}:{})},null,2)+'\n':renderAtlas(atlas)+(changes?'\n'+renderScanChanges(changes):''));

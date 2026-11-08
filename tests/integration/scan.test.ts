@@ -1,3 +1,5 @@
+import { ts } from 'ts-morph';
+import { readScanConfiguration } from '../../src/analysis/configuration.js';
 import { spawnSync } from 'node:child_process';
 import { mkdtemp, mkdir, writeFile, readFile, rm, symlink, readdir } from 'node:fs/promises';
 import path from 'node:path';
@@ -237,4 +239,226 @@ it('SCAN-001 keeps same-line callbacks and shadowed nested declarations distinct
     expect(x.calls[0].targetId).not.toBe(y.calls[0].targetId);
     await writeFile(path.join(root, 'baseline.json'), r.stdout);
     expect(scan(root, true, ['--previous', 'baseline.json']).status).toBe(0);
+});
+it('SCAN-001 resolves JSONC paths through local tsconfig inheritance without running plugins', async () => {
+    const root = await fixture();
+    await writeFile(path.join(root, 'EXECUTED.js'), `require('node:fs').writeFileSync(${JSON.stringify(path.join(root, 'EXECUTED'))},'plugin ran'); module.exports=()=>({create:info=>info.languageService});`);
+    await mkdir(path.join(root, 'configs'));
+    await writeFile(path.join(root, 'configs/tsconfig.base.json'), '{"compilerOptions":{"paths":{"@domain/*":["../src/*"]}}}');
+    await writeFile(path.join(root, 'tsconfig.json'), '// config is data\n{"extends":"./configs/tsconfig.base.json","compilerOptions":{"plugins":[{"name":"./EXECUTED.js"}]},}');
+    await writeFile(path.join(root, 'src/app.ts'), "import {decision} from '@domain/domain'; export function entry(){return decision(true);}");
+    const r = scan(root);
+    expect(r.status, r.stdout).toBe(0);
+    const p = JSON.parse(r.stdout);
+    expect(p.configuration.status).toBe('applied');
+    expect(p.configuration.files).toContain('configs/tsconfig.base.json');
+    expect(p.modules.find((m: {
+        file: string;
+    }) => m.file === 'src/app.ts').imports[0]).toMatchObject({ resolution: 'local', target: 'src/domain.ts' });
+    expect(p.functions.find((f: {
+        name: string;
+    }) => f.name === 'entry').calls[0].status).toBe('confirmed');
+    expect(await readdir(root)).not.toContain('EXECUTED');
+});
+it('SCAN-001 respects child baseUrl overrides and does not resolve an external config', async () => {
+    const root = await fixture();
+    await mkdir(path.join(root, 'other'));
+    await writeFile(path.join(root, 'other/domain.ts'), 'export function decision(){return false;}');
+    await writeFile(path.join(root, 'tsconfig.base.json'), '{"compilerOptions":{"baseUrl":"./src","paths":{"@domain/*":["*"]}}}');
+    await writeFile(path.join(root, 'tsconfig.json'), '{"extends":"./tsconfig.base.json","compilerOptions":{"baseUrl":"./other"}}');
+    await writeFile(path.join(root, 'src/app.ts'), "import {decision} from '@domain/domain'; export function entry(){return decision();}");
+    const p = JSON.parse(scan(root).stdout);
+    expect(p.configuration.status).toBe('applied');
+    expect(p.modules.find((m: {
+        file: string;
+    }) => m.file === 'src/app.ts').imports[0].target).toBe('other/domain.ts');
+    await writeFile(path.join(root, 'tsconfig.json'), '{"extends":"outside-package/tsconfig.json","compilerOptions":{"baseUrl":"./src","paths":{"@domain/*":["*"]}}}');
+    const r = scan(root);
+    expect(r.status, r.stdout).toBe(1);
+    const q = JSON.parse(r.stdout);
+    expect(q.configuration.status).toBe('unresolved');
+    expect(q.modules.find((m: {
+        file: string;
+    }) => m.file === 'src/app.ts').imports[0].target).toBeUndefined();
+});
+it('SCAN-001 rejects cyclic malformed and escaping configuration instead of guessing aliases', async () => {
+    const root = await fixture();
+    for (const text of ['{"extends":"./tsconfig.json"}', '{"compilerOptions":{"baseUrl":"../outside"}}', '{"compilerOptions":{"paths":{"@x/*":["../../outside/*"]}}}', '{"compilerOptions":']) {
+        await writeFile(path.join(root, 'tsconfig.json'), text);
+        const r = scan(root);
+        expect(r.status, r.stdout).toBe(1);
+        const p = JSON.parse(r.stdout);
+        expect(p.configuration.status).toBe('unresolved');
+        expect(p.coverage.complete).toBe(false);
+    }
+});
+it('SCAN-001 reads bounded Git change frequency only when explicitly requested', async () => {
+    const root = await fixture();
+    const git = (...args: string[]) => { const r = spawnSync('git', args, { cwd: root, encoding: 'utf8', env: { PATH: process.env.PATH, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null' } }); expect(r.status, r.stderr).toBe(0); return r.stdout; };
+    git('init', '-q');
+    git('config', 'user.name', 'Scanner fixture');
+    git('config', 'user.email', 'scanner@example.invalid');
+    git('add', '.');
+    git('commit', '-qm', 'initial');
+    await writeFile(path.join(root, 'src/domain.ts'), (await readFile(path.join(root, 'src/domain.ts'), 'utf8')) + '\n');
+    git('add', '.');
+    git('commit', '-qm', 'domain change');
+    const before = await readFile(path.join(root, '.git/config'), 'utf8');
+    git('config', 'core.fsmonitor', 'touch EXECUTED');
+    git('config', 'core.pager', 'touch EXECUTED');
+    const protectedPaths = ['.git/index', '.git/HEAD', '.git/config', '.git/logs/HEAD'];
+    const protectedBytes = await Promise.all(protectedPaths.map(p => readFile(path.join(root, p))));
+    const plain = JSON.parse(scan(root).stdout);
+    expect(plain.history).toBeUndefined();
+    const r = scan(root, true, ['--history']);
+    expect(r.status, r.stdout).toBe(0);
+    const p = JSON.parse(r.stdout);
+    expect(p.history.status).toBe('available');
+    expect(p.history.commitCount).toBe(2);
+    expect(p.history.files.find((f: {
+        file: string;
+    }) => f.file === 'src/domain.ts').changes).toBe(2);
+    expect(p.history.head).toMatch(/^[a-f0-9]{40,64}$/);
+    expect(await readdir(root)).not.toContain('EXECUTED');
+    expect(await Promise.all(protectedPaths.map(p => readFile(path.join(root, p))))).toEqual(protectedBytes);
+    git('config', '--unset', 'core.fsmonitor');
+    git('config', '--unset', 'core.pager');
+    expect(await readFile(path.join(root, '.git/config'), 'utf8')).toBe(before);
+    const nested = scan(path.join(root, 'src'), true, ['--history']);
+    expect(nested.status, nested.stdout).toBe(0);
+    expect(JSON.parse(nested.stdout).history.files.some((f: {
+        file: string;
+    }) => f.file === 'domain.ts')).toBe(true);
+});
+it('SCAN-001 reports missing or unborn Git history without weakening the scan result', async () => {
+    const root = await fixture();
+    const r = scan(root, true, ['--history']);
+    expect(r.status, r.stdout).toBe(0);
+    const p = JSON.parse(r.stdout);
+    expect(p.history.status).toBe('unavailable');
+    expect(p.history.files).toEqual([]);
+    const init = spawnSync('git', ['init', '-q'], { cwd: root, encoding: 'utf8' });
+    expect(init.status, init.stderr).toBe(0);
+    expect(JSON.parse(scan(root, true, ['--history']).stdout).history.status).toBe('unavailable');
+    expect(scan(root, true, ['--history', '--previous', '../outside.json']).status).toBe(2);
+    const invalid = spawnSync(process.execPath, [cli, 'init', '--project', root, '--history', '--json'], { encoding: 'utf8' });
+    expect(invalid.status).toBe(2);
+});
+it('SCAN-001 bounds history and refuses shallow or promisor frequency claims', async () => {
+    const root = await fixture();
+    const git = (...args: string[]) => { const r = spawnSync('git', args, { cwd: root, encoding: 'utf8', env: { PATH: process.env.PATH, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null' } }); expect(r.status, r.stderr).toBe(0); return r.stdout; };
+    git('init', '-q');
+    git('config', 'user.name', 'Scanner fixture');
+    git('config', 'user.email', 'scanner@example.invalid');
+    git('add', '.');
+    git('commit', '-qm', 'initial');
+    const branch = git('symbolic-ref', 'HEAD').trim(), parent = git('rev-parse', 'HEAD').trim();
+    let stream = '';
+    for (let i = 0; i < 101; i++) {
+        const value = 'revision ' + i;
+        stream += `commit ${branch}\nmark :${i + 1}\ncommitter Scanner <scanner@example.invalid> ${1700000000 + i} +0000\ndata 6\nchange\nfrom ${i === 0 ? parent : ':' + i}\nM 100644 inline README.md\ndata ${Buffer.byteLength(value)}\n${value}\n\n`;
+    }
+    const imported = spawnSync('git', ['fast-import', '--quiet'], { cwd: root, input: stream, encoding: 'utf8', env: { PATH: process.env.PATH, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null' } });
+    expect(imported.status, imported.stderr).toBe(0);
+    await writeFile(path.join(root, 'README.md'), 'revision 100');
+    const r = scan(root, true, ['--history']);
+    expect(r.status, r.stdout).toBe(0);
+    const h = JSON.parse(r.stdout).history;
+    expect(h.commitCount).toBe(100);
+    expect(h.commits).toHaveLength(100);
+    expect(h.truncated).toBe(true);
+    expect(h.files.find((f: {
+        file: string;
+    }) => f.file === 'README.md').changes).toBe(100);
+    await writeFile(path.join(root, '.git/shallow'), git('rev-parse', 'HEAD'));
+    const shallow = JSON.parse(scan(root, true, ['--history']).stdout).history;
+    expect(shallow.status).toBe('incomplete');
+    expect(shallow.shallow).toBe(true);
+    expect(shallow.files).toEqual([]);
+    await rm(path.join(root, '.git/shallow'));
+    git('config', 'remote.origin.promisor', 'true');
+    git('config', 'remote.origin.url', 'ext::touch EXECUTED');
+    git('config', 'protocol.ext.allow', 'always');
+    const partial = JSON.parse(scan(root, true, ['--history']).stdout).history;
+    expect(partial.status).toBe('unavailable');
+    expect(partial.files).toEqual([]);
+    expect(await readdir(root)).not.toContain('EXECUTED');
+    expect(await readdir(path.join(root, '.git'))).not.toContain('FETCH_HEAD');
+});
+it('SCAN-001 bounds repeated configuration inheritance and exposes unresolved local aliases', async () => {
+    const files = new Map<string, string>([['tsconfig.json', '{"extends":"./tsconfig.level0.json"}']]);
+    for (let i = 0; i < 7; i++)
+        files.set(`tsconfig.level${i}.json`, i === 6 ? '{}' : JSON.stringify({ extends: Array(4).fill(`./tsconfig.level${i + 1}.json`) }));
+    let reads = 0;
+    const get = files.get.bind(files);
+    files.get = (key: string) => {
+        if (++reads > 64)
+            throw new Error('excessive repeated reads');
+        return get(key);
+    };
+    expect(readScanConfiguration(files, new Map([...files.keys()].map(k => [k, 'a'.repeat(64)]))).metadata.status).toBe('applied');
+    expect(reads).toBeLessThanOrEqual(64);
+    const root = await fixture();
+    await writeFile(path.join(root, 'tsconfig.json'), '{"compilerOptions":{"paths":{"@domain/*":["src/missing/*"]}}}');
+    await writeFile(path.join(root, 'src/app.ts'), "import {decision} from '@domain/domain';export function f(){return decision();}");
+    const r = scan(root);
+    expect(r.status, r.stdout).toBe(1);
+    const p = JSON.parse(r.stdout);
+    expect(p.issues.some((i: {
+        code: string;
+    }) => i.code === 'unresolved-alias')).toBe(true);
+    expect(p.functions.find((f: {
+        name: string;
+    }) => f.name === 'f').calls[0].status).toBe('unknown');
+});
+it('SCAN-001 treats marker-like Git filenames as data rather than fabricated commits', async () => {
+    const root = await fixture();
+    const git = (...args: string[]) => { const r = spawnSync('git', args, { cwd: root, encoding: 'utf8', env: { PATH: process.env.PATH, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null' } }); expect(r.status, r.stderr).toBe(0); return r.stdout; };
+    await writeFile(path.join(root, 'PDD_COMMIT:' + '0'.repeat(40)), 'ordinary unscanned file');
+    git('init', '-q');
+    git('config', 'user.name', 'Scanner fixture');
+    git('config', 'user.email', 'scanner@example.invalid');
+    git('add', '.');
+    git('commit', '-qm', 'initial');
+    const r = scan(root, true, ['--history']);
+    expect(r.status, r.stdout).toBe(0);
+    const h = JSON.parse(r.stdout).history;
+    expect(h.status).toBe('available');
+    expect(h.commitCount).toBe(1);
+    expect(h.commits).toEqual([git('rev-parse', 'HEAD').trim()]);
+    expect(h.files.find((f: {
+        file: string;
+    }) => f.file === 'src/domain.ts').changes).toBe(1);
+});
+it('SCAN-001 does not invent baseUrl lookup for unrelated bare imports', async () => {
+    const root = await fixture();
+    const config = { compilerOptions: { module: 'NodeNext', moduleResolution: 'NodeNext', paths: { '@unused/*': ['./*'] } } };
+    await writeFile(path.join(root, 'tsconfig.json'), JSON.stringify(config));
+    await writeFile(path.join(root, 'dep.ts'), 'export function choose(){return true;}');
+    await writeFile(path.join(root, 'src/app.ts'), "import {choose as bare} from 'dep';import {choose as mapped} from '@unused/dep';export function entry(){return bare()&&mapped();}");
+    const files = new Map([['/oracle/dep.ts', 'export function choose(){return true;}'], ['/oracle/src/app.ts', '']]);
+    const host = { useCaseSensitiveFileNames: true, fileExists: (p: string) => files.has(p), readFile: (p: string) => files.get(p), readDirectory: () => [], directoryExists: (p: string) => p === '/oracle' || p === '/oracle/src', getCurrentDirectory: () => '/oracle', getDirectories: () => [] };
+    const options = ts.parseJsonConfigFileContent(config, host, '/oracle').options;
+    expect(ts.resolveModuleName('dep', '/oracle/src/app.ts', options, host).resolvedModule).toBeUndefined();
+    const r = scan(root);
+    expect(r.status, r.stdout).toBe(0);
+    const p = JSON.parse(r.stdout), imports = p.modules.find((m: {
+        file: string;
+    }) => m.file === 'src/app.ts').imports;
+    expect(imports.find((i: {
+        specifier: string;
+    }) => i.specifier === 'dep').target).toBeUndefined();
+    expect(imports.find((i: {
+        specifier: string;
+    }) => i.specifier === '@unused/dep').target).toBe('dep.ts');
+    expect(p.configuration.baseUrl).toBeNull();
+    const calls = p.functions.find((f: {
+        name: string;
+    }) => f.name === 'entry').calls;
+    expect(calls.find((c: {
+        expression: string;
+    }) => c.expression === 'bare').status).toBe('unknown');
+    expect(calls.find((c: {
+        expression: string;
+    }) => c.expression === 'mapped').status).toBe('confirmed');
 });
