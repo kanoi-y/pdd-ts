@@ -87,6 +87,40 @@ node /path/to/pdd-ts/dist/cli/main.js report --project /path/to/project --json
 
 `verify`は対象コードのテストを実行します。ローカルでは信頼できるプロジェクトだけで実行してください。CIの候補テストは、ネットワーク・権限を制限した使い捨てコンテナーで動かします。
 
+## 仕様の未決事項を整理する
+
+初期化済みプロジェクトでは、検証前に`plan`で仕様判断と開発側の作業を整理できます。対象のコード・テスト・証明を実行せず、ファイルも変更しません。
+
+```sh
+node /path/to/pdd-ts/dist/cli/main.js plan --project /path/to/project
+node /path/to/pdd-ts/dist/cli/main.js plan --project /path/to/project --json
+```
+
+任意の`.pdd/decisions.yaml`へ質問・推奨・代替・影響・根拠を登録します。[入力形式と制限](templates/skills/pdd-plan/references/decisions.md)を参照してください。分類は作者の記録で、自然言語から業務上の所有者を自動認定する機能ではありません。
+
+- **人の仕様判断**：同じgroupの未決事項を1枚のDecision Cardへまとめます。
+- **事実調査・内部実装**：開発側の作業として表示します。
+- **高リスク・blockingの未決事項**：依存する作業を先に進めず、`verify`もworkerを開始しません。高リスク要件はblockingをfalseにしても停止します。
+- **回答済み**：作者が回答を記録した状態です。本人承認にはしません。
+
+回答・根拠は仕様ハッシュへ結び付けます。変更を含む要件はrevisionを上げ、再検証してください。検証中の仕様変更も終了時に読み直します。空のQueueや初期化だけで実装が許可されたことにはなりません。planの終了コードは0＝整理完了（承認ではない）、1＝未決の阻害事項・開発側の不足、2＝入力エラーです。
+
+`review`は`report`と同じく、実在するrunと現在の入力を再照合して人向け資料を出します。検証前の仕様整理にはplanを使います。
+
+```sh
+node /path/to/pdd-ts/dist/cli/main.js review --project /path/to/project
+```
+
+## Codex向けの手順を任意導入する
+
+```sh
+node /path/to/pdd-ts/dist/cli/main.js skills --project /path/to/project --agent codex
+```
+
+対象プロジェクトの`.agents/skills/`へ調査・仕様整理・実装・検証・レビューの5つのSkillと判断入力ガイドを配置します。既存の導入先やシンボリックリンクは拒否し、個人設定やAGENTS.mdを変更しません。CLIや証明ツール自体をインストールする操作ではありません。initはSkillや空の判断ファイルを自動作成しません。
+
+配置先は[公式OpenAIドキュメント](https://developers.openai.com/api/reference/cli)に従います。配置・配布と、Skillを明示適用した手順評価を確認しています。Codexの自動選択、実際の開発ループ、人の負担を減らす効果は未評価です。独自のAIサービスや実装ループは追加していません。
+
 ## 結果の読み方
 
 - **Source proof**：宣言した制限付き意味論とツールチェーンを前提としたソース証明。
@@ -101,7 +135,7 @@ node /path/to/pdd-ts/dist/cli/main.js report --project /path/to/project --json
 
 同期の名前付き純粋関数の、boolean、文字列リテラルのunion、検証済みのbigint加減算・比較・分岐・新しい値レコードを対象とします。number、async、I/O、呼び出し・import、可変共有状態などは初期プロファイル外です。[互換性と信頼基盤](docs/compatibility.md)を確認してください。翻訳器全体の意味保存を証明したものではありません。
 
-このリポジトリ自身と両サンプルの3つのソース証明・216ケース・本人レビュー・専用Appの保護CIを通し実行し、mainへ取り込みました。Hono例は再現用サンプルで、既存の外部プロジェクトへの導入実績ではありません。PR本文の読みやすさには否定的なフィードバックがあり、理解度・認知負荷の比較評価は未完了です。[監査記録](docs/mvp-audit.md)と[評価プロトコル](docs/evaluation.md)に結果と残る条件を記録します。
+このリポジトリ自身と両サンプルの3つのソース証明・239ケース・本人レビュー・専用Appの保護CIを通し実行し、mainへ取り込みました。Hono例は再現用サンプルで、既存の外部プロジェクトへの導入実績ではありません。PR本文の読みやすさには否定的なフィードバックがあり、理解度・認知負荷の比較評価は未完了です。[監査記録](docs/mvp-audit.md)と[評価プロトコル](docs/evaluation.md)に結果と残る条件を記録します。
 
 MIT License。
 

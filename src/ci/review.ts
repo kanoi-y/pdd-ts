@@ -111,6 +111,7 @@ export function renderHumanReviewCard(input:ReviewCardInput):string {
     const file=entry.scope.slice(0,entry.scope.lastIndexOf('#'));
     lines.push('',block(entry.scope),`[対象コミットのソース](${sourceUrl(repository,headSha,file)})`,block(entry.declaration));
   }
+  if(head.workflow)lines.push('', '## 作者が記録した仕様判断と根拠', '回答の記録は本人認証ではありません。この対象へのレビューで内容を確認してください。',block(head.workflow));
   lines.push('','## 前提・仮定と実行時の信頼境界',block(head.metadata.config.approvedAssumptions),block(head.metadata.config.boundaries),
     '', '## モデル設定と証明対象',block(head.metadata.modelConfig),block(head.metadata.config.targets),
     '', '## 必須の証拠とテスト範囲',block(head.metadata.obligations),block(head.metadata.config.testTargets.map(target=>({obligationId:target.obligationId,files:target.files,inputs:target.inputs,requiredCaseCount:target.requiredTests.length}))),

@@ -1,3 +1,4 @@
+import {readDecisionRegistry} from '../requirements/decisions.js';
 import type { ScanChanges } from '../analysis/changes.js';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
@@ -6,7 +7,7 @@ import { loadProject } from '../requirements/project.js';
 import type { Project } from '../requirements/project.js';
 import { createSpecSnapshot } from '../requirements/snapshot.js';
 import type { SpecSnapshot } from '../requirements/snapshot.js';
-import { readProjectText, writeProjectFile } from '../requirements/io.js';
+import { readProjectText, writeProjectFile, canonicalJson } from '../requirements/io.js';
 import { verifySource, checkEvidenceFreshness } from '../verification/lemmascript.js';
 import { digestFiles, sha256 } from '../verification/digest.js';
 import { resolveProjectPath } from '../verification/paths.js';
@@ -27,6 +28,7 @@ export const savedRunSchema = z.strictObject({
 export type SavedRun = z.infer<typeof savedRunSchema>;
 export class NoRunError extends Error {}
 export interface ReviewPacket {
+  workflow?:SpecSnapshot['workflow'];
   atlasUpdate?:ScanChanges;
   schemaVersion: 1; runId: string; createdAt: string; commit: string; dirty: boolean;
   origin: 'local'|'ci'; approval: 'pending'|'approved'; specDigest: string; recordedSpecDigest: string;
@@ -66,7 +68,7 @@ async function reviewCurrent(project: Project, snapshot: SpecSnapshot, saved: Sa
   const expectedSourceDigests: Record<string, string> = {};
   const evidence: EvidenceRecord[] = structuredClone(saved.evidence);
   let toolchainDigest = sha256('unavailable');
-  try { toolchainDigest = await currentToolchain(project); }
+  if(!snapshot.workflow?.blocked)try { toolchainDigest = await currentToolchain(project); }
   catch { /* An unavailable current toolchain cannot match a previously successful record. */ }
   for (const obligation of project.obligations.filter(item => ['source-proof','test'].includes(item.kind))) {
     try {
@@ -94,7 +96,7 @@ async function reviewCurrent(project: Project, snapshot: SpecSnapshot, saved: Sa
   for(const requirement of project.requirements) if(!covered.has(requirement.id)) {gate.status='blocked';gate.findings.push({code:'uncovered-requirement',message:`No required obligation: ${requirement.id}`});}
   return { schemaVersion: 1, runId: saved.id, createdAt: saved.createdAt, commit: identity.commit, dirty: identity.dirty,
     origin: 'local', approval: 'pending', specDigest: snapshot.digest, recordedSpecDigest: saved.specDigest,
-    snapshotComplete: snapshot.complete, gate, evidence, requirements: project.requirements, obligations: project.obligations, sourceContracts: snapshot.contracts,
+    snapshotComplete: snapshot.complete, gate, evidence, requirements: project.requirements, obligations: project.obligations, sourceContracts: snapshot.contracts, ...(snapshot.workflow?{workflow:snapshot.workflow}:{}),
     unverifiedRequirements: project.requirements.filter(item => !covered.has(item.id)).map(item => item.id), boundaries: project.config.boundaries, allowedAssumptions: project.config.approvedAssumptions, diagnostics: saved.diagnostics };
 }
 
@@ -105,8 +107,9 @@ export async function verifyProject(directory: string): Promise<ReviewPacket> {
   const id = randomUUID();
   const saved: SavedRun = { schemaVersion: 1, id, createdAt: new Date().toISOString(), ...identity, specDigest: snapshot.digest, evidence: [], diagnostics: [] };
   let toolchainDigest=sha256('unavailable');
-  try {toolchainDigest=await currentToolchain(project);} catch { /* Source adapter records the specific unavailable tool. */ }
-  for (const obligation of project.obligations) {
+  if(!snapshot.workflow?.blocked)try {toolchainDigest=await currentToolchain(project);} catch { /* Source adapter records the specific unavailable tool. */ }
+  for (const obligation of snapshot.workflow?.blocked?[]:project.obligations) {
+    try{const current=await readDecisionRegistry(await loadProject(project.root));if(canonicalJson(current??null)!==canonicalJson(snapshot.workflow?.registry??null)){saved.diagnostics.push({obligationId:obligation.id,messages:['Decision inputs changed; remaining workers were not started']});break;}}catch{saved.diagnostics.push({obligationId:obligation.id,messages:['Decision inputs unavailable; remaining workers were not started']});break;}
     if(obligation.kind==='test' && project.config.testTargets.some(item=>item.obligationId===obligation.id)) {
       const result=await verifyTests(project,obligation.id,{id,commit:identity.commit,specDigest:snapshot.digest},toolchainDigest);
       result.record.toolchainDigest=toolchainDigest;
@@ -123,7 +126,8 @@ export async function verifyProject(directory: string): Promise<ReviewPacket> {
   await writeProjectFile(project.root, `.pdd/evidence/${id}/spec.json`, JSON.stringify(snapshot, null, 2) + '\n');
   await writeProjectFile(project.root, `.pdd/evidence/${id}/manifest.json`, JSON.stringify(saved, null, 2) + '\n');
   await writeProjectFile(project.root, '.pdd/evidence/latest.json', JSON.stringify({ schemaVersion: 1, id }) + '\n', true);
-  return await reviewCurrent(project, snapshot, saved);
+  const current=await loadProject(project.root);
+  return await reviewCurrent(current, await createSpecSnapshot(current), saved);
 }
 
 export async function reportProject(directory: string, selectedId?: string): Promise<ReviewPacket> {
