@@ -16,7 +16,7 @@ export function compareSpecs(before: SpecSnapshot, after: SpecSnapshot): SpecDif
   const declarations = (snapshot: SpecSnapshot, id: string): string => {
     const req = snapshot.metadata.requirements.find(item => item.id === id)!;
     const scopes = new Set([`${req.target.file}#${req.target.symbol}`, ...req.contracts.map(item => `${item.sourceRef.file}#${item.sourceRef.symbol}`)]);
-    return canonicalJson({ requirement: {...req, revision: 0}, decisions:snapshot.workflow?.registry?.items.filter(item=>item.requirementIds.includes(id))??[], contracts: snapshot.contracts.filter(item => scopes.has(item.scope)), obligations: snapshot.metadata.obligations.filter(item => item.requirementIds.includes(id)) });
+    return canonicalJson({ models:snapshot.models?.filter(m=>snapshot.metadata.obligations.some(o=>o.id===m.obligationId&&o.requirementIds.includes(id)))??[], requirement: {...req, revision: 0}, decisions:snapshot.workflow?.registry?.items.filter(item=>item.requirementIds.includes(id))??[], contracts: snapshot.contracts.filter(item => scopes.has(item.scope)), obligations: snapshot.metadata.obligations.filter(item => item.requirementIds.includes(id)) });
   };
   const affectedRequirements: string[] = [];
   for (const [id, req] of next) {

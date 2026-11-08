@@ -1,3 +1,4 @@
+import {renderModels,renderRiskReview} from './models.js';
 import {decisionPlanFromSnapshot,renderDecisionPlan} from '../workflow/plan.js';
 import type { ReviewPacket } from '../cli/runs.js';
 import { renderScanChanges } from '../analysis/atlas.js';
@@ -38,6 +39,8 @@ function renderEvidenceMarkdown(packet: ReviewPacket): string {
   else if(summary.stage==='verified-ci') lines.push('この対象についての本人承認は確認済みです。コードや仕様が変わった場合は、新しい対象に対する確認が必要です。');
   else lines.push('上に書いた振る舞いが、実現したい仕様でよいかを確認してください。仕様が違う場合は、期待する振る舞いを開発側へ伝えてください。承認は対象コミットに対する本人レビューで確認します。');
   if(packet.workflow)lines.push('', '## 仕様判断の記録', '', packet.workflow.blocked?'現在の入力に未決の高リスク仕様または不正な判断入力があります。これ以上の検証は進めず、planで判断事項と開発側の対応を確認してください。':'回答は作者の記録です。本人承認は外部レビューで別途確認します。');
+  const models=renderModels(packet);if(models)lines.push('',models);
+  const risk=renderRiskReview(packet);if(risk)lines.push('',risk);
   if(packet.atlasUpdate)lines.push('',renderScanChanges(packet.atlasUpdate));
   lines.push('','<details>','<summary>対象コード・検証結果・前提・根拠ファイルを確認する</summary>','',
     `- 判定の記録：${packet.gate.status}`,

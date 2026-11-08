@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "kind": "job-queue-v1",
+  "workers": 2,
+  "maxAttempts": 2,
+  "claim": "atomic",
+  "recovery": true,
+  "limits": {
+    "states": 1000,
+    "depth": 64
+  }
+}

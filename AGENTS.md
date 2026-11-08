@@ -14,3 +14,5 @@ Read `docs/PDD_for_TypeScript_統合実装計画.md` and resume from
 - Run the current whole suite and typecheck before completing a task. Record tool versions, actual proof inputs, source scope, assumptions and failures.
 
 Final independent review is required; no implementer subagents are needed for this initial tightly coupled implementation.
+
+PRs use concise Japanese headings: what changed, actual behavior evidence, and remaining limits. Show concrete input/action → actual response/result (and exit code or side effects where relevant). Test counts alone are insufficient. Keep the full specification in collapsed details when required by the review workflow.

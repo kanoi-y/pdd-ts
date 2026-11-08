@@ -146,3 +146,16 @@ Markdownは日本語で、対象の要件、開発側が先に直す問題、確
 テスト不足や未説明の信頼前提がある場合は、開発側の対応として表示します。証明の入力条件を説明できない場合も、確認済みの振る舞いとして提示しません。根拠の原文、ソース契約、対象コミット、ハッシュは詳細欄に残します。手元の検証成功と、本人承認・署名を照合したCIの成功は区別します。
 
 この表示の自動検査と、人間の読みやすさ・判断負担の評価は別です。後者の改善効果はまだ確認されていません。
+
+## 有限状態のジョブキュー検査（Phase 6）
+
+```sh
+node dist/cli/main.js model-check --project examples/job-queue --model model.json --json
+node dist/cli/main.js verify --project examples/job-queue
+```
+
+`job-queue-v1`は1ジョブ・2–4 worker・最大1–5試行の有限モデルです。同時二重実行・試行上限・非終端デッドロックを幅優先で検査し、上限による打切りは`unknown`にします。`model-check --trace trace.json`は観測トレースの遷移を照合します。
+
+モデル検査は**本番コードの証明ではありません**。公平性や最終的成功、外部副作用のexactly-onceは主張しません。`verify`ではモデル検査とSQLiteの実テストを別々の必須Evidenceにし、モデル・対応表・実装入力の変更で過去の結果をstaleにします。[設定・モデルと実装の対応・制約](examples/job-queue/README.md)を参照してください。
+
+高リスクのReview Packetには、主要Diff・失敗後の状態・境界・Atlas差分の未確認チェックリストを表示します。これは確認作業の案内で、承認済みや証明成功の印ではありません。

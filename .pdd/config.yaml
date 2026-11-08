@@ -12,6 +12,8 @@ approvedAssumptions:
   - tcb:node-runtime
   - tcb:typescript-frontend
   - identity-provider:authentic-server-session
+  - tcb:node-sqlite
+  - worker-stop:confirmed
 targets:
   - file: src/verification/acceptance.ts
     symbol: canAcceptEvidence
@@ -66,6 +68,7 @@ testTargets:
       - .pdd/requirements/CORE-004.yaml
       - .pdd/requirements/DEMO-001.yaml
       - .pdd/requirements/HONO-AUTH-001.yaml
+      - .pdd/requirements/MODEL-001.yaml
       - .pdd/requirements/SCAN-001.yaml
       - .pdd/requirements/SPEC-001.yaml
       - .pdd/requirements/SPEC-002.yaml
@@ -91,6 +94,16 @@ testTargets:
       - examples/greenfield-domain/src/domain/split.ts
       - examples/greenfield-domain/tests/split.test.ts
       - examples/greenfield-domain/verification-notes.md
+      - examples/job-queue/.pdd/.gitignore
+      - examples/job-queue/.pdd/config.yaml
+      - examples/job-queue/.pdd/obligations.yaml
+      - examples/job-queue/.pdd/requirements/JOB-001.yaml
+      - examples/job-queue/README.md
+      - examples/job-queue/lemmascript.json
+      - examples/job-queue/mapping.json
+      - examples/job-queue/model.json
+      - examples/job-queue/src/queue.ts
+      - examples/job-queue/tests/queue.test.ts
       - lemmascript.json
       - package.json
       - pnpm-lock.yaml
@@ -121,7 +134,10 @@ testTargets:
       - src/ci/runner.ts
       - src/cli/main.ts
       - src/cli/runs.ts
+      - src/model/adapter.ts
+      - src/model/queue.ts
       - src/reporter/markdown.ts
+      - src/reporter/models.ts
       - src/reporter/summary.ts
       - src/reporter/text.ts
       - src/requirements/decisions.ts
@@ -151,10 +167,12 @@ testTargets:
       - templates/skills/pdd-implement/SKILL.md
       - templates/skills/pdd-intake/SKILL.md
       - templates/skills/pdd-plan/SKILL.md
+      - templates/skills/pdd-plan/references/decisions.md
       - templates/skills/pdd-review/SKILL.md
       - templates/skills/pdd-verify/SKILL.md
       - tests/examples/greenfield.test.ts
       - tests/examples/hono.test.ts
+      - tests/examples/queue.test.ts
       - tests/fixtures/attestation/native-gh-verification.json
       - tests/fixtures/poc/allocate.ts
       - tests/fixtures/poc/auth.ts
@@ -169,6 +187,7 @@ testTargets:
       - tests/integration/cli.test.ts
       - tests/integration/contracts.test.ts
       - tests/integration/doctor.test.ts
+      - tests/integration/model.test.ts
       - tests/integration/provenance.test.ts
       - tests/integration/publisher.test.ts
       - tests/integration/review-card.test.ts
@@ -184,7 +203,6 @@ testTargets:
       - tsconfig.build.json
       - tsconfig.json
       - vitest.config.ts
-      - templates/skills/pdd-plan/references/decisions.md
     requiredTests:
       - CLI-003 doctor identifies an empty required registry as insufficient
       - CI-003 parses actual native verification timestamps with UTC offsets
@@ -600,6 +618,7 @@ testTargets:
       - .pdd/requirements/CORE-004.yaml
       - .pdd/requirements/DEMO-001.yaml
       - .pdd/requirements/HONO-AUTH-001.yaml
+      - .pdd/requirements/MODEL-001.yaml
       - .pdd/requirements/SCAN-001.yaml
       - .pdd/requirements/SPEC-001.yaml
       - .pdd/requirements/SPEC-002.yaml
@@ -625,6 +644,16 @@ testTargets:
       - examples/greenfield-domain/src/domain/split.ts
       - examples/greenfield-domain/tests/split.test.ts
       - examples/greenfield-domain/verification-notes.md
+      - examples/job-queue/.pdd/.gitignore
+      - examples/job-queue/.pdd/config.yaml
+      - examples/job-queue/.pdd/obligations.yaml
+      - examples/job-queue/.pdd/requirements/JOB-001.yaml
+      - examples/job-queue/README.md
+      - examples/job-queue/lemmascript.json
+      - examples/job-queue/mapping.json
+      - examples/job-queue/model.json
+      - examples/job-queue/src/queue.ts
+      - examples/job-queue/tests/queue.test.ts
       - lemmascript.json
       - package.json
       - pnpm-lock.yaml
@@ -655,7 +684,10 @@ testTargets:
       - src/ci/runner.ts
       - src/cli/main.ts
       - src/cli/runs.ts
+      - src/model/adapter.ts
+      - src/model/queue.ts
       - src/reporter/markdown.ts
+      - src/reporter/models.ts
       - src/reporter/summary.ts
       - src/reporter/text.ts
       - src/requirements/decisions.ts
@@ -685,10 +717,12 @@ testTargets:
       - templates/skills/pdd-implement/SKILL.md
       - templates/skills/pdd-intake/SKILL.md
       - templates/skills/pdd-plan/SKILL.md
+      - templates/skills/pdd-plan/references/decisions.md
       - templates/skills/pdd-review/SKILL.md
       - templates/skills/pdd-verify/SKILL.md
       - tests/examples/greenfield.test.ts
       - tests/examples/hono.test.ts
+      - tests/examples/queue.test.ts
       - tests/fixtures/attestation/native-gh-verification.json
       - tests/fixtures/poc/allocate.ts
       - tests/fixtures/poc/auth.ts
@@ -703,6 +737,7 @@ testTargets:
       - tests/integration/cli.test.ts
       - tests/integration/contracts.test.ts
       - tests/integration/doctor.test.ts
+      - tests/integration/model.test.ts
       - tests/integration/provenance.test.ts
       - tests/integration/publisher.test.ts
       - tests/integration/review-card.test.ts
@@ -718,7 +753,6 @@ testTargets:
       - tsconfig.build.json
       - tsconfig.json
       - vitest.config.ts
-      - templates/skills/pdd-plan/references/decisions.md
     requiredTests:
       - WF-001 plans without running code and does not treat an empty queue as
         approval
@@ -772,6 +806,7 @@ testTargets:
       - .pdd/requirements/CORE-004.yaml
       - .pdd/requirements/DEMO-001.yaml
       - .pdd/requirements/HONO-AUTH-001.yaml
+      - .pdd/requirements/MODEL-001.yaml
       - .pdd/requirements/SCAN-001.yaml
       - .pdd/requirements/SPEC-001.yaml
       - .pdd/requirements/SPEC-002.yaml
@@ -797,6 +832,16 @@ testTargets:
       - examples/greenfield-domain/src/domain/split.ts
       - examples/greenfield-domain/tests/split.test.ts
       - examples/greenfield-domain/verification-notes.md
+      - examples/job-queue/.pdd/.gitignore
+      - examples/job-queue/.pdd/config.yaml
+      - examples/job-queue/.pdd/obligations.yaml
+      - examples/job-queue/.pdd/requirements/JOB-001.yaml
+      - examples/job-queue/README.md
+      - examples/job-queue/lemmascript.json
+      - examples/job-queue/mapping.json
+      - examples/job-queue/model.json
+      - examples/job-queue/src/queue.ts
+      - examples/job-queue/tests/queue.test.ts
       - lemmascript.json
       - package.json
       - pnpm-lock.yaml
@@ -827,7 +872,10 @@ testTargets:
       - src/ci/runner.ts
       - src/cli/main.ts
       - src/cli/runs.ts
+      - src/model/adapter.ts
+      - src/model/queue.ts
       - src/reporter/markdown.ts
+      - src/reporter/models.ts
       - src/reporter/summary.ts
       - src/reporter/text.ts
       - src/requirements/decisions.ts
@@ -857,10 +905,12 @@ testTargets:
       - templates/skills/pdd-implement/SKILL.md
       - templates/skills/pdd-intake/SKILL.md
       - templates/skills/pdd-plan/SKILL.md
+      - templates/skills/pdd-plan/references/decisions.md
       - templates/skills/pdd-review/SKILL.md
       - templates/skills/pdd-verify/SKILL.md
       - tests/examples/greenfield.test.ts
       - tests/examples/hono.test.ts
+      - tests/examples/queue.test.ts
       - tests/fixtures/attestation/native-gh-verification.json
       - tests/fixtures/poc/allocate.ts
       - tests/fixtures/poc/auth.ts
@@ -875,6 +925,7 @@ testTargets:
       - tests/integration/cli.test.ts
       - tests/integration/contracts.test.ts
       - tests/integration/doctor.test.ts
+      - tests/integration/model.test.ts
       - tests/integration/provenance.test.ts
       - tests/integration/publisher.test.ts
       - tests/integration/review-card.test.ts
@@ -890,7 +941,6 @@ testTargets:
       - tsconfig.build.json
       - tsconfig.json
       - vitest.config.ts
-      - templates/skills/pdd-plan/references/decisions.md
     requiredTests:
       - SCAN-001 surveys an uninitialized project without executing or changing
         its files
@@ -935,6 +985,197 @@ testTargets:
       - SCAN-001 treats marker-like Git filenames as data rather than fabricated
         commits
       - SCAN-001 does not invent baseUrl lookup for unrelated bare imports
+  - obligationId: model-tests
+    files:
+      - tests/integration/model.test.ts
+      - tests/examples/queue.test.ts
+    inputs:
+      - .github/CODEOWNERS
+      - .github/workflows/ci.yml
+      - .github/workflows/pdd.yml
+      - .github/workflows/spec-review.yml
+      - .pdd/config.yaml
+      - .pdd/obligations.yaml
+      - .pdd/requirements/CI-001.yaml
+      - .pdd/requirements/CLI-001.yaml
+      - .pdd/requirements/CLI-002.yaml
+      - .pdd/requirements/CLI-003.yaml
+      - .pdd/requirements/CORE-001.yaml
+      - .pdd/requirements/CORE-002.yaml
+      - .pdd/requirements/CORE-003.yaml
+      - .pdd/requirements/CORE-004.yaml
+      - .pdd/requirements/DEMO-001.yaml
+      - .pdd/requirements/HONO-AUTH-001.yaml
+      - .pdd/requirements/MODEL-001.yaml
+      - .pdd/requirements/SCAN-001.yaml
+      - .pdd/requirements/SPEC-001.yaml
+      - .pdd/requirements/SPEC-002.yaml
+      - .pdd/requirements/SPLIT-001.yaml
+      - .pdd/requirements/WF-001.yaml
+      - examples/existing-hono/.pdd/.gitignore
+      - examples/existing-hono/.pdd/config.yaml
+      - examples/existing-hono/.pdd/obligations.yaml
+      - examples/existing-hono/.pdd/requirements/HONO-AUTH-001.yaml
+      - examples/existing-hono/README.md
+      - examples/existing-hono/lemmascript.json
+      - examples/existing-hono/src/app.ts
+      - examples/existing-hono/src/domain/auth.ts
+      - examples/existing-hono/tests/route.test.ts
+      - examples/existing-hono/verification-notes.md
+      - examples/greenfield-domain/.pdd/.gitignore
+      - examples/greenfield-domain/.pdd/config.yaml
+      - examples/greenfield-domain/.pdd/obligations.yaml
+      - examples/greenfield-domain/.pdd/requirements/SPLIT-001.yaml
+      - examples/greenfield-domain/README.md
+      - examples/greenfield-domain/lemmascript.json
+      - examples/greenfield-domain/src/app.ts
+      - examples/greenfield-domain/src/domain/split.ts
+      - examples/greenfield-domain/tests/split.test.ts
+      - examples/greenfield-domain/verification-notes.md
+      - examples/job-queue/.pdd/.gitignore
+      - examples/job-queue/.pdd/config.yaml
+      - examples/job-queue/.pdd/obligations.yaml
+      - examples/job-queue/.pdd/requirements/JOB-001.yaml
+      - examples/job-queue/README.md
+      - examples/job-queue/lemmascript.json
+      - examples/job-queue/mapping.json
+      - examples/job-queue/model.json
+      - examples/job-queue/src/queue.ts
+      - examples/job-queue/tests/queue.test.ts
+      - lemmascript.json
+      - package.json
+      - pnpm-lock.yaml
+      - scripts/ci-publish.mjs
+      - scripts/ci-test-worker.mjs
+      - scripts/ci-verify.mjs
+      - scripts/compare.mjs
+      - scripts/demo-negative.mjs
+      - scripts/demo.mjs
+      - scripts/install-dafny.mjs
+      - scripts/package-smoke.mjs
+      - scripts/poc.mjs
+      - scripts/prepare-spec-review.mjs
+      - src/analysis/atlas.ts
+      - src/analysis/changes.ts
+      - src/analysis/configuration.ts
+      - src/analysis/history.ts
+      - src/analysis/scan.ts
+      - src/ci/approval.ts
+      - src/ci/audit.ts
+      - src/ci/baseline.ts
+      - src/ci/commands.ts
+      - src/ci/doctor.ts
+      - src/ci/github.ts
+      - src/ci/provenance.ts
+      - src/ci/publish.ts
+      - src/ci/review.ts
+      - src/ci/runner.ts
+      - src/cli/main.ts
+      - src/cli/runs.ts
+      - src/model/adapter.ts
+      - src/model/queue.ts
+      - src/reporter/markdown.ts
+      - src/reporter/models.ts
+      - src/reporter/summary.ts
+      - src/reporter/text.ts
+      - src/requirements/decisions.ts
+      - src/requirements/diff.ts
+      - src/requirements/io.ts
+      - src/requirements/project.ts
+      - src/requirements/schema.ts
+      - src/requirements/snapshot.ts
+      - src/verification/acceptance.ts
+      - src/verification/boundaries.ts
+      - src/verification/contracts.ts
+      - src/verification/dafny-log.ts
+      - src/verification/digest.ts
+      - src/verification/expressions.ts
+      - src/verification/gate.ts
+      - src/verification/lemmascript.ts
+      - src/verification/paths.ts
+      - src/verification/process.ts
+      - src/verification/profile.ts
+      - src/verification/sandbox.ts
+      - src/verification/tests.ts
+      - src/verification/toolchain.ts
+      - src/verification/types.ts
+      - src/workflow/plan.ts
+      - src/workflow/skills.ts
+      - templates/github-app-manifest.json
+      - templates/skills/pdd-implement/SKILL.md
+      - templates/skills/pdd-intake/SKILL.md
+      - templates/skills/pdd-plan/SKILL.md
+      - templates/skills/pdd-plan/references/decisions.md
+      - templates/skills/pdd-review/SKILL.md
+      - templates/skills/pdd-verify/SKILL.md
+      - tests/examples/greenfield.test.ts
+      - tests/examples/hono.test.ts
+      - tests/examples/queue.test.ts
+      - tests/fixtures/attestation/native-gh-verification.json
+      - tests/fixtures/poc/allocate.ts
+      - tests/fixtures/poc/auth.ts
+      - tests/fixtures/poc/lemmascript.json
+      - tests/fixtures/poc/split.ts
+      - tests/fixtures/poc/vacuous.ts
+      - tests/integration/adapter.test.ts
+      - tests/integration/approval.test.ts
+      - tests/integration/baseline.test.ts
+      - tests/integration/boundaries.test.ts
+      - tests/integration/ci-authority.test.ts
+      - tests/integration/cli.test.ts
+      - tests/integration/contracts.test.ts
+      - tests/integration/doctor.test.ts
+      - tests/integration/model.test.ts
+      - tests/integration/provenance.test.ts
+      - tests/integration/publisher.test.ts
+      - tests/integration/review-card.test.ts
+      - tests/integration/scan.test.ts
+      - tests/integration/spec.test.ts
+      - tests/integration/workflow.test.ts
+      - tests/unit/dafny-log.test.ts
+      - tests/unit/gate.test.ts
+      - tests/unit/process-paths.test.ts
+      - tests/unit/profile.test.ts
+      - tests/unit/report.test.ts
+      - tests/unit/spec-diff.test.ts
+      - tsconfig.build.json
+      - tsconfig.json
+      - vitest.config.ts
+    requiredTests:
+      - JOB-001 actual SQLite connections allow only one concurrent claim
+      - JOB-001 real implementation trace matches the model across retry crash
+        and recovery
+      - JOB-001 stale attempt tokens cannot finish a later claim by the same
+        worker
+      - MODEL-001 checks a finite queue with the actual CLI and identifies its
+        guarantee
+      - MODEL-001 CLI returns a shortest duplicate execution counterexample
+      - MODEL-001 CLI cannot pass an incomplete search
+      - MODEL-001 verify produces model evidence and review stales it after
+        mapped implementation changes
+      - MODEL-001 model changes require a new specification revision
+      - MODEL-001 failed and unknown model results block the required gate
+      - MODEL-001 finds a crashed-worker deadlock and does not call failed
+        terminal states deadlocks
+      - MODEL-001 rejects depth truncation and accepts only complete observed
+        transitions
+      - MODEL-001 rejects executable unknown and invalid model inputs instead of
+        extending semantics
+      - MODEL-001 review shows a concrete counterexample and high-risk Atlas
+        review tasks
+      - MODEL-001 rejects linked non-UTF8 oversized and escaping model inputs
+      - MODEL-001 report cannot keep a successful gate after model artifacts
+        change
+      - MODEL-001 unresolved high-risk decisions stop model verification
+      - MODEL-001 unregistered malformed and escaping mappings fail closed
+      - MODEL-001 actual CLI compares an implementation trace without claiming
+        source proof
+      - WF-001 high-risk human review cards explain model scope and show pinned
+        code changes
+      - MODEL-001 doctor diagnoses the registered model backend without
+        requiring Dafny
+      - MODEL-001 artifact write failure never leaves successful model evidence
+      - MODEL-001 review requires the actual model result artifact
 boundaries:
   - id: dafny-z3-verification
     callerFiles:
@@ -1059,6 +1300,24 @@ boundaries:
     calleeScope: examples/greenfield-domain/src/domain/split.ts#split
     testObligationIds:
       - self-tests
+  - id: model-sqlite
+    callerFiles:
+      - examples/job-queue/src/queue.ts
+    validatorFiles:
+      - examples/job-queue/src/queue.ts
+    calleeScope: node:sqlite
+    testObligationIds:
+      - model-tests
+    assumption: tcb:node-sqlite
+  - id: model-worker-stop
+    callerFiles:
+      - examples/job-queue/src/queue.ts
+    validatorFiles:
+      - examples/job-queue/src/queue.ts
+    calleeScope: stopped-worker
+    testObligationIds:
+      - model-tests
+    assumption: worker-stop:confirmed
 github:
   repository: kanoi-y/pdd-ts
   repositoryId: 1449042266

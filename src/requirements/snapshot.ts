@@ -1,3 +1,4 @@
+import {modelSpecification} from '../model/adapter.js';
 import {readDecisionRegistry} from './decisions.js';
 import type {DecisionRegistry} from './decisions.js';
 import { canonicalJson, readProjectText } from './io.js';
@@ -12,6 +13,7 @@ export interface SpecSnapshot {
   complete: boolean;
   errors: string[];
   metadata: { config: Project['config']; requirements: Project['requirements']; obligations: Project['obligations']; modelConfig: unknown };
+  models?:Awaited<ReturnType<typeof modelSpecification>>;
   workflow?: {registry:DecisionRegistry|null;blocked:boolean};
   contracts: { scope: string; declaration: SourceContracts }[];
 }
@@ -44,7 +46,9 @@ export async function createSpecSnapshot(project: Project): Promise<SpecSnapshot
   catch { errors.push('LemmaScript model configuration is unavailable'); }
   let workflow:SpecSnapshot['workflow'];
   try{const registry=await readDecisionRegistry(project);if(registry){const blocked=registry.items.some(i=>i.mustResolve);workflow={registry,blocked};if(blocked)errors.push('Unresolved high-risk or blocking human specification decision');}}catch{workflow={registry:null,blocked:true};errors.push('Decision registry is invalid or unavailable');}
+  let models:SpecSnapshot['models'];
+  if(project.config.modelTargets?.length)try{models=await modelSpecification(project);}catch{errors.push('Model inputs or implementation mapping are invalid or unavailable');}
   const metadata = { config: project.config, requirements: project.requirements, obligations: project.obligations, modelConfig };
-  const body = { schemaVersion: 1 as const, complete: errors.length === 0, errors, metadata, contracts, ...(workflow?{workflow}:{}) };
+  const body = { schemaVersion: 1 as const, complete: errors.length === 0, errors, metadata, contracts, ...(models?{models}:{}), ...(workflow?{workflow}:{}) };
   return { ...body, digest: sha256(canonicalJson(body)) };
 }

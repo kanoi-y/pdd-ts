@@ -1,5 +1,5 @@
 id: WF-001
-revision: 1
+revision: 2
 title: 未決の仕様判断を整理し、既存CLIで安全に実装・検証・レビューを進める
 intent: 作者が登録した仕様判断だけを人向けCardへ束ね、事実調査と実装作業を開発側へ分ける。未決の高リスク事項があればworkerを開始せず、回答と根拠は仕様の鮮度へ結び付ける。Skillは任意導入とし、作者の回答やAgentの判断を本人承認・証明にしない。
 risk: high
@@ -20,5 +20,8 @@ acceptance:
   - id: WF-001-T4
     kind: test
     scenario: 明示指定したCodexのプロジェクト内にだけ5つのSkillを導入し、既存・リンク先を上書きしない。reviewは実証拠を再照合し、Skillや作者の記録から承認を捏造しない。
+  - id: WF-001-T5
+    kind: test
+    scenario: 高リスクのレポートと本人レビュー資料に、主要Diff・境界・失敗時の状態・Atlas差分の確認を未確認の作業として示す。
 trustedBoundaries:
   - node-filesystem-runtime

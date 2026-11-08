@@ -5,7 +5,7 @@ import path from 'node:path';
 const root=process.cwd();
 const env={...process.env,PATH:path.join(root,'.tools/dafny-4.11.0/dafny')+path.delimiter+process.env.PATH};
 await mkdir('.tools',{recursive:true});
-for(const project of ['examples/existing-hono','examples/greenfield-domain','.']) {
+for(const project of ['examples/existing-hono','examples/greenfield-domain','examples/job-queue','.']) {
  const result=spawnSync(process.execPath,['dist/cli/main.js','verify','--project',project,'--json'],{cwd:root,env,encoding:'utf8',timeout:180000,maxBuffer:16_777_216});
  if(result.error || result.status!==0) throw new Error(`Demo failed: ${project}: ${result.stdout?.slice(0,4000)} ${result.error?.message??''}`);
  const packet=JSON.parse(result.stdout);

@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "modelTargets": [
+    {
+      "obligationId": "JOB-MODEL",
+      "file": "model.json",
+      "mapping": "mapping.json"
+    }
+  ],
+  "testTargets": [
+    {
+      "obligationId": "JOB-TEST",
+      "files": [
+        "tests/queue.test.ts"
+      ],
+      "inputs": [
+        "src/queue.ts",
+        "model.json",
+        "mapping.json"
+      ],
+      "requiredTests": [
+        "JOB-001 actual SQLite connections allow only one concurrent claim",
+        "JOB-001 real implementation trace matches the model across retry crash and recovery",
+        "JOB-001 stale attempt tokens cannot finish a later claim by the same worker"
+      ]
+    }
+  ],
+  "approvedAssumptions": [
+    "tcb:node-sqlite",
+    "worker-stop:confirmed"
+  ],
+  "boundaries": [
+    {
+      "id": "JOB-SQLITE",
+      "callerFiles": [
+        "src/queue.ts"
+      ],
+      "validatorFiles": [
+        "src/queue.ts"
+      ],
+      "calleeScope": "node:sqlite",
+      "testObligationIds": [
+        "JOB-TEST"
+      ],
+      "assumption": "tcb:node-sqlite"
+    },
+    {
+      "id": "JOB-STOP",
+      "callerFiles": [
+        "src/queue.ts"
+      ],
+      "validatorFiles": [
+        "src/queue.ts"
+      ],
+      "calleeScope": "stopped-worker",
+      "testObligationIds": [
+        "JOB-TEST"
+      ],
+      "assumption": "worker-stop:confirmed"
+    }
+  ]
+}
