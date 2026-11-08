@@ -25,6 +25,14 @@ const help = run(cli, ['--help'], work);
 if (!help.includes('verify') || !help.includes('report')) throw new Error('Packed executable does not expose the expected CLI');
 const project = path.join(work, 'project');
 await mkdir(project);
+await mkdir(path.join(project, 'src'));
+await writeFile(path.join(project, 'src/domain.ts'), 'export function domain(){return true;}\n');
+await writeFile(path.join(project, 'index.ts'), "import {domain} from '@sample/domain'; export const sample = () => domain();\n");
+await writeFile(path.join(project, 'tsconfig.json'), JSON.stringify({compilerOptions:{paths:{'@sample/*':['src/*']}}}));
+const survey = JSON.parse(run(cli, ['scan', '--project', project, '--json'], work));
+if (!survey.coverage.complete || survey.functions.length !== 2 || survey.configuration.status !== 'applied' || survey.modules.find(m => m.file === 'index.ts')?.imports[0]?.target !== 'src/domain.ts' || survey.atlas.status !== 'as-is-proposal') throw new Error('Packed CLI scan is incomplete');
+const history = JSON.parse(run(cli, ['scan', '--project', project, '--history', '--json'], work)).history;
+if (!history || !['available','incomplete','unavailable'].includes(history.status)) throw new Error('Packed CLI history state is absent');
 const initialized = JSON.parse(run(cli, ['init', '--project', project, '--json'], work));
 if (!initialized.initialized) throw new Error('Packed CLI did not initialize the project');
 JSON.parse(await readFile(path.join(project, 'lemmascript.json'), 'utf8'));
@@ -35,4 +43,4 @@ for (const sample of ['examples/existing-hono', 'examples/greenfield-domain', '.
   trials.push({ project: sample, commit: packet.commit, dirty: packet.dirty, gate: packet.gate.status, approval: packet.approval, evidence: packet.evidence.map(item => ({ kind: item.kind, status: item.status, counts: item.counts })) });
 }
 await writeFile(path.join(repo, '.tools/packed-trials.json'), JSON.stringify(trials, null, 2) + '\n');
-console.log('PASS: offline tarball install, executable help/init, both examples and self verification');
+console.log('PASS: offline tarball install, executable help/scan/init, both examples and self verification');

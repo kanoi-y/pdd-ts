@@ -42,6 +42,7 @@ testTargets:
       - tests/integration/provenance.test.ts
       - tests/integration/publisher.test.ts
       - tests/integration/review-card.test.ts
+      - tests/integration/scan.test.ts
       - tests/integration/spec.test.ts
       - tests/unit/dafny-log.test.ts
       - tests/unit/gate.test.ts
@@ -66,6 +67,7 @@ testTargets:
       - .pdd/requirements/CORE-004.yaml
       - .pdd/requirements/DEMO-001.yaml
       - .pdd/requirements/HONO-AUTH-001.yaml
+      - .pdd/requirements/SCAN-001.yaml
       - .pdd/requirements/SPEC-001.yaml
       - .pdd/requirements/SPEC-002.yaml
       - .pdd/requirements/SPLIT-001.yaml
@@ -102,6 +104,11 @@ testTargets:
       - scripts/package-smoke.mjs
       - scripts/poc.mjs
       - scripts/prepare-spec-review.mjs
+      - src/analysis/atlas.ts
+      - src/analysis/changes.ts
+      - src/analysis/configuration.ts
+      - src/analysis/history.ts
+      - src/analysis/scan.ts
       - src/ci/approval.ts
       - src/ci/audit.ts
       - src/ci/baseline.ts
@@ -115,6 +122,8 @@ testTargets:
       - src/cli/main.ts
       - src/cli/runs.ts
       - src/reporter/markdown.ts
+      - src/reporter/summary.ts
+      - src/reporter/text.ts
       - src/requirements/diff.ts
       - src/requirements/io.ts
       - src/requirements/project.ts
@@ -155,6 +164,7 @@ testTargets:
       - tests/integration/provenance.test.ts
       - tests/integration/publisher.test.ts
       - tests/integration/review-card.test.ts
+      - tests/integration/scan.test.ts
       - tests/integration/spec.test.ts
       - tests/unit/dafny-log.test.ts
       - tests/unit/gate.test.ts
@@ -165,7 +175,6 @@ testTargets:
       - tsconfig.build.json
       - tsconfig.json
       - vitest.config.ts
-      - src/reporter/summary.ts
     requiredTests:
       - CLI-003 doctor identifies an empty required registry as insufficient
       - CI-003 parses actual native verification timestamps with UTC offsets
@@ -561,6 +570,49 @@ testTargets:
       - CLI-003 never describes an unresolved contract as a confirmed behavior
       - CLI-003 does not hide an unreferenced source precondition from the human
         review
+      - SCAN-001 surveys an uninitialized project without executing or changing
+        its files
+      - SCAN-001 labels injected calls unknown instead of inventing a runtime
+        dependency
+      - SCAN-001 never follows a source symlink outside the selected project
+      - SCAN-001 exposes skipped oversized sources and syntax errors as
+        incomplete coverage
+      - SCAN-001 respects shadowed import names when recording static call
+        targets
+      - SCAN-001 rejects backslash filenames instead of inventing canonical
+        source evidence
+      - SCAN-001 does not propose declarations without implementations as proof
+        candidates
+      - SCAN-001 renders a Japanese evidence-labelled Atlas without executable
+        diagram labels
+      - SCAN-001 derives three Hono response-flow candidates with evidence
+        rather than runtime guarantees
+      - SCAN-001 observes package entrypoints tests and CI files without running
+        configuration
+      - SCAN-001 stops oversized observation sets with an explicit incomplete
+        result
+      - SCAN-001 compares saved observations without turning an incomplete scan
+        into deletions
+      - SCAN-001 rejects a fabricated baseline digest and an outside baseline
+        path
+      - SCAN-001 keeps same-line callbacks and shadowed nested declarations
+        distinct
+      - SCAN-001 resolves JSONC paths through local tsconfig inheritance without
+        running plugins
+      - SCAN-001 respects child baseUrl overrides and does not resolve an
+        external config
+      - SCAN-001 rejects cyclic malformed and escaping configuration instead of
+        guessing aliases
+      - SCAN-001 reads bounded Git change frequency only when explicitly
+        requested
+      - SCAN-001 reports missing or unborn Git history without weakening the
+        scan result
+      - SCAN-001 bounds history and refuses shallow or promisor frequency claims
+      - SCAN-001 bounds repeated configuration inheritance and exposes
+        unresolved local aliases
+      - SCAN-001 treats marker-like Git filenames as data rather than fabricated
+        commits
+      - SCAN-001 does not invent baseUrl lookup for unrelated bare imports
 boundaries:
   - id: dafny-z3-verification
     callerFiles:
@@ -618,6 +670,7 @@ boundaries:
     callerFiles:
       - src/verification/paths.ts
       - src/cli/runs.ts
+      - src/analysis/scan.ts
     validatorFiles:
       - src/requirements/schema.ts
       - src/verification/profile.ts
@@ -630,6 +683,7 @@ boundaries:
       - src/verification/process.ts
       - src/verification/lemmascript.ts
       - src/verification/tests.ts
+      - src/analysis/history.ts
     validatorFiles:
       - src/requirements/schema.ts
       - src/verification/profile.ts
@@ -650,6 +704,8 @@ boundaries:
   - id: typescript-frontend
     callerFiles:
       - src/verification/contracts.ts
+      - src/analysis/scan.ts
+      - src/analysis/configuration.ts
     validatorFiles:
       - src/requirements/schema.ts
       - src/verification/profile.ts

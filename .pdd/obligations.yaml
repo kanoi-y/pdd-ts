@@ -20,6 +20,7 @@
     - SPEC-001
     - SPEC-002
     - SPLIT-001
+    - SCAN-001
   kind: test
   scope: pdd-ts runtime and CLI
   contractIds: []

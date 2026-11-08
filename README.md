@@ -20,6 +20,57 @@ node scripts/demo.mjs
 
 依存関係のinstall scriptは実行しません。Dafnyは公式リリースをSHA-256照合して`.tools/`へ導入します。パッケージはまだnpmへ公開していません。`pnpm pack`によるローカルインストールを検証しています。
 
+## 導入前に構造を調べる
+
+`scan`は、対象プロジェクトを変更せずにTypeScriptの構造と根拠を調べます。対象側のPDD設定・Git・Dafnyは不要です。設定スクリプトやアプリ、テストは実行しません。tsconfigのJSONCはデータとして読みます。
+
+```sh
+node /path/to/pdd-ts/dist/cli/main.js scan --project /path/to/project
+node /path/to/pdd-ts/dist/cli/main.js scan --project /path/to/project --json
+```
+
+日本語のArchitecture Atlasには、次の5つを含みます。JSONの`atlas.documents`から個別に保存できます。`scan`自身はファイルを作成しません。
+
+- **概要**：調査範囲、入口・テスト・CIの記載、読み取れなかった対象。
+- **構造と境界**：相対importの図、外部・動的呼び出しの候補と根拠。
+- **フロー候補**：ルートの返却構文などから最大3件。重要度・実行順・到達性は未確認。
+- **契約と検証候補**：ソースの契約コメント、呼び出し構文のない同期関数の候補。純粋性や証明可能性を判定した結果ではありません。
+- **変更の波及**：静的な関数参照。実行時の全影響を保証しません。
+
+### 変更前の調査と比較する
+
+変更前のJSONを、調査対象から除外される`.pdd/`などへ自分で保存します。保存先のディレクトリは事前に用意してください。
+
+```sh
+node /path/to/pdd-ts/dist/cli/main.js scan --project /path/to/project --json > /path/to/project/.pdd/scan-before.json
+# ソースを変更した後
+node /path/to/pdd-ts/dist/cli/main.js scan --project /path/to/project --previous .pdd/scan-before.json
+# 既存の検証レポートにも更新候補を添える
+node /path/to/pdd-ts/dist/cli/main.js report --project /path/to/project --previous .pdd/scan-before.json
+```
+
+`--previous`は対象内の相対パスです。比較元は形式とハッシュの整合性を調べますが、過去の実行を認証するものではありません。不完全な調査や範囲の違う結果からは追加・削除を推定しません。Atlas更新候補は、仕様承認や検証ゲートの合否を変更しません。
+
+### 調査の限界
+
+通常のTS/TSXと、ルートのREADME・package.json、標準名のtsconfig JSONC、CI定義のファイルを対象にします。ルートtsconfigのローカル継承から、baseUrl/pathsだけをメモリー内の参照解決へ適用します。継承元の相対基準と子設定の上書きを区別し、設定の根拠ファイルも入力ハッシュへ含めます。
+
+外部パッケージの継承、標準名以外の設定、循環やプロジェクト外の参照は未解決として表示します。tsconfigのpluginsや設定スクリプトは実行しません。実行時の別名解決、外部モジュール内部、業務上の重要度は未確認です。CI定義はファイルの存在とハッシュの観測です。シンボリックリンク・除外ディレクトリは辿りません。
+
+1ファイル1MiB・合計16MiB・最大2,000ファイルなどの上限があります。構文エラーや制限超過は不完全な調査として表示し、終了コード1を返します。確認済みの構文・推測・未確認を分け、既存コードを正しい仕様として自動承認しません。
+
+### 必要な場合だけ変更頻度を調べる
+
+```sh
+node /path/to/pdd-ts/dist/cli/main.js scan --project /path/to/project --history
+```
+
+`--history`を指定した場合だけ、インストール済みのGitを使います。対象ディレクトリを変更したfirst-parent履歴の最近100件と、その中で各調査ファイルが変更されたコミット数を表示します。基準コミットと打切りの有無を記録し、重要度や欠陥リスクの判定とは分けます。
+
+Git未導入・未コミット・リポジトリ外では「取得できず」、浅い履歴では頻度を「不完全」とします。自動取得を避けるため、promisor設定のある部分cloneは調査しません。fetch・ネットワーク取得・index更新は行わず、各Gitプロセスは3秒・出力1MiBまでに制限します。Git設定によるpager・fsmonitor・外部diff等の補助コマンドは無効化します。
+
+履歴を取得できなくても、静的なファイル調査とは別に状態を表示します。履歴は証明・本人承認・保護CIの根拠にしません。
+
 ## プロジェクトに導入する
 
 ```sh
@@ -50,7 +101,7 @@ node /path/to/pdd-ts/dist/cli/main.js report --project /path/to/project --json
 
 同期の名前付き純粋関数の、boolean、文字列リテラルのunion、検証済みのbigint加減算・比較・分岐・新しい値レコードを対象とします。number、async、I/O、呼び出し・import、可変共有状態などは初期プロファイル外です。[互換性と信頼基盤](docs/compatibility.md)を確認してください。翻訳器全体の意味保存を証明したものではありません。
 
-このリポジトリ自身と両サンプルの3つのソース証明・202ケース・本人レビュー・専用Appの保護CIを通し実行し、mainへ取り込みました。Hono例は再現用サンプルで、既存の外部プロジェクトへの導入実績ではありません。PR本文の読みやすさには否定的なフィードバックがあり、理解度・認知負荷の比較評価は未完了です。[監査記録](docs/mvp-audit.md)と[評価プロトコル](docs/evaluation.md)に結果と残る条件を記録します。
+このリポジトリ自身と両サンプルの3つのソース証明・216ケース・本人レビュー・専用Appの保護CIを通し実行し、mainへ取り込みました。Hono例は再現用サンプルで、既存の外部プロジェクトへの導入実績ではありません。PR本文の読みやすさには否定的なフィードバックがあり、理解度・認知負荷の比較評価は未完了です。[監査記録](docs/mvp-audit.md)と[評価プロトコル](docs/evaluation.md)に結果と残る条件を記録します。
 
 MIT License。
 

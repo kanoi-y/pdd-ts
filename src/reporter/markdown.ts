@@ -1,11 +1,9 @@
 import type { ReviewPacket } from '../cli/runs.js';
+import { renderScanChanges } from '../analysis/atlas.js';
 import { summarizeReview } from './summary.js';
 
-export function markdownText(value: string): string {
-  return value.replace(/[\x00-\x1f\x7f\u202a-\u202e\u2066-\u2069]/g, char => `\\u${char.charCodeAt(0).toString(16).padStart(4, '0')}`)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/[\\`*_{}\[\]()|#!]/g, char => '\\' + char);
-}
+export {markdownText} from './text.js';
+import {markdownText} from './text.js';
 function artifactLink(relative: string): string {
   const prefix = relative.startsWith('.pdd/') ? '../' + relative.slice(5) : '../../' + relative;
   const url = prefix.split('/').map(segment => encodeURIComponent(segment).replace(/[!'()*]/g, char => '%' + char.charCodeAt(0).toString(16))).join('/');
@@ -38,6 +36,7 @@ export function renderMarkdown(packet: ReviewPacket): string {
   if(summary.stage==='needs-development') lines.push('現時点で承認は求めません。開発側が上の問題を解消し、必要な仕様判断があれば、内容・理由・影響を説明してから改めて依頼します。');
   else if(summary.stage==='verified-ci') lines.push('この対象についての本人承認は確認済みです。コードや仕様が変わった場合は、新しい対象に対する確認が必要です。');
   else lines.push('上に書いた振る舞いが、実現したい仕様でよいかを確認してください。仕様が違う場合は、期待する振る舞いを開発側へ伝えてください。承認は対象コミットに対する本人レビューで確認します。');
+  if(packet.atlasUpdate)lines.push('',renderScanChanges(packet.atlasUpdate));
   lines.push('','<details>','<summary>対象コード・検証結果・前提・根拠ファイルを確認する</summary>','',
     `- 判定の記録：${packet.gate.status}`,
     `- 実行元：${packet.origin==='local'?'手元の検証（外部承認・CIの証拠ではありません）':'CIの監査結果'}`,
@@ -49,6 +48,7 @@ export function renderMarkdown(packet: ReviewPacket): string {
     '', '### 要件と契約の完全な登録',block(packet.requirements),
     '', '### ソースから抽出した全契約（未参照の入力条件を含む）',block(packet.sourceContracts),
     '', '### 必須の検証項目',block(packet.obligations),
+    ...(packet.atlasUpdate?['','### Atlas更新候補の記録',block(packet.atlasUpdate)]:[]),
     '', '### 判定・診断の原文',block({gate:packet.gate,diagnostics:packet.diagnostics,unverifiedRequirements:packet.unverifiedRequirements}),
     '', '### 実行時に信頼する境界と、許可された前提',
     '外部の情報や処理を正しいと仮定する箇所です。以下の登録自体は、その正しさを証明した結果ではありません。',
