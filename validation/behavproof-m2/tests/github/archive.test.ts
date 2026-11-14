@@ -13,3 +13,7 @@ test('unsafe or oversized zip entries are rejected without extracting files',asy
  expect(verifyArtifactArchive(await read('unsafe'),{},{}).status).toBe('unknown');
  expect(verifyArtifactArchive(await read('large'),{},{}).status).toBe('unknown');
 });
+test('bounded archive decoding exposes bytes without extracting or authenticating them',async()=>{
+ const {readArtifactArchive}=await import('../../packages/adapter-github/src/index.js');const input=await read('valid'),decoded=readArtifactArchive(input);expect(decoded.status).toBe('pass');expect(decoded.entries.get('manifest.json')).toEqual(Buffer.from('{"run":1}'));
+ const unsafe=readArtifactArchive(await read('unsafe'));expect(unsafe.status).toBe('unknown');expect(unsafe.entries.size).toBe(0);
+});

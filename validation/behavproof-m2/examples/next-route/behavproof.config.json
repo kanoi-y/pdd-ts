@@ -1,0 +1,1 @@
+{"schemaVersion":1,"mode":"audit","profile":"critical","git":{"base":"HEAD"},"contracts":{"enabled":true,"sources":[{"type":"vitest-inline","include":["tests/**/*.test.ts"]}]}}

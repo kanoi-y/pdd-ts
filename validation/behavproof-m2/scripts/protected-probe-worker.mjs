@@ -29,7 +29,7 @@ const vitest=join(dirname(fileURLToPath(import.meta.resolve('vitest/package.json
 const childEnv={CI:'1',PATH:process.env.PATH??'',...(process.env.SystemRoot?{SystemRoot:process.env.SystemRoot}:{}),...(process.env.TEMP?{TEMP:process.env.TEMP}:{}),...(process.env.TMP?{TMP:process.env.TMP}:{})};
 async function phase(name){
  const started=performance.now();
- const dir=join(output,name);await mkdir(dir,{recursive:false});const config=join(dir,'vitest.config.mjs'),json=join(dir,'vitest.json'),contracts=join(dir,'contracts.json');
+ const dir=join(output,name);await mkdir(dir,{recursive:false});const home=join(dir,'.home');await mkdir(home,{mode:0o700});const config=join(dir,'vitest.config.mjs'),json=join(dir,'vitest.json'),contracts=join(dir,'contracts.json');
  const data={root,targetFile:resolve(root,targetFile),targetRef:request.targetRef,expectedSourceHash:request.expectedSourceHash,faultValue,tests:request.tests,name,json,reporter,helper,probe,cache:join(dir,'.cache'),receipt:join(dir,'transform.json')};
  const configSource=`
 import {resolve} from 'node:path';
@@ -58,7 +58,7 @@ export default {
 };
 `;
  await writeFile(config,configSource,{flag:'wx',mode:0o600});
- const child=spawnSync(process.execPath,['--max-old-space-size=1024',vitest,'run','--config',config,'--configLoader','native'],{cwd:root,env:{...childEnv,BEHAVPROOF_REPORT:contracts},shell:false,stdio:'ignore',timeout:120000,killSignal:'SIGKILL'});
+ const child=spawnSync(process.execPath,['--max-old-space-size=1024',vitest,'run','--config',config,'--configLoader','native'],{cwd:root,env:{...childEnv,HOME:home,USERPROFILE:home,XDG_CONFIG_HOME:join(home,'.config'),XDG_CACHE_HOME:join(home,'.cache'),BEHAVPROOF_REPORT:contracts},shell:false,stdio:'ignore',timeout:120000,killSignal:'SIGKILL'});
  let receipt=null;try{receipt=JSON.parse((await safeRead(dir,'transform.json')).toString('utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}
  const expectedProgram=name==='canary'?instrumented.mutatedSource:instrumented.observedSource;
  if(receipt&&(receipt.mode!==name||receipt.targetRef!==request.targetRef||receipt.originalSha256!==instrumented.originalSha256||receipt.executedSha256!==hashBytes(Buffer.from(expectedProgram))))throw Error('Selected source transformation was not observed');

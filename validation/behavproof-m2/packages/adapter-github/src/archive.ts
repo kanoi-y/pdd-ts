@@ -1,8 +1,8 @@
 import { inflateRawSync, crc32 } from 'node:zlib';
 import { RelativePathSchema, hashBytes } from '@behavproof/core';
 import { observed, unknown } from './transport.js';
-/** No extraction or filesystem writes. Caller authenticates archive digest separately. */
-export function verifyArtifactArchive(input:Uint8Array,files:Readonly<Record<string,Uint8Array>>,entryMap:Readonly<Record<string,string>>){
+/** Bounded structure decoding only. It does not authenticate the producer or digest. */
+export function readArtifactArchive(input:Uint8Array):{status:"pass"|"unknown";entries:ReadonlyMap<string,Uint8Array>;reasons:string[]}{
  try {
   const zip=Buffer.from(input);if(zip.length>10*1024*1024||zip.length<22)throw Error('Archive size invalid');
   let end=-1;for(let p=zip.length-22;p>=Math.max(0,zip.length-65557);p--)if(zip.readUInt32LE(p)===0x06054b50&&p+22+zip.readUInt16LE(p+20)===zip.length){end=p;break;}
@@ -24,7 +24,15 @@ export function verifyArtifactArchive(input:Uint8Array,files:Readonly<Record<str
    if(data.length!==uncompressed||crc32(data)!==crc)throw Error('Archive payload mismatch');
    entries.set(name,data);cursor+=46+nameLength+extra+comment;
   }
-  if(cursor!==end||Object.keys(files).length!==Object.keys(entryMap).length||new Set(Object.values(entryMap)).size!==Object.values(entryMap).length)throw Error('Archive mapping incomplete or ambiguous');
+  if(cursor!==end)throw Error('Archive directory incomplete');
+  return {status:'pass',entries,reasons:[]};
+ }catch{return {status:'unknown',entries:new Map(),reasons:['Artifact archive is unsafe or unsupported']};}
+}
+/** No extraction or filesystem writes. Caller authenticates archive digest separately. */
+export function verifyArtifactArchive(input:Uint8Array,files:Readonly<Record<string,Uint8Array>>,entryMap:Readonly<Record<string,string>>){
+ try {
+  const decoded=readArtifactArchive(input);if(decoded.status!=='pass')throw Error('Unsafe archive');const entries=decoded.entries;
+  if(Object.keys(files).length!==Object.keys(entryMap).length||new Set(Object.values(entryMap)).size!==Object.values(entryMap).length)throw Error('Archive mapping incomplete or ambiguous');
   for(const [ref,bytes] of Object.entries(files)){
    RelativePathSchema.parse(ref);const name=entryMap[ref];if(!name||!entries.has(name)||hashBytes(entries.get(name)!)!==hashBytes(bytes))throw Error('Evaluated file differs from authenticated archive');
   }

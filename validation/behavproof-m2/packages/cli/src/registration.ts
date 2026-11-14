@@ -3,13 +3,14 @@ import {realpath,stat} from 'node:fs/promises';
 import {resolve,relative,isAbsolute,sep,join,dirname,basename} from 'node:path';
 import {ApprovalSchema,PolicySchema,ConfigSchema,RegistrySnapshotSchema,RelativePathSchema,HashSchema,canonicalJson,hash,safeRead,type Approval} from '@behavproof/core';
 import {git,writeScoped} from './project.js';
+import {ClaimScopesSchema} from './trust.js';
 const text=z.string().min(1),sha=z.string().regex(/^[a-f0-9]{40}$/);
 export const RegistrationSchema=z.strictObject({
  schemaVersion:z.literal(1),repository:z.strictObject({id:z.string().regex(/^\d+$/),fullName:z.string().regex(/^[\w-]+\/[\w.-]+$/)}),
  source:z.strictObject({commitSha:sha,prNumber:z.number().int().positive(),projectPath:z.union([z.literal('.'),RelativePathSchema]),policyRef:RelativePathSchema,fileHashes:z.record(RelativePathSchema,HashSchema)}),
  policyId:text,policy:PolicySchema,config:ConfigSchema,baseline:RegistrySnapshotSchema,
  inputs:z.array(RelativePathSchema).min(1),configPaths:z.array(RelativePathSchema),
- claimScopes:z.array(z.strictObject({contractId:text,caseIds:z.array(text).min(1),targetRef:text,method:text})),approvals:z.array(ApprovalSchema),
+ claimScopes:ClaimScopesSchema,approvals:z.array(ApprovalSchema),
 });
 export type Registration=z.infer<typeof RegistrationSchema>;
 export type RegistrationAuthority={verifySource:(registration:Registration)=>boolean;verifyApproval:(approval:Approval)=>boolean};

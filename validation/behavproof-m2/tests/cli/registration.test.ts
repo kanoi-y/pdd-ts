@@ -56,3 +56,7 @@ test('a single-package project at the Git root has an explicit identity projecti
  const {registrationProjectData,RegistrationSchema}=await import('../../packages/cli/src/registration.js');const data={...value(),source:{...value().source,projectPath:'.'}};
  const projected=registrationProjectData(RegistrationSchema.parse(data));expect(projected.inputs).toEqual(data.inputs);expect(projected.baseline.contracts).toEqual(data.baseline.contracts);
 });
+test('multiple target scopes for the same contract are rejected rather than silently selecting the first',async()=>{
+ const data=value();data.claimScopes.push({...data.claimScopes[0]!,targetRef:'src/other.ts#readOther'});expect(()=>createRegistration(data,authority)).toThrow(/scope|duplicate|one/i);
+ const {TrustRootSchema}=await import('../../packages/cli/src/trust.js');expect(()=>TrustRootSchema.parse({schemaVersion:1,policy,config:data.config,baseline,inputs:data.inputs,configPaths:[],manifests:[],claimScopes:data.claimScopes})).toThrow(/scope|duplicate|one/i);
+});
