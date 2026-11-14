@@ -1,17 +1,17 @@
 import { z } from 'zod';
 import { resolve, dirname, basename, relative, sep, isAbsolute } from 'node:path';
 import { realpath } from 'node:fs/promises';
-import { ConfigSchema, PolicySchema, RegistrySnapshotSchema, RelativePathSchema, HashSchema, ManifestExpectedSchema, ProducerAuthoritySchema, safeReadJson, safeRead, hashBytes, validateManifest, ExecutionManifestSchema, hash, type EvidenceSubject, type ManifestValidation, type Evidence, type Contract } from '@behavproof/core';
+import { ConfigSchema, PolicySchema, RegistrySnapshotSchema, RelativePathSchema, HashSchema, CiIdentitySchema, ManifestExpectedSchema, ProducerAuthoritySchema, safeReadJson, safeRead, hashBytes, validateManifest, ExecutionManifestSchema, hash, type EvidenceSubject, type ManifestValidation, type Evidence, type Contract } from '@behavproof/core';
 import { GitHubAuthority, verifyArtifactArchive } from '@behavproof/adapter-github';
 import { git } from './project.js';
 export const TrustRootSchema=z.strictObject({
  schemaVersion:z.literal(1),policy:PolicySchema,config:ConfigSchema,baseline:RegistrySnapshotSchema,
- inputs:z.array(RelativePathSchema).min(1),configPaths:z.array(RelativePathSchema),dependencyLockPath:RelativePathSchema.optional(),
+ inputs:z.array(RelativePathSchema).min(1),qualitySources:z.array(RelativePathSchema).min(1).optional(),configPaths:z.array(RelativePathSchema),dependencyLockPath:RelativePathSchema.optional(),
  manifests:z.array(z.strictObject({ref:RelativePathSchema,manifestHash:HashSchema.optional(),expected:ManifestExpectedSchema,authority:ProducerAuthoritySchema,github:z.strictObject({repository:z.string().min(1),workflowPath:z.string(),workflowSha:z.string(),jobName:z.string(),artifactName:z.string(),archivePath:RelativePathSchema,archiveEntries:z.record(RelativePathSchema,RelativePathSchema)}).optional()}).refine(row=>row.authority.kind!=='local'||row.manifestHash!==undefined,'Local authority requires host-pinned manifestHash')),
  github:z.strictObject({repository:z.string().regex(/^[\w-]+\/[\w.-]+$/),pr:z.number().int().positive(),reviewers:z.array(z.string().min(1)).min(1),requiredChecks:z.array(z.strictObject({context:z.string().min(1),appId:z.number().int().positive()})).min(1)}).optional(),
  notApplicable:z.array(z.strictObject({ruleId:z.string().min(1),reason:z.string().min(1),evidenceRef:RelativePathSchema})).default([]),
  claimScopes:z.array(z.strictObject({contractId:z.string().min(1),caseIds:z.array(z.string().min(1)).min(1),targetRef:z.string().min(1),method:z.string().min(1)})).default([]),
- pipeline:z.strictObject({workflow:RelativePathSchema,gateJob:z.string().min(1),requiredJobs:z.array(z.string().min(1)).min(1),artifacts:z.array(RelativePathSchema).min(1),protectedBranch:z.string().min(1)}).optional(),
+ pipeline:z.strictObject({workflow:RelativePathSchema,gateJob:z.string().min(1),requiredJobs:z.array(z.string().min(1)).min(1),artifacts:z.array(RelativePathSchema).min(1),protectedBranch:z.string().min(1),currentRun:z.strictObject({ci:CiIdentitySchema,workflowPath:RelativePathSchema,workflowSha:z.string().regex(/^[a-f0-9]{40}$/),workflowHash:HashSchema}).optional()}).optional(),
 });
 export type TrustRoot=z.infer<typeof TrustRootSchema>;
 export async function loadTrust(root:string,path:string):Promise<TrustRoot>{

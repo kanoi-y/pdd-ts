@@ -10,6 +10,10 @@
     "./reporter": {
       "types": "./dist/reporter.d.ts",
       "import": "./dist/reporter.js"
+    },
+    "./probe": {
+      "types": "./dist/probe.d.ts",
+      "import": "./dist/probe.js"
     }
   },
   "dependencies": {

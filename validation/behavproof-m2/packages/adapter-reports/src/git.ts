@@ -11,9 +11,9 @@ export type GitDiff={status:'known'|'unknown';baseSha:string;headSha:string;diff
 export async function gitDiff(root:string,base:string,head:string):Promise<GitDiff>{
  const baseSha=(await git(root,['rev-parse','--verify',`${base}^{commit}`])).trim(),headSha=(await git(root,['rev-parse','--verify',`${head}^{commit}`])).trim();let diffBaseSha:string;
  try{diffBaseSha=(await git(root,['merge-base',baseSha,headSha])).trim();if(!diffBaseSha)throw new Error('No merge base');}catch{return {status:'unknown',baseSha,headSha,files:[],reason:'Missing merge base'};}
- const names=(await git(root,['diff','--no-ext-diff','--find-renames','--name-status','-z',diffBaseSha,headSha,'--'])).split('\0');const files:DiffFile[]=[];
+ const names=(await git(root,['diff','--relative','--no-ext-diff','--find-renames','--name-status','-z',diffBaseSha,headSha,'--'])).split('\0');const files:DiffFile[]=[];
  for(let i=0;i<names.length-1;){const status=names[i++]!;const first=names[i++]!;const rename=status.startsWith('R')||status.startsWith('C');const name=rename?names[i++]!:first;RelativePathSchema.parse(name);if(rename)RelativePathSchema.parse(first);const lines:number[]=[];let ambiguous=false;
- if(!status.startsWith('D')){const patch=await git(root,['diff','--no-ext-diff','--no-textconv','--no-color','--find-renames','--unified=0',diffBaseSha,headSha,'--',...(rename?[`:(literal)${first}`]:[]),`:(literal)${name}`]);if(patch.includes('Binary files ')||patch.includes('GIT binary patch'))ambiguous=true;for(const match of patch.matchAll(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/gm)){const start=Number(match[1]),n=match[2]===undefined?1:Number(match[2]);for(let l=start;l<start+n;l++)lines.push(l);}}
+ if(!status.startsWith('D')){const patch=await git(root,['diff','--relative','--no-ext-diff','--no-textconv','--no-color','--find-renames','--unified=0',diffBaseSha,headSha,'--',...(rename?[`:(literal)${first}`]:[]),`:(literal)${name}`]);if(patch.includes('Binary files ')||patch.includes('GIT binary patch'))ambiguous=true;for(const match of patch.matchAll(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/gm)){const start=Number(match[1]),n=match[2]===undefined?1:Number(match[2]);for(let l=start;l<start+n;l++)lines.push(l);}}
  files.push({path:name,...(rename?{previousPath:first}:{}),kind:status,lines,ambiguous});}
  return {status:'known',baseSha,headSha,diffBaseSha,files};
 }
@@ -38,7 +38,7 @@ export async function gitSubject(root:string,inputPaths:readonly string[],prHead
 /** Mapping is safe only when the entire scoped file has identical Git blob content. */
 export async function lineMapping(root:string,prHead:string,testedCommit:string,paths:readonly string[]):Promise<'known'|'unknown'>{
  if(!paths.length)return 'unknown';const head=(await git(root,['rev-parse','--verify',`${prHead}^{commit}`])).trim(),tested=(await git(root,['rev-parse','--verify',`${testedCommit}^{commit}`])).trim();
- for(const p of paths){RelativePathSchema.parse(p);try{const [a,b]=await Promise.all([git(root,['rev-parse','--verify',`${head}:${p}`]),git(root,['rev-parse','--verify',`${tested}:${p}`])]);if(a.trim()!==b.trim())return 'unknown';}catch{return 'unknown';}}return 'known';
+ for(const p of paths){RelativePathSchema.parse(p);try{const [a,b]=await Promise.all([git(root,['rev-parse','--verify',`${head}:./${p}`]),git(root,['rev-parse','--verify',`${tested}:./${p}`])]);if(a.trim()!==b.trim())return 'unknown';}catch{return 'unknown';}}return 'known';
 }
 
 /** Recognize an actual Git synthetic merge, never an asserted parent array alone. */

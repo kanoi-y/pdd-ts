@@ -12,7 +12,9 @@ export function scopedEvaluations(input:{config:Config;protectedConfig?:Config;p
  for(const context of contexts){
   const target={path:context.path,module:context.path.replace(/\.[cm]?[jt]sx?$/,''),...(context.kind?{contractKind:context.kind}:{}),...(context.declaredRisk?{declaredRisk:context.declaredRisk}:{})};
   const protectedRisk=input.protectedConfig?resolveRisk(input.protectedConfig,target):undefined,risk=resolveRisk(input.config,target,protectedRisk),profile=getProfilePolicy(risk);
-  for(const [id,rule] of Object.entries(profile.rules))if(input.policy.rules[id]?.allowNotApplicable)rule.allowNotApplicable=input.policy.rules[id]!.allowNotApplicable;
+  // Risk selects mandatory obligations; numerical parameters come from the
+  // already merged project/protected policy rather than reapplying preset defaults.
+  for(const [id,rule] of Object.entries(profile.rules)){const configured=input.policy.rules[id];if(configured?.min!==undefined)rule.min=configured.min;if(configured?.minMutants!==undefined)rule.minMutants=configured.minMutants;if(configured?.allowNotApplicable)rule.allowNotApplicable=configured.allowNotApplicable;}
   const effective=mergeProtectedPolicy(input.policy,profile);
   const contracts=context.contractId?input.registry.contracts.filter(c=>c.id===context.contractId):input.registry.contracts.filter(c=>sourcePath(c.sourceRef)===context.path||input.claimScopes.some(s=>s.contractId===c.id&&s.targetRef.split('#')[0]===context.path));
   const selected={...input.registry,contracts},assurance=evaluateAssurance(selected,input.rows,input.bindings,input.verifyRow),facts=new Map(input.states);

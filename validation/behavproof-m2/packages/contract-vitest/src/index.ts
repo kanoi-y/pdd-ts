@@ -1,5 +1,6 @@
 import { test, expect } from "vitest";
 import { hash } from "@behavproof/core";
+import {withTargetCalls, type TargetCall} from "./probe.js";
 export type ContractDefinition<I = unknown, E = unknown> = {
   id: string;
   intent: string;
@@ -44,6 +45,7 @@ export const contractTest = {
         bindingHash,
         bindingScope: "runtime-function-string-v1",
         comparisonCount: 0,
+        targetCalls: [] as TargetCall[],
         status: "unknown",
       };
       test(
@@ -53,7 +55,7 @@ export const contractTest = {
           const meta = (
             task.meta as typeof task.meta & { behavproof: typeof identity }
           ).behavproof;
-          const actual = await callback(structuredClone(entry) as CaseOf<T>);
+          const actual = await withTargetCalls(()=>callback(structuredClone(entry) as CaseOf<T>),calls=>{meta.targetCalls=calls;});
           meta.comparisonCount++;
           try {
             expect(actual).toEqual(entry.expected);

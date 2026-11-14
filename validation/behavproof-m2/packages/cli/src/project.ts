@@ -34,5 +34,5 @@ export async function registryAtGit(root:string,cfg:Config,sha:string,extraSourc
  if(!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(sha))throw Error('Expected immutable Git object');
  const files=(await git(root,['ls-tree','-r','--name-only','-z',sha])).split('\0').filter(Boolean);
  if(files.length>50000)throw Error('Git source inventory exceeds limit');
- return registry(root,cfg,files,sha,extraSources,path=>git(root,['show',`${sha}:${RelativePathSchema.parse(path)}`]));
+ return registry(root,cfg,files,sha,extraSources,path=>git(root,['show',`${sha}:./${RelativePathSchema.parse(path)}`]));
 }

@@ -15,7 +15,7 @@ export class GitHubTransport {
     if(!Number.isInteger(this.timeout)||this.timeout<1||this.timeout>60000||!Number.isInteger(this.maxBytes)||this.maxBytes<1||this.maxBytes>10*1024*1024||!Number.isInteger(this.maxPages)||this.maxPages<1||this.maxPages>100)throw Error('Invalid transport limits');
   }
   async request(path:string,query?:object):Promise<unknown>{
-    if(!(path.startsWith(this.prefix+'/')&&!path.includes('..'))&&!(path==='/graphql'&&query))throw Error('Invalid GitHub endpoint');
+    if(!(path===this.prefix||path.startsWith(this.prefix+'/')&&!path.includes('..'))&&!(path==='/graphql'&&query))throw Error('Invalid GitHub endpoint');
     const abort=new AbortController();let timer:ReturnType<typeof setTimeout>|undefined;
     const operation=async()=>{
       const headers:Record<string,string>={Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};

@@ -51,6 +51,39 @@ export class GitHubAuthority {
       return {...observed(approval,[path]),approval};
     }catch(error){return unknown(error instanceof Error?error.message:'Approval verification unavailable');}
   }
+  /** Read upstream terminal outcomes while this trusted final gate is running. */
+  async upstream(ciInput:unknown,expected:{ci:Ci;workflowPath:string;workflowSha:string;gateJob:string;requiredJobs:string[]}):Promise<Observation<{jobs:Record<string,string>}>> {
+    try {
+      const ci=CiIdentitySchema.parse(ciInput);
+      if(hash(ci)!==hash(CiIdentitySchema.parse(expected.ci)) ||
+         ![ci.repositoryId,ci.runId,ci.jobId].every(x=>/^\d+$/.test(x)) ||
+         !sha(expected.workflowSha) || !/^\.github\/workflows\/[\w.-]+\.ya?ml$/.test(expected.workflowPath) ||
+         ci.workflowRef!==`${this.http.repository}/${expected.workflowPath}@${expected.workflowSha}` ||
+         !['workflow_dispatch','workflow_run','push'].includes(ci.eventName) || !expected.gateJob ||
+         !expected.requiredJobs.length || new Set(expected.requiredJobs).size!==expected.requiredJobs.length ||
+         expected.requiredJobs.some(name=>!name || name===expected.gateJob)) return unknown('Invalid final-gate expectations');
+      const path=`${this.http.prefix}/actions/runs/${ci.runId}`,attempt=`${path}/attempts/${ci.runAttempt}`;
+      // The latest endpoint prevents an earlier attempt from authorizing a rerun.
+      for(const endpoint of [path,attempt]) {
+        const run=object(await this.http.request(endpoint));
+        if(String(run.id)!==ci.runId || String(run.repository?.id)!==ci.repositoryId ||
+           run.repository?.full_name!==this.http.repository || run.head_sha!==expected.workflowSha ||
+           run.path!==expected.workflowPath || run.event!==ci.eventName || run.run_attempt!==ci.runAttempt ||
+           !['in_progress','completed'].includes(run.status)) return unknown('Final-gate run identity mismatch');
+      }
+      const rows=await this.http.pages(`${attempt}/jobs`,'jobs');
+      const belongs=(row:Record<string,any>)=>String(row.run_id)===ci.runId&&row.run_attempt===ci.runAttempt;
+      const gate=rows.filter(row=>String(row.id)===ci.jobId&&row.name===expected.gateJob);
+      if(gate.length!==1 || !belongs(gate[0]!) || !['in_progress','completed'].includes(gate[0]!.status)) return unknown('Final-gate job identity mismatch');
+      const jobs:Record<string,string>={};
+      for(const name of expected.requiredJobs) {
+        const matched=rows.filter(row=>row.name===name);
+        if(matched.length!==1 || !belongs(matched[0]!) || matched[0]!.status!=='completed' || matched[0]!.conclusion!=='success') return unknown('Required upstream job is incomplete or unsuccessful');
+        jobs[name]='success';
+      }
+      return observed({jobs},[path,attempt]);
+    }catch(error){return unknown(error instanceof Error?error.message:'Upstream verification unavailable');}
+  }
   async producer(ciInput:unknown,expected:ProducerExpectation):Promise<Observation<{ci:Ci;artifactId:string}>>{
     try {
       const ci=CiIdentitySchema.parse(ciInput);

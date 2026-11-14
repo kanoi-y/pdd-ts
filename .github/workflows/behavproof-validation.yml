@@ -1,7 +1,7 @@
 name: BehavProof validation
 on:
   push:
-    branches: [codex/behavproof-m2-validation]
+    branches: [codex/behavproof-m2-producer]
   workflow_dispatch:
 permissions:
   contents: read
@@ -26,6 +26,7 @@ jobs:
       - run: npm test
       - run: node scripts/package-smoke.mjs --online
       - run: node scripts/acceptance-flow.mjs
+      - run: node scripts/protected-probe-flow.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
@@ -35,7 +36,7 @@ jobs:
 
   prepare-review:
     needs: verify
-    if: github.event_name == 'push' && github.ref == 'refs/heads/codex/behavproof-m2-validation'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/codex/behavproof-m2-producer'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -55,10 +56,10 @@ jobs:
               request = urllib.request.Request('https://api.github.com/repos/' + repo + path, data=body, method=method, headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'})
               with urllib.request.urlopen(request, timeout=30) as response:
                   return json.load(response)
-          existing = api('GET', '/pulls?state=open&head=kanoi-y%3Acodex%2Fbehavproof-m2-validation')
+          existing = api('GET', '/pulls?state=open&head=kanoi-y%3Acodex%2Fbehavproof-m2-producer')
           if existing:
               print(existing[0]['html_url'])
           else:
-              result = api('POST', '/pulls', {'head': 'codex/behavproof-m2-validation', 'base': 'main', 'draft': True, 'title': 'BehavProof M2の隔離検証', 'body': '## 変更内容\nBehavProofの検証用ソースをvalidation/behavproof-m2へ配置し、3 OSの実CIで確認します。既存PDD本体・main保護設定は変更していません。\n\n## 実際の振る舞い\n正常な契約比較・リファクタは比較pass。偽物コールバック、故障、skip・削除の負例を検査し、criticalの未充足証拠はゲートexit1として残します。ローカルテスト・配布インストール・公開フローを確認済みです。\n\n## 残る制限\nこのCIはBehavProof必須ゲートの外部保護ではありません。新規変更への人間承認、保護ゲートのskip・削除・偽発行元の実地試験は未完了です。自動マージ・保護設定変更・npm公開は行いません。'})
+              result = api('POST', '/pulls', {'head': 'codex/behavproof-m2-producer', 'base': 'main', 'draft': True, 'title': 'BehavProof M2の隔離検証', 'body': '## 変更内容\nBehavProofの検証用ソースをvalidation/behavproof-m2へ配置し、3 OSの実CIで確認します。既存PDD本体・main保護設定は変更していません。\n\n## 実際の振る舞い\n正常な契約比較・リファクタは比較pass。偽物コールバック、故障、skip・削除の負例を検査し、criticalの未充足証拠はゲートexit1として残します。ローカルテスト・配布インストール・公開フローを確認済みです。\n\n## 残る制限\nこのCIはBehavProof必須ゲートの外部保護ではありません。新規変更への人間承認、保護ゲートのskip・削除・偽発行元の実地試験は未完了です。自動マージ・保護設定変更・npm公開は行いません。'})
               print(result['html_url'])
           PYTHON

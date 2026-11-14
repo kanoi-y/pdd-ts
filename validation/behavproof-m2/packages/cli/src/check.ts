@@ -1,8 +1,9 @@
 import { scopedEvaluations } from './scopes.js';
+import { pipelineEvaluation } from './pipeline.js';
 import { safeRead, safeReadJson, parseConfig, hashBytes, mergeProtectedPolicy, evaluateGate, hash, type Evaluation, type EvidenceStatus, type Approval, type Config, EvidenceSchema } from '@behavproof/core';
 import { detectProject, gitDiff, gitSubject, normalizeVitest, normalizeLcov, normalizeStryker, evaluateCoverage, evaluateMutation, lineMapping, verifyMergeSubject } from '@behavproof/adapter-reports';
 import { reconcile, evaluateAssurance, bindRegistrations, evaluateScopedClaims, type ExecutionRow, type ReportBinding } from '@behavproof/contract-registry';
-import { GitHubAuthority, diagnoseWorkflow, evaluateUpstream } from '@behavproof/adapter-github';
+import { GitHubAuthority } from '@behavproof/adapter-github';
 import { config, fileList, select, registry, registryAtGit, ref, exists } from './project.js';
 import { authenticate, isCurrentClaim, loadTrust, approvalKey, type TrustRoot } from './trust.js';
 export type CheckOptions={config?:string;profile?:string;mode?:string;base?:string;head?:string;'trust-root'?:string};
@@ -54,7 +55,11 @@ export async function check(root:string,options:CheckOptions){
   const result=normalizeVitest(await readArtifactJson(vitestPath),contractData?.inventory);
   set('testResult',result.status==='fail'?'fail':trusted(vitestPath)?result.status:'unknown',`Vitest ${JSON.stringify(result.payload)}; ${trusted(vitestPath)?'verified current producer':'producer/subject unverified'}`,[vitestPath]);
  }
- const scope=Object.fromEntries(diff.files.filter(f=>!f.kind.startsWith('D')&&/\.[cm]?[jt]sx?$/.test(f.path)).map(f=>[f.path,f.lines]));
+ const qualityPaths=trust?.qualitySources?select(files,trust.qualitySources):undefined;
+ if(qualityPaths&&(!qualityPaths.length||qualityPaths.some(path=>!inputPaths.includes(path))))throw Error('Protected quality sources must be present within the hashed input scope');
+ const qualityFiles=diff.files.filter(f=>!qualityPaths||qualityPaths.includes(f.path));
+ const qualityScope={patterns:trust?.qualitySources??null,excludedPaths:diff.files.filter(f=>/\.[cm]?[jt]sx?$/.test(f.path)&&qualityPaths&&!qualityPaths.includes(f.path)).map(f=>f.path).sort()};
+ const scope=Object.fromEntries(qualityFiles.filter(f=>!f.kind.startsWith('D')&&/\.[cm]?[jt]sx?$/.test(f.path)).map(f=>[f.path,f.lines]));
  const mapping=diff.status==='known'&&!diff.files.some(f=>f.ambiguous)&&await lineMapping(root,diff.headSha,subject.testedCommitSha,Object.keys(scope))==='known';
  let normalizedCoverage:ReturnType<typeof normalizeLcov>|undefined,normalizedMutation:ReturnType<typeof normalizeStryker>|undefined;const mutationSources:Record<string,string>={};
  const coveragePath=cfg.reports.coverage??trust?.config.reports.coverage;
@@ -96,11 +101,8 @@ export async function check(root:string,options:CheckOptions){
   const weakened=sourceWeakened||Object.entries(trust.policy.rules).some(([id,r])=>{const local=cfg.rules[id],levels={off:0,warn:1,error:2};return !local||levels[local.severity]<levels[r.severity]||(r.min!==undefined&&(local.min??-1)<r.min)||(r.minMutants!==undefined&&(local.minMutants??-1)<r.minMutants);});
   set('policyProtection',weakened?'fail':'pass',weakened?'Project policy weakens protected obligations; effective evaluation retains protected thresholds':'Policy supplied outside project authority');
  }
- if(trust?.pipeline){const p=trust.pipeline,diagnosis=diagnoseWorkflow((await safeRead(root,p.workflow)).toString('utf8'),p);let upstream:ReturnType<typeof evaluateUpstream>|undefined;
-  for(const spec of trust.manifests)for(const a of spec.expected.artifacts)if(a.kind==='pipeline'&&trusted(a.ref)){const raw=await readArtifactJson(a.ref) as any;if(!raw||!raw.jobs||!Array.isArray(raw.artifacts))throw Error('Invalid pipeline report');upstream=evaluateUpstream(raw.jobs,raw.artifacts,p);}
-  let protectedStatus='unknown';if(auth.trustedCi&&trust.github){const result=await new GitHubAuthority({repository:trust.github.repository,...(process.env.GITHUB_TOKEN?{token:process.env.GITHUB_TOKEN}:{})}).protection(p.protectedBranch,trust.github.requiredChecks);protectedStatus=result.status;}
-  set('pipelineIntegrity',worst([diagnosis.internal.status,upstream?.status??'unknown',protectedStatus]),'Workflow health, authenticated upstream outcomes and issuer-bound external protection evaluated separately');
- }
+ const pipelineObservation=trust?.pipeline?await pipelineEvaluation(root,trust,auth):undefined;
+ if(pipelineObservation)set('pipelineIntegrity',pipelineObservation.status,'Workflow health, authenticated artifacts, upstream outcomes and issuer-bound external protection evaluated separately');
  if(auth.failures.length)set('evidenceIntegrity','fail',auth.failures.join('; '));
  const evaluations:Evaluation[]=Object.entries(policy.rules).map(([ruleId,rule])=>{
   const exemption=trust?.notApplicable.find(n=>n.ruleId===ruleId&&states.get(ruleId)?.status!=='fail'&&rule.allowNotApplicable?.includes(n.reason)&&trusted(n.evidenceRef));
@@ -117,7 +119,8 @@ export async function check(root:string,options:CheckOptions){
  let configsChanged=false;for(const [path,digest] of Object.entries(auth.configHashes))if(hashBytes(await safeRead(root,path))!==digest)configsChanged=true;
  if(trust?.dependencyLockPath&&hashBytes(await safeRead(root,trust.dependencyLockPath))!==auth.dependencyLockHash)configsChanged=true;
  const finalConfig=await exists(root,configPath)?await safeRead(root,configPath):undefined;
- if(configsChanged||hash(finalSubject)!==hash(subject)||(configBytes?hashBytes(configBytes):null)!==(finalConfig?hashBytes(finalConfig):null))evaluations.push({ruleId:'evaluationSnapshot',severity:'error',status:'fail',scope:[],evidenceIds:[],message:'Source, configuration or HEAD changed during evaluation'});
+ const qualityChanged=!!qualityPaths&&hash(select(finalFiles,trust!.qualitySources!))!==hash(qualityPaths);
+ if(qualityChanged||configsChanged||hash(finalSubject)!==hash(subject)||(configBytes?hashBytes(configBytes):null)!==(finalConfig?hashBytes(finalConfig):null))evaluations.push({ruleId:'evaluationSnapshot',severity:'error',status:'fail',scope:[],evidenceIds:[],message:'Source, configuration or HEAD changed during evaluation'});
  const stable=!evaluations.some(e=>e.ruleId==='evaluationSnapshot'||e.ruleId==='testedCommitRelationship')&&!subject.dirty;
- return {...evaluateGate(evaluations,mode),documentEvidence:{registry:obligations,rows,bindings,authenticatedRows:stable&&contractPath&&trusted(contractPath)?rows.map(row=>hash(row)):[],authenticatedApprovals:stable?[...approved].sort():[]},subject,diff,detection,provenance:{manifests:auth.manifests,reasons:auth.unknowns},assurance,drift:drift.changes,approvals};
+ return {...evaluateGate(evaluations,mode),documentEvidence:{registry:obligations,rows,bindings,authenticatedRows:stable&&contractPath&&trusted(contractPath)?rows.map(row=>hash(row)):[],authenticatedApprovals:stable?[...approved].sort():[]},subject,diff,qualityScope,detection,effectivePolicyHash:hash(policy),pipelineObservation:pipelineObservation??null,provenance:{manifests:auth.manifests,reasons:auth.unknowns},assurance:{...assurance,production_target_observed:states.get('productionTargetObserved')?.status??'unknown',mutation_sensitivity_observed:states.get('mutationSensitivityObserved')?.status??'unknown'},drift:drift.changes,approvals};
 }
