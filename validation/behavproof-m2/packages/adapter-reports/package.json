@@ -1,0 +1,20 @@
+{
+  "name": "@behavproof/adapter-reports",
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@behavproof/core": "0.1.0"
+  }
+}

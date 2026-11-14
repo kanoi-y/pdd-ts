@@ -1,0 +1,66 @@
+name: BehavProof validation
+on:
+  push:
+    branches: [codex/behavproof-m2-validation]
+  pull_request:
+    paths: ['validation/behavproof-m2/**', '.github/workflows/behavproof-validation.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: validation/behavproof-m2
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --cache .npm-cache
+      - run: npm test
+      - run: node scripts/package-smoke.mjs
+      - run: node scripts/acceptance-flow.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: local-acceptance-${{ matrix.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: validation/behavproof-m2/docs/evidence/
+          if-no-files-found: error
+
+  prepare-review:
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/codex/behavproof-m2-validation'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Open isolated draft review
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os, urllib.request
+          repo = os.environ['GITHUB_REPOSITORY']
+          if repo != 'kanoi-y/pdd-ts':
+              raise SystemExit('Unexpected validation repository')
+          def api(method, path, data=None):
+              body = None if data is None else json.dumps(data).encode()
+              request = urllib.request.Request('https://api.github.com/repos/' + repo + path, data=body, method=method, headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'})
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  return json.load(response)
+          existing = api('GET', '/pulls?state=open&head=kanoi-y%3Acodex%2Fbehavproof-m2-validation')
+          if existing:
+              print(existing[0]['html_url'])
+          else:
+              result = api('POST', '/pulls', {'head': 'codex/behavproof-m2-validation', 'base': 'main', 'draft': True, 'title': 'BehavProof M2の隔離検証', 'body': '## 変更内容\nBehavProofの検証用ソースをvalidation/behavproof-m2へ配置し、3 OSの実CIで確認します。既存PDD本体・main保護設定は変更していません。\n\n## 実際の振る舞い\n正常な契約比較・リファクタは比較pass。偽物コールバック、故障、skip・削除の負例を検査し、criticalの未充足証拠はゲートexit1として残します。ローカルでは182テスト・配布インストール・公開フローを確認済みです。\n\n## 残る制限\nこのCIはBehavProof必須ゲートの外部保護ではありません。新規変更への人間承認、保護ゲートのskip・削除・偽発行元の実地試験は未完了です。自動マージ・保護設定変更・npm公開は行いません。'})
+              print(result['html_url'])
+          PYTHON

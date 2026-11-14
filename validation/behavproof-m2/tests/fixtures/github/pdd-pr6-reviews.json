@@ -1,0 +1,44 @@
+[
+  {
+    "id": 5817869155,
+    "node_id": "PRR_kwDOVl6hWs8AAAABWsWjYw",
+    "user": {
+      "login": "kanoi-y",
+      "id": 67132908,
+      "node_id": "MDQ6VXNlcjY3MTMyOTA4",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67132908?u=e3cf8547a1c9081d907365c75e2fa30e5de1b1cd&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kanoi-y",
+      "html_url": "https://github.com/kanoi-y",
+      "followers_url": "https://api.github.com/users/kanoi-y/followers",
+      "following_url": "https://api.github.com/users/kanoi-y/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kanoi-y/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kanoi-y/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kanoi-y/subscriptions",
+      "organizations_url": "https://api.github.com/users/kanoi-y/orgs",
+      "repos_url": "https://api.github.com/users/kanoi-y/repos",
+      "events_url": "https://api.github.com/users/kanoi-y/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kanoi-y/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "APPROVED",
+    "html_url": "https://github.com/kanoi-y/pdd-ts/pull/6#pullrequestreview-5817869155",
+    "pull_request_url": "https://api.github.com/repos/kanoi-y/pdd-ts/pulls/6",
+    "author_association": "OWNER",
+    "is_copilot_code_review": false,
+    "copilot_code_review_effort": null,
+    "_links": {
+      "html": {
+        "href": "https://github.com/kanoi-y/pdd-ts/pull/6#pullrequestreview-5817869155"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/kanoi-y/pdd-ts/pulls/6"
+      }
+    },
+    "submitted_at": "2026-11-08T12:27:22Z",
+    "commit_id": "efbf0a34410aafd3051623264cd33f73df82e4ce"
+  }
+]

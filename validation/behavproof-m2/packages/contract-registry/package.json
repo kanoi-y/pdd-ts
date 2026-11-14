@@ -1,0 +1,21 @@
+{
+  "name": "@behavproof/contract-registry",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@behavproof/core": "0.1.0",
+    "typescript-parser": "npm:typescript@5.9.3"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": "24.x"
+  }
+}

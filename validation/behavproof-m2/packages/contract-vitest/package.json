@@ -1,0 +1,27 @@
+{
+  "name": "@behavproof/vitest",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./reporter": {
+      "types": "./dist/reporter.d.ts",
+      "import": "./dist/reporter.js"
+    }
+  },
+  "dependencies": {
+    "@behavproof/core": "0.1.0"
+  },
+  "peerDependencies": {
+    "vitest": "5.1.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": "24.x"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/adapter-reports"
+    },
+    {
+      "path": "./packages/contract-registry"
+    },
+    {
+      "path": "./packages/contract-vitest"
+    },
+    {
+      "path": "./packages/adapter-github"
+    },
+    {
+      "path": "./packages/cli"
+    }
+  ]
+}
