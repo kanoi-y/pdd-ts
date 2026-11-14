@@ -42,3 +42,5 @@ Use `@behavproof/vitest` with literal `defineContract` and `contractTest.each` d
 Claims remain separate: declared contracts, binding verification, executed cases, production target observations, mutation sensitivity and human approval. A fake callback can pass comparisons while production reach and sensitivity remain unknown. Global LCOV or mutation scores cannot establish individual contract claims. Optional M2-F is unsupported explicitly.
 
 The CLI package includes versioned JSON schemas, basic/standard/critical presets and an internal audit workflow template. The template requires a pinned verifier/root deployment; it does not establish externally protected checks itself. See [acceptance status](docs/acceptance.md) and [M0 experiments](docs/m0-results.md).
+
+Development packaging checks: `node scripts/package-smoke.mjs --online` tests a fresh consumer using registry metadata; `--offline` requires a fully seeded npm cache. Both disable lifecycle scripts and install the six local tarballs without publishing.
