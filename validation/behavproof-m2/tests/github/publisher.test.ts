@@ -61,3 +61,12 @@ test('a changed current head blocks publication and copied decisions are not aut
 test('publisher validates returned issuer and exact check identity',async()=>{
  for(const change of [{app:88},{postHead:'f'.repeat(40)}])await expect(connection(change).publisher.publish(prepareCheckPublication(packet(),expected(),allow))).rejects.toThrow(/issuer|identity/i);
 });
+test('missing producer evidence has a distinct failure-only publication path without a fabricated subject or CI',async()=>{
+ const {prepareFailedCheck}=await import('../../packages/adapter-github/src/publisher.js');const e=expected(),identity={repository:e.repository,repositoryId:e.repositoryId,pr:e.pr,headSha:e.headSha,baseSha:e.baseSha,protectedBranch:e.protectedBranch,checkName:e.checkName,appId:e.appId,failureRef:'https://github.com/acme/shop/actions/runs/18'};
+ const decision=prepareFailedCheck(identity);expect(decision.conclusion).toBe('failure');const {publisher,posts}=connection();await publisher.publish(decision);expect(posts[0].conclusion).toBe('failure');expect(posts[0].output.summary).not.toContain('runs/18');
+ await expect(publisher.publish(JSON.parse(JSON.stringify(decision)))).rejects.toThrow(/prepared|verified/i);
+});
+test('failure-only publication still rejects invalid identity and cannot use GitHub Actions as issuer',async()=>{
+ const {prepareFailedCheck}=await import('../../packages/adapter-github/src/publisher.js');const e=expected(),identity={repository:e.repository,repositoryId:e.repositoryId,pr:e.pr,headSha:e.headSha,baseSha:e.baseSha,protectedBranch:e.protectedBranch,checkName:e.checkName,appId:15368,failureRef:'failed'};
+ expect(()=>prepareFailedCheck(identity)).toThrow(/identity|issuer/i);
+});

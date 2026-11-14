@@ -70,6 +70,9 @@ describe('CI producer provenance',()=>{
     '/repos/acme/shop/actions/runs/8/attempts/2/jobs':{jobs:[{id:9,run_id:8,run_attempt:2,name:'Produce evidence',status:'completed',conclusion:'success'}]},
     '/repos/acme/shop/actions/runs/8/artifacts':{artifacts:[{id:10,name:'behavproof-8-2-9',expired:false,digest:`sha256:${digest}`,workflow_run:{id:8,head_sha:sourceSha}}]},
   };
+  const currentRun='/repos/acme/shop/actions/runs/8';
+  routes[currentRun]=routes[currentRun+'/attempts/2'];
+  test('a successful old attempt cannot authorize a newer rerun',async()=>expect((await client({...routes,[currentRun]:{...routes[currentRun],run_attempt:3,status:'in_progress',conclusion:null}}).producer(ci,expected)).status).toBe('unknown'));
   test('checks independently pinned workflow, job, run/attempt and downloaded artifact digest',async()=>expect((await client(routes).producer(ci,expected)).status).toBe('pass'));
   test.each([
     {workflowSha:'e'.repeat(40)},{artifactDigest:'f'.repeat(64)},{jobName:'Other'},{ci:{...ci,runAttempt:1}},{ci:{...ci,workflowRef:'self-declared'}},

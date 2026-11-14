@@ -40,7 +40,8 @@ export interface PreparedCheck {
   readonly checkName: string;
   readonly conclusion: 'success'|'failure';
 }
-const preparations = new WeakMap<PreparedCheck, Readonly<PublicationExpectation>>();
+export type PublicationIdentity=Pick<PublicationExpectation,'repository'|'repositoryId'|'pr'|'headSha'|'baseSha'|'protectedBranch'|'checkName'|'appId'>;
+const preparations = new WeakMap<PreparedCheck,{identity:Readonly<PublicationIdentity>;publicationRef:string}>();
 function freeze<T>(value:T):T {
   if(value && typeof value==='object') {
     for(const child of Object.values(value)) freeze(child);
@@ -50,7 +51,7 @@ function freeze<T>(value:T):T {
 }
 const sha = (value:unknown) => typeof value==='string' && /^[a-f0-9]{40}$/.test(value);
 const rowKey = (row:Pick<Evaluation,'ruleId'|'scope'>) => hash({ruleId:row.ruleId,scope:[...new Set(row.scope)].sort()});
-function expectation(value:PublicationExpectation):Readonly<PublicationExpectation> {
+function protectedIdentity(value:PublicationIdentity){
   const e=structuredClone(value);
   // These are host configuration errors, not candidate failures.
   new GitHubTransport({repository:e.repository});
@@ -58,6 +59,19 @@ function expectation(value:PublicationExpectation):Readonly<PublicationExpectati
      !sha(e.headSha) || !sha(e.baseSha) || !e.protectedBranch ||
      !e.checkName || e.checkName.length>100 || !Number.isSafeInteger(e.appId) ||
      e.appId<1 || e.appId===15368) throw Error('Invalid protected publication identity');
+  return freeze(e);
+}
+/** Explicit failure-only path when producer/report evidence is missing. It cannot
+ * produce success and does not invent a subject, artifact, or producer CI. */
+export function prepareFailedCheck(value:PublicationIdentity & {failureRef:string}):PreparedCheck {
+ const e=protectedIdentity(value);
+ if(typeof value.failureRef!=='string'||!value.failureRef||value.failureRef.length>1000)throw Error('Invalid failure identity');
+ const result=freeze({headSha:e.headSha,checkName:e.checkName,conclusion:'failure' as const});
+ preparations.set(result,{identity:e,publicationRef:hash({failure:value.failureRef,head:e.headSha})});return result;
+}
+function expectation(value:PublicationExpectation):Readonly<PublicationExpectation> {
+  const e=structuredClone(value);
+  protectedIdentity(e);
   e.subject=EvidenceSubjectSchema.parse(e.subject);
   e.ci=CiIdentitySchema.parse(e.ci);
   HashSchema.parse(e.effectivePolicyHash); HashSchema.parse(e.registrationDigest);
@@ -112,7 +126,7 @@ export function prepareCheckPublication(
       verifyPacket(p)===true;
   } catch { /* Malformed, incomplete or unverifiable input yields a failure check. */ }
   const result=freeze({headSha:e.headSha,checkName:e.checkName,conclusion:accepted?'success' as const:'failure' as const});
-  preparations.set(result,e);
+  preparations.set(result,{identity:e,publicationRef:hash({ci:e.ci,registration:e.registrationDigest})});
   return result;
 }
 
@@ -125,7 +139,7 @@ export class GitHubCheckPublisher {
     this.authority=new GitHubAuthority(options);
   }
   async publish(decision:PreparedCheck) {
-    const e=preparations.get(decision);
+    const prepared=preparations.get(decision),e=prepared?.identity;
     if(!e || e.repository!==this.http.repository) throw Error('Unverified prepared publication');
     const repo=object(await this.http.request(this.http.prefix));
     if(String(repo.id)!==e.repositoryId || repo.full_name!==e.repository) throw Error('Current repository identity mismatch');
@@ -141,7 +155,7 @@ export class GitHubCheckPublisher {
     await current();
     const conclusion=decision.conclusion==='success' && protection.status==='pass'?'success':'failure';
     const body={name:e.checkName,head_sha:e.headSha,status:'completed',conclusion,
-      external_id:hash({repositoryId:e.repositoryId,pr:e.pr,head:e.headSha,ci:e.ci,registration:e.registrationDigest}),
+      external_id:hash({repositoryId:e.repositoryId,pr:e.pr,head:e.headSha,publicationRef:prepared!.publicationRef}),
       output:{title:conclusion==='success'?'BehavProof gate accepted':'BehavProof gate blocked',
         summary:conclusion==='success'?'Current authenticated evidence satisfies the protected obligations.':'Required evidence, upstream outcomes or protected authority is unavailable or unsatisfied.'}};
     const published=object(await this.http.request(`${this.http.prefix}/check-runs`,body));

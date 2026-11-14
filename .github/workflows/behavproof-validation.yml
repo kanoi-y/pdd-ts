@@ -27,6 +27,7 @@ jobs:
       - run: node scripts/package-smoke.mjs --online
       - run: node scripts/acceptance-flow.mjs
       - run: node scripts/protected-probe-flow.mjs
+      - run: node scripts/enforcement-probe-flow.mjs
       - name: Exercise credential-free Linux container
         if: matrix.os == 'ubuntu-latest'
         run: |

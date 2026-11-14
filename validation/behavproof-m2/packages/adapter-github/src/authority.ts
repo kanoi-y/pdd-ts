@@ -89,13 +89,14 @@ export class GitHubAuthority {
       const ci=CiIdentitySchema.parse(ciInput);
       if(hash(ci)!==hash(CiIdentitySchema.parse(expected.ci))||![ci.repositoryId,ci.runId,ci.jobId].every(x=>/^\d+$/.test(x))||!sha(expected.workflowSha)||!/^\.github\/workflows\/[\w.-]+\.ya?ml$/.test(expected.workflowPath)||ci.workflowRef!==`${this.http.repository}/${expected.workflowPath}@${expected.workflowSha}`||!['workflow_dispatch','workflow_run','push'].includes(ci.eventName)||!expected.jobName||!/^([a-f0-9]{64})$/.test(expected.artifactDigest)||expected.artifactName!==`behavproof-${ci.runId}-${ci.runAttempt}-${ci.jobId}`)return unknown('Producer does not match registered expectations');
       const path=`${this.http.prefix}/actions/runs/${ci.runId}`,attempt=`${path}/attempts/${ci.runAttempt}`;
-      const run=object(await this.http.request(attempt));
-      if(String(run.id)!==ci.runId||String(run.repository?.id)!==ci.repositoryId||run.repository?.full_name!==this.http.repository||run.head_sha!==expected.workflowSha||run.path!==expected.workflowPath||run.event!==ci.eventName||run.run_attempt!==ci.runAttempt||run.status!=='completed'||run.conclusion!=='success')return unknown('Run identity or outcome mismatch');
+      const current=async(endpoint:string)=>{const run=object(await this.http.request(endpoint));return String(run.id)===ci.runId&&String(run.repository?.id)===ci.repositoryId&&run.repository?.full_name===this.http.repository&&run.head_sha===expected.workflowSha&&run.path===expected.workflowPath&&run.event===ci.eventName&&run.run_attempt===ci.runAttempt&&run.status==='completed'&&run.conclusion==='success';};
+      if(!await current(path)||!await current(attempt))return unknown('Latest producer attempt identity or outcome mismatch');
       const jobs=await this.http.pages(`${attempt}/jobs`,'jobs'),matched=jobs.filter(j=>String(j.id)===ci.jobId&&j.name===expected.jobName);
       if(matched.length!==1||String(matched[0]!.run_id)!==ci.runId||matched[0]!.run_attempt!==ci.runAttempt||matched[0]!.status!=='completed'||matched[0]!.conclusion!=='success')return unknown('Job identity or outcome mismatch');
       const artifacts=await this.http.pages(`${path}/artifacts`,'artifacts'),found=artifacts.filter(a=>a.name===expected.artifactName);
       if(found.length!==1||found[0]!.expired!==false||found[0]!.digest!==`sha256:${expected.artifactDigest}`||String(found[0]!.workflow_run?.id)!==ci.runId||found[0]!.workflow_run?.head_sha!==expected.workflowSha)return unknown('Artifact identity or independently computed digest mismatch');
-      return observed({ci,artifactId:String(found[0]!.id)},[attempt]);
+      if(!await current(path))return unknown('Producer attempt changed during verification');
+      return observed({ci,artifactId:String(found[0]!.id)},[path,attempt]);
     }catch(error){return unknown(error instanceof Error?error.message:'Producer verification unavailable');}
   }
 }

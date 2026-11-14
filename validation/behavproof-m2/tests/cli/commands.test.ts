@@ -91,3 +91,10 @@ test('risk overrides add scoped critical obligations without disabling global ru
  expect(report.evaluations.some((e:any)=>e.ruleId==='productionTargetObserved'&&e.severity==='error'&&e.scope.includes('src/auth.ts')&&e.status==='unknown')).toBe(true);
  expect(report.evaluations.some((e:any)=>e.ruleId==='testResult'&&e.scope.length===0)).toBe(true);
 });
+test('protected CI generated config must retain candidate weakening for policyProtection to reject it',async()=>{
+ const {hostConfig}=await import('../../scripts/github-control.mjs'),{parseConfig}=await import('../../packages/core/src/index.js');const registered=parseConfig({schemaVersion:1,profile:'basic',rules:{testResult:{severity:'error'},policyProtection:{severity:'error'}},git:{base:'HEAD'}}),candidate={...registered,rules:{...registered.rules,testResult:{severity:'off'}}},head=spawnSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).stdout.trim(),generated=hostConfig({config:registered},head,'run1',candidate);
+ await mkdir(join(root,'.behavproof'));await writeFile(join(root,'.behavproof/host-config.json'),JSON.stringify(generated));const control=await mkdtemp(join(tmpdir(),'behavproof-policy-host-')),trustPath=join(control,'root.json');try{
+  await writeFile(trustPath,JSON.stringify({schemaVersion:1,policy:{schemaVersion:1,profileVersion:'1',rules:registered.rules},config:registered,baseline:{schemaVersion:1,commitSha:head,contracts:[],intents:[],extractorVersion:'1',discoveryDiagnostics:[],scope:[]},inputs:['package.json'],configPaths:[],manifests:[]}));
+  const result=run(['check','--mode','gate','--config','.behavproof/host-config.json','--trust-root',trustPath,'--format','json']);expect(result.status,result.stderr).toBe(1);expect(JSON.parse(result.stdout).evaluations.find((row:any)=>row.ruleId==='policyProtection').status).toBe('fail');
+ }finally{await rm(control,{recursive:true,force:true});}
+});

@@ -48,3 +48,5 @@ Development packaging checks: `node scripts/package-smoke.mjs --online` tests a 
 The explicit [protected producer components](docs/protected-producer.md) add case-scoped production-call observations, same-callback fault probes, live upstream-job verification and a dedicated App check publisher. `node scripts/protected-probe-flow.mjs` exercises the real Collector/worker/CLI path. The approved PR7 source has also been verified against its actual registered baseline (`docs/evidence/approved-probe-live.json`); its complete critical gate remains incomplete while quality/external evidence is absent.
 
 [Next-compatible route handler example](examples/next-route/README.md) uses native Web APIs and four executable contract cases without installing Next. Framework server/session/database verification remains an application responsibility.
+
+Protected GitHub integration and remaining real enforcement checks: [deployment proposal](docs/protected-github-deployment.md). The separate [enforcement probe](examples/enforcement-probe/README.md) has an explicit proposed policy and does not alter the approved critical example.
