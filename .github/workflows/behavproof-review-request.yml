@@ -1,0 +1,31 @@
+name: Open BehavProof consumer review
+on:
+  push:
+    branches: [codex/behavproof-review-request]
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  open-review:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Open review without candidate execution
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          repo='kanoi-y/pdd-ts'
+          if os.environ['GITHUB_REPOSITORY'] != repo:
+              raise SystemExit('Unexpected repository')
+          def api(path, data=None):
+              request=urllib.request.Request('https://api.github.com/repos/'+repo+path,data=None if data is None else json.dumps(data).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'},method='GET' if data is None else 'POST')
+              with urllib.request.urlopen(request,timeout=30) as response:
+                  return json.load(response)
+          head='codex/behavproof-consumer-integration'
+          branch=api('/branches/'+head)
+          if branch['commit']['sha'] != '42f3acb6f384f401726a88db158f93a8c803415e':
+              raise SystemExit('Review source changed')
+          result=api('/pulls',{'head':head,'base':'main','draft':True,'title':'外部BehavProof SDKを使う最小検証連携','body':'BehavProof本体は https://github.com/kanoi-y/BehavProof で管理します。このPRは専用リポジトリの固定SDK SHAを参照するワークフロー2件と、保護動作の正負制御用の小さなfixture6件のみ追加します。製品ソース・テスト・製品CIはコピーしません。\\n\\n既存PDD本体、main保護、main限定publisher環境は変更しません。Policy/Intent/ContractはこのHEADへの人間の実Approveと外部登録が済むまで未承認です。このtoyだけを実PDDの価値検証とはしません。\\n\\n制御スクリプトの実Git/実Vitest接続検証と最終レビューを進行中のためdraftです。App read権限・保護変数・隔離base保護・main統合は未実施。導入案: https://github.com/kanoi-y/BehavProof/blob/b3fd5588795530d8c9a14cea6b4f3a187d398afb/docs/protected-github-deployment.md'})
+          print(result['html_url'])
+          PY
