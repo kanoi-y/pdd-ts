@@ -1,0 +1,58 @@
+# Review/provision this main-only workflow separately. Not active on feature branches.
+name: BehavProof protected producer
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: PR targeting the isolated enforcement branch
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+jobs:
+  collect:
+    if: github.repository == 'kanoi-y/pdd-ts' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: sdk
+    env:
+      BEHAVPROOF_WORKFLOW_SHA: ${{ vars.BEHAVPROOF_WORKFLOW_SHA }}
+      BEHAVPROOF_CURRENT_WORKFLOW_SHA: ${{ github.workflow_sha }}
+      BEHAVPROOF_SDK_SHA: ${{ vars.BEHAVPROOF_SDK_SHA }}
+      BEHAVPROOF_REGISTRATION_JSON: ${{ vars.BEHAVPROOF_REGISTRATION_JSON }}
+      BEHAVPROOF_REGISTRATION_DIGEST: ${{ vars.BEHAVPROOF_REGISTRATION_DIGEST }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: kanoi-y/BehavProof
+          ref: ${{ vars.BEHAVPROOF_SDK_SHA }}
+          path: sdk
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Stage public verifier runtime
+        run: node scripts/prepare-sandbox-sdk.mjs --built --output /tmp/behavproof-public-sdk
+      - name: Pull fixed runtime
+        run: docker pull --platform linux/amd64 node:24.14.1-bookworm@sha256:80fc934952c8f1b2b4d39907af7211f8a9fff1a4c2cf673fb49099292c251cec
+      - id: produce
+        name: Collect inside credential-free container
+        env:
+          TARGET_PR: ${{ inputs.pr }}
+        run: node scripts/github-produce.mjs --pr "$TARGET_PR" --sandbox-sdk /tmp/behavproof-public-sdk --output /tmp/behavproof-producer-artifact
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always() && steps.produce.outputs.artifact_name != ''
+        with:
+          name: ${{ steps.produce.outputs.artifact_name }}
+          path: /tmp/behavproof-producer-artifact/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7

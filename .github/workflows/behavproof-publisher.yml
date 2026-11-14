@@ -1,0 +1,110 @@
+# Dedicated App credentials are used only by the protected main final-gate job.
+name: BehavProof protected publisher
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: PR targeting the isolated enforcement branch
+        required: true
+        type: string
+      producer_run:
+        description: Completed registered producer run ID
+        required: true
+        type: string
+      skip_verify:
+        description: Isolated AC-18 negative test only (always blocks the gate)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+jobs:
+  verify:
+    if: github.repository == 'kanoi-y/pdd-ts' && github.ref == 'refs/heads/main' && !inputs.skip_verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: sdk
+    env:
+      BEHAVPROOF_WORKFLOW_SHA: ${{ vars.BEHAVPROOF_WORKFLOW_SHA }}
+      BEHAVPROOF_CURRENT_WORKFLOW_SHA: ${{ github.workflow_sha }}
+      BEHAVPROOF_SDK_SHA: ${{ vars.BEHAVPROOF_SDK_SHA }}
+      BEHAVPROOF_REGISTRATION_JSON: ${{ vars.BEHAVPROOF_REGISTRATION_JSON }}
+      BEHAVPROOF_REGISTRATION_DIGEST: ${{ vars.BEHAVPROOF_REGISTRATION_DIGEST }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: kanoi-y/BehavProof
+          ref: ${{ vars.BEHAVPROOF_SDK_SHA }}
+          path: sdk
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Verify registered producer and current source
+        env:
+          TARGET_PR: ${{ inputs.pr }}
+          PRODUCER_RUN: ${{ inputs.producer_run }}
+        run: node scripts/github-verify.mjs --pr "$TARGET_PR" --producer-run "$PRODUCER_RUN" --verify-only
+  gate:
+    needs: [verify]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: pdd-publisher
+    defaults:
+      run:
+        working-directory: sdk
+    env:
+      BEHAVPROOF_WORKFLOW_SHA: ${{ vars.BEHAVPROOF_WORKFLOW_SHA }}
+      BEHAVPROOF_CURRENT_WORKFLOW_SHA: ${{ github.workflow_sha }}
+      BEHAVPROOF_SDK_SHA: ${{ vars.BEHAVPROOF_SDK_SHA }}
+      BEHAVPROOF_REGISTRATION_JSON: ${{ vars.BEHAVPROOF_REGISTRATION_JSON }}
+      BEHAVPROOF_REGISTRATION_DIGEST: ${{ vars.BEHAVPROOF_REGISTRATION_DIGEST }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: kanoi-y/BehavProof
+          ref: ${{ vars.BEHAVPROOF_SDK_SHA }}
+          path: sdk
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
+      - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        id: app
+        with:
+          app-id: ${{ vars.PDD_APP_ID }}
+          private-key: ${{ secrets.PDD_APP_PRIVATE_KEY }}
+          owner: kanoi-y
+          repositories: pdd-ts
+          permission-checks: write
+          permission-contents: read
+          permission-pull-requests: read
+          permission-actions: read
+          permission-administration: read
+      - name: Prepare current authenticated data
+        env:
+          GITHUB_TOKEN: ${{ steps.app.outputs.token }}
+          TARGET_PR: ${{ inputs.pr }}
+          PRODUCER_RUN: ${{ inputs.producer_run }}
+        run: node scripts/github-verify.mjs --pr "$TARGET_PR" --producer-run "$PRODUCER_RUN"
+      - name: Evaluate protected gate
+        env:
+          GITHUB_TOKEN: ${{ steps.app.outputs.token }}
+        run: behavproof check --root /tmp/behavproof-project --mode gate --trust-root /tmp/behavproof-control/trust-root.json --config .behavproof/host-config.json --format json --output .behavproof/gate.json
+      - name: Publish success or explicit failure
+        if: always() && steps.app.outcome == 'success'
+        env:
+          GITHUB_TOKEN: ${{ steps.app.outputs.token }}
+          TARGET_PR: ${{ inputs.pr }}
+        run: node scripts/github-publish.mjs --pr "$TARGET_PR"

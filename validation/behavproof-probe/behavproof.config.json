@@ -1,0 +1,15 @@
+{
+  "schemaVersion":1,
+  "profile":"basic",
+  "git":{"base":"HEAD"},
+  "rules":{
+    "pipelineIntegrity":{"severity":"error"},
+    "policyProtection":{"severity":"error"},
+    "intentApproval":{"severity":"error"},
+    "contractExecution":{"severity":"error"},
+    "negativeCases":{"severity":"error"},
+    "productionTargetObserved":{"severity":"error"},
+    "mutationSensitivityObserved":{"severity":"error"}
+  },
+  "contracts":{"enabled":true,"sources":[{"type":"vitest-inline","include":["tests/**/*.ts"]}]}
+}
