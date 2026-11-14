@@ -30,7 +30,7 @@ jobs:
     env:
       BEHAVPROOF_WORKFLOW_SHA: ${{ vars.BEHAVPROOF_WORKFLOW_SHA }}
       BEHAVPROOF_CURRENT_WORKFLOW_SHA: ${{ github.workflow_sha }}
-      BEHAVPROOF_SDK_SHA: ${{ vars.BEHAVPROOF_SDK_SHA }}
+      BEHAVPROOF_SDK_SHA: 6b594be5e54cd7caea282ff9ecf215f52577e550
       BEHAVPROOF_REGISTRATION_JSON: ${{ vars.BEHAVPROOF_REGISTRATION_JSON }}
       BEHAVPROOF_REGISTRATION_DIGEST: ${{ vars.BEHAVPROOF_REGISTRATION_DIGEST }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: kanoi-y/BehavProof
-          ref: ${{ vars.BEHAVPROOF_SDK_SHA }}
+          ref: 6b594be5e54cd7caea282ff9ecf215f52577e550
           path: sdk
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -64,14 +64,14 @@ jobs:
     env:
       BEHAVPROOF_WORKFLOW_SHA: ${{ vars.BEHAVPROOF_WORKFLOW_SHA }}
       BEHAVPROOF_CURRENT_WORKFLOW_SHA: ${{ github.workflow_sha }}
-      BEHAVPROOF_SDK_SHA: ${{ vars.BEHAVPROOF_SDK_SHA }}
+      BEHAVPROOF_SDK_SHA: 6b594be5e54cd7caea282ff9ecf215f52577e550
       BEHAVPROOF_REGISTRATION_JSON: ${{ vars.BEHAVPROOF_REGISTRATION_JSON }}
       BEHAVPROOF_REGISTRATION_DIGEST: ${{ vars.BEHAVPROOF_REGISTRATION_DIGEST }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: kanoi-y/BehavProof
-          ref: ${{ vars.BEHAVPROOF_SDK_SHA }}
+          ref: 6b594be5e54cd7caea282ff9ecf215f52577e550
           path: sdk
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
