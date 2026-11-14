@@ -1,0 +1,1 @@
+{"schemaVersion":1,"mode":"audit","profile":"critical","git":{"base":"HEAD"},"reports":{"vitest":".behavproof/input/vitest.json"},"contracts":{"enabled":true,"sources":[{"type":"vitest-inline","include":["tests/**/*.ts"]}]}}

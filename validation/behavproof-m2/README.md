@@ -3,7 +3,7 @@
 TypeScript / Node.js 24 / Vitest evidence auditing and executable contract registry. This checkout implements M1/M2 libraries and CLI; live external protection acceptance is still in progress. Nothing has been published to npm.
 
 ```sh
-npm ci --ignore-scripts
+npm ci --ignore-scripts --cache .npm-cache
 npm run build
 npm test
 node packages/cli/dist/index.js --help
