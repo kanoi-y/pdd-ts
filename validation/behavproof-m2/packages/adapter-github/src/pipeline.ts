@@ -1,5 +1,16 @@
 import { parseDocument } from 'yaml';
+import { parseArgs } from 'node:util';
 import { observed, unknown } from './transport.js';
+function isGateCommand(command:string):boolean {
+  // Shell expansion/compound commands are outside this static diagnostic.
+  if(/[;&|\n`$<>]/.test(command))return false;
+  const words=command.trim().split(/\s+/);
+  if(words[0]!=='behavproof'||words[1]!=='check')return false;
+  try {
+    const {values,tokens}=parseArgs({args:words.slice(2),strict:true,allowPositionals:false,tokens:true,options:{mode:{type:'string'},'trust-root':{type:'string'},config:{type:'string'},profile:{type:'string'},base:{type:'string'},head:{type:'string'},format:{type:'string'},output:{type:'string'},root:{type:'string'}}});
+    return values.mode==='gate'&&tokens.filter(t=>t.kind==='option'&&t.name==='mode').length===1;
+  }catch{return false;}
+}
 export function evaluateUpstream(jobs:Record<string,string>,available:string[],expected:{requiredJobs:string[];artifacts:string[]}){
   if(!expected.requiredJobs.length||!expected.artifacts.length||new Set(expected.requiredJobs).size!==expected.requiredJobs.length||new Set(expected.artifacts).size!==expected.artifacts.length||new Set(available).size!==available.length)return unknown('Empty or ambiguous upstream requirements');
   if(expected.requiredJobs.some(name=>jobs[name]==='failure'))return {status:'fail' as const,reasons:['Upstream job failed'],sources:[]};
@@ -24,7 +35,7 @@ export function diagnoseWorkflow(source:string,expected:{gateJob:string;required
     if(!Array.isArray(needs)||!expected.requiredJobs.every(name=>needs.includes(name)&&value.jobs[name]))return invalid('Final gate omits required upstream jobs');
     const steps=Array.isArray(gate.steps)?gate.steps:[];
     const commands=steps.filter((s:any)=>typeof s.run==='string'&&/^behavproof check\b/.test(s.run.trim()));
-    if(commands.length!==1||commands[0].if||commands[0]['continue-on-error']||!/(?:^|\s)--mode\s+gate(?:\s|$)/.test(commands[0].run)||/[;&|\n`$<>]/.test(commands[0].run))return invalid('Missing unconditional gate command');
+    if(commands.length!==1||commands[0].if||commands[0]['continue-on-error']||!isGateCommand(commands[0].run))return invalid('Missing unconditional effective gate command');
     return {internal:observed({gateJob:expected.gateJob,requiredJobs:[...expected.requiredJobs].sort()},[]),protection};
   }catch{return invalid('Workflow parsing failed');}
 }

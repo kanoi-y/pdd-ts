@@ -2,8 +2,6 @@ name: BehavProof validation
 on:
   push:
     branches: [codex/behavproof-m2-validation]
-  pull_request:
-    paths: ['validation/behavproof-m2/**', '.github/workflows/behavproof-validation.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -61,6 +59,6 @@ jobs:
           if existing:
               print(existing[0]['html_url'])
           else:
-              result = api('POST', '/pulls', {'head': 'codex/behavproof-m2-validation', 'base': 'main', 'draft': True, 'title': 'BehavProof M2の隔離検証', 'body': '## 変更内容\nBehavProofの検証用ソースをvalidation/behavproof-m2へ配置し、3 OSの実CIで確認します。既存PDD本体・main保護設定は変更していません。\n\n## 実際の振る舞い\n正常な契約比較・リファクタは比較pass。偽物コールバック、故障、skip・削除の負例を検査し、criticalの未充足証拠はゲートexit1として残します。ローカルでは182テスト・配布インストール・公開フローを確認済みです。\n\n## 残る制限\nこのCIはBehavProof必須ゲートの外部保護ではありません。新規変更への人間承認、保護ゲートのskip・削除・偽発行元の実地試験は未完了です。自動マージ・保護設定変更・npm公開は行いません。'})
+              result = api('POST', '/pulls', {'head': 'codex/behavproof-m2-validation', 'base': 'main', 'draft': True, 'title': 'BehavProof M2の隔離検証', 'body': '## 変更内容\nBehavProofの検証用ソースをvalidation/behavproof-m2へ配置し、3 OSの実CIで確認します。既存PDD本体・main保護設定は変更していません。\n\n## 実際の振る舞い\n正常な契約比較・リファクタは比較pass。偽物コールバック、故障、skip・削除の負例を検査し、criticalの未充足証拠はゲートexit1として残します。ローカルテスト・配布インストール・公開フローを確認済みです。\n\n## 残る制限\nこのCIはBehavProof必須ゲートの外部保護ではありません。新規変更への人間承認、保護ゲートのskip・削除・偽発行元の実地試験は未完了です。自動マージ・保護設定変更・npm公開は行いません。'})
               print(result['html_url'])
           PYTHON

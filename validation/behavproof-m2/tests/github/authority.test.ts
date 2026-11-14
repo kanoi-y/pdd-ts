@@ -102,3 +102,20 @@ test('external required check protection requires an issuer and enforced admin p
  expect((await client().protection('main',approvalOptions.requiredChecks)).status).toBe('unknown');
  expect((await c.protection('main',[{context:'BehavProof protected gate',appId:88}])).status).toBe('unknown');
 });
+describe('effective final-gate arguments',()=>{
+ const definition=(command:string)=>`on: [pull_request]\npermissions: {contents: read}\njobs:\n  tests:\n    runs-on: ubuntu-latest\n    steps: [{run: npm test}]\n  gate:\n    needs: [tests]\n    if: always()\n    runs-on: ubuntu-latest\n    steps: [{run: '${command}'}]\n`;
+ test.each([
+  'behavproof check --mode gate --mode audit',
+  'behavproof check --mode gate --mode=audit',
+  'behavproof check --mode audit --mode gate',
+  'behavproof check --mode gate --help',
+  'behavproof check --help --mode gate',
+  'behavproof check --mode gate --version',
+  'behavproof check --mode gate -- --help',
+ ])('does not certify a bypass or ambiguous command: %s',command=>{
+  expect(diagnoseWorkflow(definition(command),{gateJob:'gate',requiredJobs:['tests']}).internal.status).toBe('unknown');
+ });
+ test('recognizes one explicit effective gate mode in equals syntax',()=>{
+  expect(diagnoseWorkflow(definition('behavproof check --mode=gate --format json'),{gateJob:'gate',requiredJobs:['tests']}).internal.status).toBe('pass');
+ });
+});

@@ -12,3 +12,10 @@ test('generated documents render input/expected and gracefully reject malformed 
  expect(docs.markdown).toContain('Input');expect(docs.markdown).toContain('Expected');expect(docs.html).toContain('Input');expect(docs.json).toContain('unknown');
  expect(()=>buildEvidenceGraph({registry,executions:[],rules:[],approvals:[{}] as any,expectedBindings:{}})).not.toThrow();
 });
+test.each([false,true])('a contract with absent/empty execution requirements keeps aggregation incomplete (%s)',explicitEmpty=>{
+ const external={id:'B',kind:'external' as const,intentIds:[],revisionHash:'b'.repeat(64),sourceRef:'external.json',...(explicitEmpty?{caseIds:[]}: {})};
+ const result=evaluateAssurance({...registry,contracts:[c,external]},[row],bindings,()=>true);
+ expect(result.contract_declared).toBe('pass');
+ expect(result.binding_verified).toBe('unknown');expect(result.cases_executed).toBe('unknown');
+ expect(evaluateAssurance(registry,[row],bindings,()=>true).cases_executed).toBe('pass');
+});

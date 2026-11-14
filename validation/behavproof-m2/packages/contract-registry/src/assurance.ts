@@ -58,6 +58,7 @@ export function evaluateAssurance(
   const failed = matched.some((rs) => rs.some((r) => r.status === "fail"));
   const complete =
     discoveryComplete &&
+    contracts.every((contract) => (contract.caseIds?.length ?? 0) > 0) &&
     required.length > 0 &&
     matched.every((rs) => {
       const ids = rs.map((r) => r.testId ?? "");
