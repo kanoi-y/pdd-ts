@@ -22,10 +22,10 @@ jobs:
               request=urllib.request.Request('https://api.github.com/repos/'+repo+path,data=None if data is None else json.dumps(data).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'},method='GET' if data is None else 'POST')
               with urllib.request.urlopen(request,timeout=30) as response:
                   return json.load(response)
-          head='codex/behavproof-consumer-integration'
+          head='codex/behavproof-publisher-cli-launch'
           branch=api('/branches/'+head)
-          if branch['commit']['sha'] != '42f3acb6f384f401726a88db158f93a8c803415e':
+          if branch['commit']['sha'] != '149009a060e0f3011fb0407db2d497914e34f3bd':
               raise SystemExit('Review source changed')
-          result=api('/pulls',{'head':head,'base':'main','draft':True,'title':'外部BehavProof SDKを使う最小検証連携','body':'BehavProof本体は https://github.com/kanoi-y/BehavProof で管理します。このPRは専用リポジトリの固定SDK SHAを参照するワークフロー2件と、保護動作の正負制御用の小さなfixture6件のみ追加します。製品ソース・テスト・製品CIはコピーしません。\\n\\n既存PDD本体、main保護、main限定publisher環境は変更しません。Policy/Intent/ContractはこのHEADへの人間の実Approveと外部登録が済むまで未承認です。このtoyだけを実PDDの価値検証とはしません。\\n\\n制御スクリプトの実Git/実Vitest接続検証と最終レビューを進行中のためdraftです。App read権限・保護変数・隔離base保護・main統合は未実施。導入案: https://github.com/kanoi-y/BehavProof/blob/b3fd5588795530d8c9a14cea6b4f3a187d398afb/docs/protected-github-deployment.md'})
+          result=api('/pulls',json.loads("{\"head\":\"codex/behavproof-publisher-cli-launch\",\"base\":\"main\",\"draft\":true,\"title\":\"BehavProof最終gateのCLI実行リンクをビルド後に作成する\",\"body\":\"実地検証で、収集・照合・App認証の成功後に最終CLIが `command not found`（exit 127）で停止しました。ビルド前の `npm ci --ignore-scripts` 時点にはdistが無く、workspaceの実行リンクが作成されないためです。\\n\\n変更は `.github/workflows/behavproof-publisher.yml` のgateジョブに、ビルド直後の `npm rebuild @behavproof/cli --ignore-scripts --offline` を1行追加するだけです。SDK a94329e61bd0a56141b5f6c9f9156b9aa3b29b56と承認済み契約・Policyは維持します。最終gate条件・失敗時の専用チェック・main保護・App鍵の利用範囲は変えません。\\n\\nBehavProof側で実CLI起動の回帰テストを追加し、修正前127→修正後help成功を確認。独立レビューも同じ再現とlifecycle hooksが実行されないことを確認しました。全体CIの完了後にreadyへ変更します。\\n\\nmain統合後は、承認登録e236を維持し、保護ワークフローSHAを統合後のmainへ更新して正常系と負例を再実行します。実地での最終成功は未確認です。\"}"))
           print(result['html_url'])
           PY
