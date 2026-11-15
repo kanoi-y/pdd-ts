@@ -22,10 +22,10 @@ jobs:
               request=urllib.request.Request('https://api.github.com/repos/'+repo+path,data=None if data is None else json.dumps(data).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'},method='GET' if data is None else 'POST')
               with urllib.request.urlopen(request,timeout=30) as response:
                   return json.load(response)
-          head='codex/behavproof-publisher-cli-launch'
+          head='codex/behavproof-sdk-3950-update'
           branch=api('/branches/'+head)
-          if branch['commit']['sha'] != '149009a060e0f3011fb0407db2d497914e34f3bd':
+          if branch['commit']['sha'] != '9f8d8acaf68e878ea7c7fbeb986e1f2e527c5832':
               raise SystemExit('Review source changed')
-          result=api('/pulls',json.loads("{\"head\":\"codex/behavproof-publisher-cli-launch\",\"base\":\"main\",\"draft\":true,\"title\":\"BehavProof最終gateのCLI実行リンクをビルド後に作成する\",\"body\":\"実地検証で、収集・照合・App認証の成功後に最終CLIが `command not found`（exit 127）で停止しました。ビルド前の `npm ci --ignore-scripts` 時点にはdistが無く、workspaceの実行リンクが作成されないためです。\\n\\n変更は `.github/workflows/behavproof-publisher.yml` のgateジョブに、ビルド直後の `npm rebuild @behavproof/cli --ignore-scripts --offline` を1行追加するだけです。SDK a94329e61bd0a56141b5f6c9f9156b9aa3b29b56と承認済み契約・Policyは維持します。最終gate条件・失敗時の専用チェック・main保護・App鍵の利用範囲は変えません。\\n\\nBehavProof側で実CLI起動の回帰テストを追加し、修正前127→修正後help成功を確認。独立レビューも同じ再現とlifecycle hooksが実行されないことを確認しました。全体CIの完了後にreadyへ変更します。\\n\\nmain統合後は、承認登録e236を維持し、保護ワークフローSHAを統合後のmainへ更新して正常系と負例を再実行します。実地での最終成功は未確認です。\"}"))
+          result=api('/pulls',json.loads("{\"head\":\"codex/behavproof-sdk-3950-update\",\"base\":\"main\",\"draft\":false,\"title\":\"BehavProof SDKを3950ed5へ更新して再検証する\",\"body\":\"## 変更内容\\n\\nproducer/publisherの固定SDK参照6箇所を、a94329eからBehavProof PR1マージ済みの3950ed506a83697b3927a17e22f147484e9ac335へ更新します。変更は2ファイルです。登録digest e236a6…、Policy/Intent/Contract、App権限、mainと隔離baseの保護、main限定pdd-publisher環境を維持します。\\n\\n## 実際の検証\\n\\n新SDKの実PDD64入力フローを再実行しました。正常・Contract無変更リファクタは64比較成功、偽callbackは観測/カナリア未確認、常時受理の実装故障は63比較失敗、実装と期待値の未承認な同時緩和はgate failureです。ローカル実行には外部パイプラインの証拠がないため、全体gateは未完了を保持しています。検証した本番関数のSHA-256は現在のpdd-ts main c9bf2a1と一致しています。\\n\\n## 残る条件\\n\\nこのHEADの通常CIとPDD protected gate、main必須CODEOWNERSレビューを確認します。通常マージ後に保護workflowの登録SHAを更新し、新SDKを使うmain producer/publisherで正常・負例を再検証します。新SDKでのGitHub実地完了は現時点では未確認です。製品実装をpdd-tsへコピーしません。\"}"))
           print(result['html_url'])
           PY
