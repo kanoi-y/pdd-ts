@@ -839,4 +839,4 @@ const acceptance=defineContract({
     }
   ]
 });
-contractTest.each(acceptance,({expected})=>expected);
+contractTest.each(acceptance,({input})=>canAcceptEvidence(input.complete,input.scoped,input.successful,input.fresh,input.authentic,input.approved));
