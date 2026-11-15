@@ -7,9 +7,10 @@ import { fileURLToPath } from 'node:url';
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const work = await mkdtemp(path.join(repo, '.tools/package-smoke-'));
 const env = { PATH: path.join(repo, '.tools/dafny-4.11.0/dafny') + path.delimiter + process.env.PATH, COREPACK_HOME: path.join(repo, '.tools/corepack'), COREPACK_ENABLE_NETWORK: '0' };
-function run(command, args, cwd = repo) {
-  const result = spawnSync(command, args, { cwd, env, encoding: 'utf8', timeout: 180000, maxBuffer: 2_000_000 });
-  if (result.status !== 0) throw new Error(`${command} failed (${result.status}):\n${result.stdout}\n${result.stderr}`);
+function run(command, args, cwd = repo, timeout = 180000) {
+  const started = performance.now();
+  const result = spawnSync(command, args, { cwd, env, encoding: 'utf8', timeout, maxBuffer: 2_000_000 });
+  if (result.error || result.status !== 0) throw new Error(`${command} ${args.join(' ')} failed (status=${result.status}, signal=${result.signal ?? 'none'}, error=${result.error?.code ?? 'none'}, elapsedMs=${Math.round(performance.now() - started)}, timeoutMs=${timeout}):\n${result.stdout}\n${result.stderr}`);
   return result.stdout;
 }
 const policy = JSON.parse(await readFile(path.join(repo, 'package.json'), 'utf8')).pnpm;
@@ -46,8 +47,12 @@ const model=JSON.parse(run(cli,['model-check','--project',path.join(repo,'exampl
 if(model.status!=='passed'||!model.exhaustive||model.guarantee!=='finite-model-only')throw new Error('Packed model checker incomplete');
 const trials = [];
 for (const sample of ['examples/existing-hono', 'examples/greenfield-domain', 'examples/job-queue', '.']) {
-  const packet = JSON.parse(run(cli, ['verify', '--project', path.resolve(repo, sample), '--json']));
+  // Root verification serially runs four bounded empirical suites and proofs.
+  const timeout = sample === '.' ? 600000 : 180000, started = performance.now();
+  console.log(`Packed verify start: ${sample}, timeoutMs=${timeout}`);
+  const packet = JSON.parse(run(cli, ['verify', '--project', path.resolve(repo, sample), '--json'], repo, timeout));
   if (packet.gate.status !== 'trial' || packet.approval !== 'pending' || packet.evidence.some(item => item.status !== 'passed')) throw new Error('Packed verification incomplete: ' + sample);
+  console.log(`Packed verify passed: ${sample}, elapsedMs=${Math.round(performance.now() - started)}`);
   trials.push({ project: sample, commit: packet.commit, dirty: packet.dirty, gate: packet.gate.status, approval: packet.approval, evidence: packet.evidence.map(item => ({ kind: item.kind, status: item.status, counts: item.counts })) });
 }
 await writeFile(path.join(repo, '.tools/packed-trials.json'), JSON.stringify(trials, null, 2) + '\n');

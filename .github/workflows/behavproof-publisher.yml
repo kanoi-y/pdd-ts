@@ -79,6 +79,7 @@ jobs:
           node-version: '24'
       - run: npm ci --ignore-scripts
       - run: npm run build
+      - run: npm rebuild @behavproof/cli --ignore-scripts --offline
       - run: echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
       - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
         id: app
