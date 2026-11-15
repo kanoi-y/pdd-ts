@@ -160,4 +160,4 @@ node dist/cli/main.js verify --project examples/job-queue
 
 高リスクのReview Packetには、主要Diff・失敗後の状態・境界・Atlas差分の未確認チェックリストを表示します。これは確認作業の案内で、承認済みや証明成功の印ではありません。
 
-BehavProof disposable control: required-artifact-missing.
+BehavProof disposable control: stale-attempt.
