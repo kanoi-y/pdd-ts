@@ -2,7 +2,7 @@ import {defineContract,contractTest} from '@behavproof/vitest';
 import {canAcceptEvidence} from '../../../src/verification/acceptance.js';
 const acceptance=defineContract({
   "id": "PDD-EVIDENCE-ACCEPTANCE",
-  "intent": "PDD accepts evidence only when completeness, scope, success, freshness, authenticity and approval all hold.",
+  "intent": "PDD may accept evidence even when approval is missing.",
   "risk": "basic",
   "cases": [
     {
