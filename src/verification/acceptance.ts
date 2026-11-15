@@ -8,5 +8,5 @@ export function canAcceptEvidence(
   authentic: boolean,
   approved: boolean,
 ): boolean {
-  return true;
+  return complete && scoped && successful && fresh && authentic && approved;
 }

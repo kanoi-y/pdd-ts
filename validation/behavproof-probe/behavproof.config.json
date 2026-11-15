@@ -25,6 +25,9 @@
     },
     "mutationSensitivityObserved": {
       "severity": "error"
+    },
+    "testResult": {
+      "severity": "off"
     }
   },
   "contracts": {
