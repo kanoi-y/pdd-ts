@@ -159,3 +159,5 @@ node dist/cli/main.js verify --project examples/job-queue
 モデル検査は**本番コードの証明ではありません**。公平性や最終的成功、外部副作用のexactly-onceは主張しません。`verify`ではモデル検査とSQLiteの実テストを別々の必須Evidenceにし、モデル・対応表・実装入力の変更で過去の結果をstaleにします。[設定・モデルと実装の対応・制約](examples/job-queue/README.md)を参照してください。
 
 高リスクのReview Packetには、主要Diff・失敗後の状態・境界・Atlas差分の未確認チェックリストを表示します。これは確認作業の案内で、承認済みや証明成功の印ではありません。
+
+<!-- BehavProof SDK 3950ed5 isolated revalidation; disposable PR, not for merge. -->
